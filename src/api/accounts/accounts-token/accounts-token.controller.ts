@@ -7,10 +7,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { JwtStrategy } from '../../../auth/strategy';
 import { User } from '../../../entities/User.entity';
 import { UserJWTPayload } from '../../../types';
 import { JWTCookieHelper } from '../jwt-cookie-helper';
@@ -20,7 +20,7 @@ import { AccountsTokenService } from './accounts-token.service';
 @Controller('accounts/tokens')
 export class AccountsTokenController {
   constructor(
-    private readonly jwtStrategy: JwtStrategy,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly loginService: AccountsTokenService,
     private readonly jwtCookieHelper: JWTCookieHelper,
@@ -40,7 +40,14 @@ export class AccountsTokenController {
         'Failed to refresh token; You must login.',
       );
     }
-    const payload: UserJWTPayload = await this.jwtStrategy.validate(token);
+    let payload: UserJWTPayload;
+    try {
+      payload = await this.jwtService.verify(token);
+    } catch (e) {
+      throw new UnauthorizedException(
+        'Failed to refresh token; You must login.',
+      );
+    }
     const { user, tokens } = await this.loginService.refresh(
       payload.sub,
       payload.account.id,

@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { JWTAuthGuard } from '../../auth/guard';
-import { CurrentUser } from '../../decorators/current-user';
+import { CurrentUser } from '../../decorators/user.decorator';
 import { Account } from '../../entities/Account.entity';
 import { UserJWTPayload } from '../../types';
 import { AccountsService } from './accounts.service';

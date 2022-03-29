@@ -10,15 +10,16 @@ import { JwtStrategy } from './strategy';
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        console.log(configService.get<Algorithm>('jwt.algorithm'));
         return {
-          issuer: configService.get<string>('jwt.issuer'),
+          secretOrPrivateKey: JWT_KEY.privateKey,
           privateKey: JWT_KEY.privateKey,
           publicKey: JWT_KEY.publicKey,
+          audience: configService.get<string[]>('jwt.audience'),
+          issuer: configService.get<string>('jwt.issuer'),
           signOptions: {
             algorithm: configService.get<Algorithm>('jwt.algorithm'),
           },
@@ -31,6 +32,6 @@ import { JwtStrategy } from './strategy';
     }),
   ],
   providers: [AuthenticationService, JwtStrategy],
-  exports: [AuthenticationService, JwtStrategy],
+  exports: [AuthenticationService, JwtModule],
 })
 export class AuthenticationModule {}

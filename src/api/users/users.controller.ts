@@ -12,7 +12,7 @@ import {
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
 import { JWTAuthGuard } from '../../auth/guard';
-import { CurrentUser } from '../../decorators/current-user';
+import { CurrentUser } from '../../decorators/user.decorator';
 import { User } from '../../entities/User.entity';
 import { UserJWTPayload } from '../../types';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -28,7 +28,7 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JWTAuthGuard)
-  async getMyInfo({ user }: { user: UserJWTPayload }): Promise<User> {
+  async getMyInfo(@CurrentUser() user: UserJWTPayload): Promise<User> {
     return this.usersService.getUserInfo(user.id);
   }
 
