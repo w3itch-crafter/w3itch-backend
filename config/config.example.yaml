@@ -9,6 +9,7 @@ db:
   username:
   password:
   database:
+  timezone: 'Z' # UTC
   charset: utf8mb4
 
 redis:
