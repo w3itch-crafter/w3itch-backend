@@ -1,0 +1,123 @@
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { AuthenticationService } from '../../auth/service';
+import { Account } from '../../entities/Account.entity';
+import { User } from '../../entities/User.entity';
+import { UsersService } from '../users/users.service';
+import { AccountsVerifier } from './accounts.verifier';
+import { JWTTokens, Platforms } from './type';
+
+@Injectable()
+export class AccountsService {
+  private logger = new Logger(AccountsService.name);
+  constructor(
+    @InjectRepository(Account)
+    private readonly accountsRepository: Repository<Account>,
+    private readonly authService: AuthenticationService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  async find(searchParams: any): Promise<Account[]> {
+    return await this.accountsRepository.find(searchParams);
+  }
+  async findOne(searchParams: any, options = {}): Promise<Account> {
+    return await this.accountsRepository.findOne(searchParams, options);
+  }
+  async save(saveParams: any): Promise<Account> {
+    return await this.accountsRepository.save(saveParams);
+  }
+  async delete(accountId: number) {
+    return await this.accountsRepository.delete(accountId);
+  }
+
+  async getUser(userAccountData: {
+    account_id: string;
+    platform: string;
+  }): Promise<{ user: User; userAccount: Account }> {
+    const userAccount: Account = await this.findOne(userAccountData);
+
+    const user = userAccount
+      ? await this.usersService.findOne(userAccount.user_id)
+      : null;
+
+    return { user, userAccount };
+  }
+
+  async initUser(userAccountData: {
+    account_id: string;
+    platform: string;
+  }): Promise<{ user: User; userAccount: Account }> {
+    const user = await this.usersService.save();
+    const userAccount = await this.save({
+      ...userAccountData,
+      user_id: user.id,
+    });
+
+    return { user, userAccount };
+  }
+
+  async signup(accountDto: any, platform: Platforms, verify: AccountsVerifier) {
+    await verify(accountDto);
+
+    const userAccountData = {
+      account_id: accountDto.account,
+      platform,
+    };
+
+    const hasAlreadySigned: { user; userAccount } = await this.getUser(
+      userAccountData,
+    );
+
+    if (hasAlreadySigned.user) {
+      throw new BadRequestException('User is signed already, please login.');
+    }
+
+    const { user, userAccount } = await this.initUser(userAccountData);
+
+    const tokens: JWTTokens = await this.authService.signLoginJWT(
+      user,
+      userAccount,
+    );
+    return {
+      user,
+      tokens,
+      account: userAccount,
+    };
+  }
+
+  async login(accountDto: any, platform: Platforms, verify: AccountsVerifier) {
+    await verify(accountDto);
+
+    const userAccountData = {
+      account_id: accountDto.account,
+      platform,
+    };
+
+    const { user, userAccount } = await this.getUser(userAccountData);
+
+    if (!user || !userAccount) {
+      throw new UnauthorizedException(
+        'User account does not exist.',
+        'UserNotFound',
+      );
+    }
+
+    const tokens: JWTTokens = await this.authService.signLoginJWT(
+      user,
+      userAccount,
+    );
+    return {
+      user,
+      tokens,
+      account: userAccount,
+    };
+  }
+}

@@ -1,0 +1,76 @@
+# REST Test file
+*.http
+
+# ENV File
+.env.*
+config.*
+!config.example.*
+!config.d.ts
+
+# Caches
+.eslintcache
+
+# Compiled output
+/dist
+/node_modules
+tsconfig.build.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+github.publisher.provider.spec.ts
+publisher.service.spec.ts
+cloudflare.dns.provider.spec.ts
+dns.service.spec.ts
+config/JWT_PUBLIC_KEY.pub
+test/api/provider/publisher/github/github.publisher.provider.e2e-spec.ts
+test/api/provider/publisher/publisher.service.e2e-spec.ts
+
+# Others
+/*.txt
+/repl
+config/arweave.json
+
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# RPGMaker 2003
+/thirdparty/games
+/thirdparty/gencache/bin
+
+# JWT keys
+/config/JWT_PRIVATE_KEY.pem
+/config/JWT_PUBLIC_KEY.pub
