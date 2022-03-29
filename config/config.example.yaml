@@ -2,15 +2,16 @@ app:
   name: w3itch-backend
   port: 3000
   bodyParser:
-    limit: 50mb
+    limit: 500mb
 
 db:
   host:
+  port:
   username:
   password:
   database:
-  timezone: 'Z' # UTC
-  charset: utf8mb4
+  charset: utf8mb4_general_ci
+  timzone: Z
 
 redis:
   host: localhost
@@ -36,5 +37,5 @@ swagger:
 
 logger:
   loki:
-    enable: true
+    enable: false
     url: 'http://127.0.0.1:3100'
