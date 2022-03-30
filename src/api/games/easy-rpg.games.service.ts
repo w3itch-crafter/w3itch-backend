@@ -52,7 +52,11 @@ export class EasyRpgGamesService {
 
   public async getGames(req: Request, res: Response): Promise<void> {
     const { path } = req;
-    const filePath = join(process.cwd(), 'thirdparty', path);
+    const filePath = join(
+      process.cwd(),
+      'thirdparty',
+      decodeURIComponent(path),
+    );
     const file = createReadStream(filePath);
     file
       .on('open', () => {
