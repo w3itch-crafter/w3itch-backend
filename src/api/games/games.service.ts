@@ -15,14 +15,14 @@ export class GamesService {
     private readonly gameRepository: Repository<Game>,
   ) {}
 
-  public async paginateGames(options): Promise<Pagination<Game>> {
+  public async paginateGameProjects(options): Promise<Pagination<Game>> {
     const queryBuilder = this.gameRepository.createQueryBuilder();
     queryBuilder.orderBy(options.sortBy, options.order);
 
     return paginate<Game>(queryBuilder, {
       page: options.page,
       limit: options.limit,
-      route: '/games',
+      route: '/game-projects',
     });
   }
 

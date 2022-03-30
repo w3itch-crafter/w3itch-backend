@@ -40,7 +40,7 @@ export class GameProjectsController {
 
   @Get('/')
   @ApiOperation({ summary: 'paignate game projects' })
-  async paginateGames(
+  async paginateGameProjects(
     @Query('tags') tags: string[],
     @Query('sortBy', new DefaultValuePipe(GamesListSortBy.TIME))
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
@@ -58,7 +58,7 @@ export class GameProjectsController {
     if (limit > 100) {
       limit = 100;
     }
-    return this.gamesService.paginateGames({
+    return this.gamesService.paginateGameProjects({
       tags,
       sortBy,
       order,
