@@ -28,7 +28,6 @@ jwt:
   algorithm: 'HS512'
   audience: []
 
-
 cookies:
   access_token_path: '/'
   refresh_token_path: '/accounts/tokens'
@@ -44,3 +43,12 @@ logger:
   loki:
     enable: false
     url: 'http://127.0.0.1:3100'
+
+storage:
+  ipfs:
+    fleek:
+      apiKey:
+      apiSecret:
+      folder: w3itch/attachment
+    gateways:
+      - https://ipfs.fleek.co

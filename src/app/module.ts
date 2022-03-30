@@ -10,7 +10,6 @@ import { AccountsModule } from '../api/accounts/accounts.module';
 import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accounts-metamask.module';
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
 import { GamesModule } from '../api/games/games.module';
-import { ImageModule } from '../api/image/image.module';
 import { PlayerModule } from '../api/player/module';
 import { UsersModule } from '../api/users/users.module';
 import { AppCacheModule } from '../cache/module';
@@ -18,6 +17,7 @@ import { configBuilder } from '../configs';
 import { BullConfigService } from '../configs/bull';
 import { TypeORMConfigService } from '../configs/typeorm';
 import { WinstonConfigService } from '../configs/winston';
+import { StoragesModule } from '../api/storages/module';
 
 @Module({
   imports: [
@@ -44,7 +44,7 @@ import { WinstonConfigService } from '../configs/winston';
     AccountsTokenModule,
     UsersModule,
     AppCacheModule,
-    ImageModule,
+    StoragesModule,
     PlayerModule,
     GamesModule,
   ],
