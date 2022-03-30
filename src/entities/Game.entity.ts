@@ -89,7 +89,7 @@ export class Game extends BaseEntity {
   @IsEnum(ReleaseStatus)
   releaseStatus: ReleaseStatus;
 
-  @Column('text', { comment: 'Game screenshots', array: true })
+  @Column('varchar', { comment: 'Game screenshots', array: true })
   @IsUrl({ each: true })
   @IsOptional()
   screenshots: string[];
@@ -109,10 +109,15 @@ export class Game extends BaseEntity {
   @IsInt()
   tokenId: string;
 
-  @Column('text', { array: true })
+  @Column('varchar', { array: true })
   @Length(1, 120)
   @IsString({ each: true })
   appStoreLinks: string[];
+
+  @Column('text')
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
   @Column({ default: Community.DISQUS })
   @IsEnum(Community)
