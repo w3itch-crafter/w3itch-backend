@@ -89,7 +89,7 @@ export class Game extends BaseEntity {
   @IsEnum(ReleaseStatus)
   releaseStatus: ReleaseStatus;
 
-  @Column('varchar', { comment: 'Game screenshots', array: true })
+  @Column('simple-array', { comment: 'Game screenshots' })
   @IsUrl({ each: true })
   @IsOptional()
   screenshots: string[];
@@ -103,13 +103,13 @@ export class Game extends BaseEntity {
     cascade: true,
   })
   @JoinTable()
-  tags: Tag[];
+  tags: string[];
 
   @Column()
   @IsInt()
-  tokenId: string;
+  tokenId: number;
 
-  @Column('varchar', { array: true })
+  @Column('simple-array')
   @Length(1, 120)
   @IsString({ each: true })
   appStoreLinks: string[];

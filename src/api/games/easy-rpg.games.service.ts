@@ -14,13 +14,12 @@ import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import process from 'process';
-
-import { Engine } from './enums';
+import { GameEngine } from '../../types/enum';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
 
 @Injectable()
-export class GamesLogicService {
+export class EasyRpgGamesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -82,7 +81,11 @@ export class GamesLogicService {
     }
   }
 
-  public uploadGame(game: string, engine: Engine, file: Express.Multer.File) {
+  public uploadGame(
+    game: string,
+    engine: GameEngine,
+    file: Express.Multer.File,
+  ) {
     const zip = new AdmZip(file.buffer);
     const rpgRtFlags = {
       lmt: false,

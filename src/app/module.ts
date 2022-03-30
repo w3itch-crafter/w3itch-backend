@@ -9,7 +9,7 @@ import { WinstonModule } from 'nest-winston';
 import { AccountsModule } from '../api/accounts/accounts.module';
 import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accounts-metamask.module';
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
-import { GamesModule } from '../api/games/module';
+import { GamesModule } from '../api/games/games.module';
 import { ImageModule } from '../api/image/image.module';
 import { PlayerModule } from '../api/player/module';
 import { UsersModule } from '../api/users/users.module';

@@ -1,6 +1,8 @@
 import { ConnectionOptions } from 'typeorm';
 
 import { Account } from '../entities/Account.entity';
+import { Game } from '../entities/Game.entity';
+import { Tag } from '../entities/Tag.entity';
 import { User } from '../entities/User.entity';
 import { isDevelopment } from '../utils';
 import { configBuilder } from './index';
@@ -28,7 +30,7 @@ const options: ConnectionOptions = {
   password: config.db.password,
   database: config.db.database,
   charset: config.db.charset || 'utf8mb4_0900_ai_ci',
-  entities: [User, Account],
+  entities: [User, Account, Game, Tag],
   synchronize: false,
   timezone: config.db.timezone || 'Z',
   logging: isDevelopment(),

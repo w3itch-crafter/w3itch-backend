@@ -12,6 +12,6 @@ export class Tag extends BaseEntity {
   @IsNotEmpty()
   name: string;
 
-  @ManyToMany(() => Game)
+  @ManyToMany(() => Game, (game) => game.tags)
   game: Game;
 }

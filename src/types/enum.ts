@@ -1,6 +1,6 @@
 export enum GamesListSortBy {
   RATE = 'rate',
-  TIME = 'time',
+  TIME = 'updatedAt',
 }
 
 export enum ProjectClassification {
@@ -8,8 +8,7 @@ export enum ProjectClassification {
 }
 
 export enum GameEngine {
-  UNITY = 'UNITY',
-  RM2K3E = 'RM2K3E',
+  RM2K3E = 'rm2k3e',
 }
 
 export enum PaymentMode {
