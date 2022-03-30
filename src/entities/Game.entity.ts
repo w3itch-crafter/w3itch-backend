@@ -81,7 +81,7 @@ export class Game extends BaseEntity {
     comment: 'Kind of the project (game engine)',
     default: GameEngine.RM2K3E,
   })
-  @IsEnum(ProjectClassification)
+  @IsEnum(GameEngine)
   @IsNotEmpty()
   kind: GameEngine;
 
