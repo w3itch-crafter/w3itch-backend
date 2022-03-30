@@ -1,26 +1,23 @@
 import {
-  Post,
   Controller,
+  Post,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiCookieAuth,
-  ApiCreatedResponse,
-  ApiUnauthorizedResponse,
   ApiBody,
   ApiConsumes,
-  getSchemaPath,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiTags,
 } from '@nestjs/swagger';
+
 import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { UserJWTPayload } from '../../types';
-import fleekStorage from '@fleekhq/fleek-storage-js';
-
+import { UploadToIPFSResultDto } from './dto';
 import { StoragesService } from './service';
 
 @ApiTags('Storage')
@@ -48,7 +45,7 @@ export class StoragesController {
   async uploadToIPFS(
     @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<string> {
+  ): Promise<UploadToIPFSResultDto> {
     return await this.storagesService.uploadToIPFS(
       user.id,
       file.originalname,

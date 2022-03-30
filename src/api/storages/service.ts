@@ -1,3 +1,4 @@
+import fleekStorage from '@fleekhq/fleek-storage-js';
 import {
   Inject,
   Injectable,
@@ -5,10 +6,9 @@ import {
   LoggerService,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import fleekStorage from '@fleekhq/fleek-storage-js';
-
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { UserJWTPayload } from '../../types';
+
+import { UploadToIPFSResultDto } from './dto';
 
 @Injectable()
 export class StoragesService {
@@ -22,7 +22,7 @@ export class StoragesService {
     userId: number,
     fileName: string,
     data: string | Buffer,
-  ): Promise<string> {
+  ): Promise<UploadToIPFSResultDto> {
     try {
       //TODO Preprocessing / Compressing images
       const folder = this.configService.get<string>(
@@ -41,7 +41,7 @@ export class StoragesService {
         this.constructor.name,
       );
 
-      return output.hash;
+      return output;
     } catch (error) {
       // Try to catch socket hang up error.
       this.logger.error(error, this.constructor.name);
