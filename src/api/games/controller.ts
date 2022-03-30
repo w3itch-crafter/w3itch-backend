@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   Controller,
+  DefaultValuePipe,
   Get,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -18,18 +20,45 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
+import { Game } from '../../entities/Game.entity';
+import { GamesListSortBy } from '../../types/enum';
 import { Engine } from './enums';
-import { GamesService } from './service';
+import { GamesLogicService } from './logic.service';
+import { GamesQueryService } from './query.service';
 
 @ApiTags('games')
 @Controller('games')
 export class GamesController {
-  constructor(private readonly service: GamesService) {}
+  constructor(
+    private readonly logicService: GamesLogicService,
+    private readonly queryService: GamesQueryService,
+  ) {}
 
-  @Get('*')
+  @Get('/')
+  @ApiOperation({ summary: 'Query games list' })
+  async queryGamesList(
+    @Query('tags') tags: string[],
+    @Query('sortBy', new DefaultValuePipe(GamesListSortBy.TIME))
+    sortBy: GamesListSortBy = GamesListSortBy.TIME,
+    @Query('order', new DefaultValuePipe('DESC'))
+    order: 'ASC' | 'DESC' = 'DESC',
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+  ): Promise<Pagination<Game>> {
+    return this.queryService.queryGamesList({
+      tags,
+      sortBy,
+      order,
+      page,
+      limit,
+    });
+  }
+
+  @Get('/*')
   async getGames(@Req() req: Request, @Res() res: Response) {
-    return this.service.getGames(req, res);
+    return this.logicService.getGames(req, res);
   }
 
   @Post('upload')
@@ -65,6 +94,6 @@ export class GamesController {
     if (file?.mimetype !== 'application/zip') {
       throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
     }
-    this.service.uploadGame(game, engine, file);
+    this.logicService.uploadGame(game, engine, file);
   }
 }

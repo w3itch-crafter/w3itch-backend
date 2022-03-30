@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { createReadStream, fstat, unlinkSync } from 'fs';
+import { createReadStream } from 'fs';
 import { readdir } from 'fs/promises';
 import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -20,7 +20,7 @@ import { Engine } from './enums';
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
 
 @Injectable()
-export class GamesService {
+export class GamesLogicService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,

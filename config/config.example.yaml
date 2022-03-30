@@ -28,9 +28,14 @@ jwt:
   algorithm: 'HS512'
   audience: []
 
+
+cookies:
+  access_token_path: '/'
+  refresh_token_path: '/accounts/tokens'
+
 cors:
   origins:
-    - 'http://127.0.0.1:3000'
+    - '*'
 
 swagger:
   enable: true

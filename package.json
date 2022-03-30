@@ -58,7 +58,7 @@
     "mime-types": "^2.1.35",
     "mysql2": "^2.3.3",
     "nest-winston": "^1.6.2",
-    "nestjs-typeorm-paginate": "^2.6.3",
+    "nestjs-typeorm-paginate": "^3.2.0-alpha",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "randomstring": "^1.2.2",
