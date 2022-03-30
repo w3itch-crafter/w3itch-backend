@@ -11,6 +11,7 @@ import {
   ApiConsumes,
   ApiCookieAuth,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -25,9 +26,7 @@ import { StoragesService } from './service';
 export class StoragesController {
   constructor(private readonly storagesService: StoragesService) {}
 
-  @Post('/upload-to-ipfs')
   @ApiCookieAuth()
-  @UseGuards(JWTAuthGuard)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload to IPFS' })
   @ApiBody({
@@ -41,6 +40,11 @@ export class StoragesController {
       },
     },
   })
+  @ApiResponse({
+    type: UploadToIPFSResultDto,
+  })
+  @Post('/upload-to-ipfs')
+  @UseGuards(JWTAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadToIPFS(
     @CurrentUser() user: UserJWTPayload,
