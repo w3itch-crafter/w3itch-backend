@@ -18,6 +18,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: UserJWTPayload): Promise<UserJWTPayload> {
-    return payload;
+    const result = {
+      id: payload.sub,
+      ...payload,
+    };
+    delete result.sub;
+    return result;
   }
 }
