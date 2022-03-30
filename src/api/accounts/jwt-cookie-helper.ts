@@ -12,7 +12,7 @@ export class JWTCookieHelper {
 
   private getCookiesOptions(name: string): Partial<CookieOptions> {
     return {
-      sameSite: 'strict',
+      sameSite: 'none',
       secure: true,
       httpOnly: true,
       path: this.configService.get<string>(`cookies.${name}_token_path`),
