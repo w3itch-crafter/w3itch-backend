@@ -44,10 +44,10 @@ export class AuthenticationService {
 
     return {
       accessToken: this.jwtService.sign(accessToken, {
-        expiresIn: this.configService.get<string>('jwt.access_token_expires'),
+        expiresIn: this.configService.get<string>('jwt.accessTokenExpires'),
       }),
       refreshToken: this.jwtService.sign(refreshToken, {
-        expiresIn: this.configService.get<string>('jwt.refresh_token_expires'),
+        expiresIn: this.configService.get<string>('jwt.refreshTokenExpires'),
       }),
     };
   }

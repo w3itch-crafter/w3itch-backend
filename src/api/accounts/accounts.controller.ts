@@ -15,6 +15,6 @@ export class AccountsController {
   @Get('mine')
   @UseGuards(JWTAuthGuard)
   async getMyAccounts(@CurrentUser() user: UserJWTPayload): Promise<Account[]> {
-    return await this.accountsService.find({ user_id: user.id });
+    return await this.accountsService.find({ userId: user.id });
   }
 }

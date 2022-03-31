@@ -39,26 +39,26 @@ export class AccountsService {
   }
 
   async getUser(userAccountData: {
-    account_id: string;
+    accountId: string;
     platform: string;
   }): Promise<{ user: User; userAccount: Account }> {
     const userAccount: Account = await this.findOne(userAccountData);
 
     const user = userAccount
-      ? await this.usersService.findOne(userAccount.user_id)
+      ? await this.usersService.findOne(userAccount.userId)
       : null;
 
     return { user, userAccount };
   }
 
   async initUser(userAccountData: {
-    account_id: string;
+    accountId: string;
     platform: string;
   }): Promise<{ user: User; userAccount: Account }> {
     const user = await this.usersService.save();
     const userAccount = await this.save({
       ...userAccountData,
-      user_id: user.id,
+      userId: user.id,
     });
 
     return { user, userAccount };
@@ -68,7 +68,7 @@ export class AccountsService {
     await verify(accountDto);
 
     const userAccountData = {
-      account_id: accountDto.account,
+      accountId: accountDto.account,
       platform,
     };
 
@@ -97,7 +97,7 @@ export class AccountsService {
     await verify(accountDto);
 
     const userAccountData = {
-      account_id: accountDto.account,
+      accountId: accountDto.account,
       platform,
     };
 

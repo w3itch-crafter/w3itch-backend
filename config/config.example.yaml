@@ -17,20 +17,19 @@ redis:
   host: localhost
   port: 6379
   pass:
-  vcode_ttl: 300 # seconds
 
 jwt:
-  access_token_name: 'w3itch_access_token'
-  refresh_token_name: 'w3itch_refresh_token'
-  access_token_expires: '20m'
-  refresh_token_expires: '30d'
+  accessTokenName: 'w3itch_access_token'
+  refreshTokenName: 'w3itch_refresh_token'
+  accessTokenExpires: '20m'
+  refreshTokenExpires: '30d'
   issuer:
   algorithm: 'HS512'
   audience: []
 
 cookies:
-  access_token_path: '/'
-  refresh_token_path: '/accounts/tokens'
+  accessTokenPath: '/'
+  refreshTokenPath: '/accounts/tokens'
 
 cors:
   origins:
@@ -43,6 +42,10 @@ logger:
   loki:
     enable: false
     url: 'http://127.0.0.1:3100'
+
+cache:
+  vcode:
+    ttl: 300 # seconds
 
 storage:
   ipfs:

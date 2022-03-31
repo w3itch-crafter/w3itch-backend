@@ -33,7 +33,7 @@ export class AppCacheService {
     await this.del(savedKey);
 
     const code = randomstring.generate(options);
-    const ttl = this.configService.get<number>('redis.vcode_ttl');
+    const ttl = this.configService.get<number>('cache.vcode.ttl');
     await this.set<string>(savedKey, code, ttl);
     return code;
   }

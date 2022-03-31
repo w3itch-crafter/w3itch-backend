@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(readonly configService: ConfigService) {
     super({
       jwtFromRequest: (req) =>
-        req.cookies[configService.get<string>('jwt.access_token_name')],
+        req.cookies[configService.get<string>('jwt.accessTokenName')],
       secretOrKey: JWT_KEY.privateKey,
       algorithms: [configService.get<string>('jwt.algorithm')],
     });

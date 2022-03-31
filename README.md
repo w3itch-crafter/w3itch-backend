@@ -14,7 +14,7 @@ $ sudo mkdir -p /var/log/w3itch-backend
 # Development mode only
 $ cp config/config.example.yaml config/config.development.yaml
 # Production mode only
-$ cp config/config.example.yaml config/config.development.yaml
+$ cp config/config.example.yaml config/config.production.yaml
 ```
 
 The config directory should look like this:
@@ -28,7 +28,7 @@ config
 |____JWT_PUBLIC_KEY.pub
 ```
 
-Update db & redis configuration in `config/config.development.yaml`. For example:
+Update db & redis & storage configuration in `config/config.development.yaml`. For example:
 
 ```yaml
 db:
@@ -44,7 +44,16 @@ redis:
   host: localhost
   port: 6379
   pass:
-  vcode_ttl: 300 # seconds
+
+storage:
+  ipfs:
+    fleek:
+      # See: https://docs.fleek.co/storage/fleek-storage-js/
+      apiKey: foo
+      apiSecret: bar
+      folder: w3itch/attachment
+    gateways:
+      - https://ipfs.fleek.co
 ```
 
 ## Installation

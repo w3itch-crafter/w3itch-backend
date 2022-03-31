@@ -7,12 +7,12 @@ export class Account extends BaseEntity {
   @Column({
     nullable: false,
   })
-  user_id: number;
+  userId: number;
 
   @Column({
     nullable: false,
   })
-  account_id: string;
+  accountId: string;
 
   @Column({ nullable: false })
   platform: 'metamask' | string;
