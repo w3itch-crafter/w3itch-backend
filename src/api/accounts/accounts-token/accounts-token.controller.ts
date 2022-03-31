@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
 import { User } from '../../../entities/User.entity';
@@ -27,6 +27,7 @@ export class AccountsTokenController {
   ) {}
 
   @Patch()
+  @ApiOperation({ summary: 'Refresh the access token' })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -57,6 +58,7 @@ export class AccountsTokenController {
   }
 
   @Delete()
+  @ApiOperation({ summary: 'Delete the tokens (logout)' })
   async delete(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,

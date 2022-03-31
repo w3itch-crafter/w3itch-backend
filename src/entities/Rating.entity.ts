@@ -1,5 +1,5 @@
 import { IsInt, IsNotEmpty, Max, Min } from 'class-validator';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { Game } from './Game.entity';

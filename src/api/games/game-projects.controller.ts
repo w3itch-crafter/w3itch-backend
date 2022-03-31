@@ -42,7 +42,7 @@ import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
 @ApiExtraModels(PaginationResponse)
-@ApiTags('games')
+@ApiTags('Games')
 @Controller('game-projects')
 export class GameProjectsController {
   constructor(
@@ -81,11 +81,11 @@ export class GameProjectsController {
   })
   @ApiGeneralPaginationResponse(Game)
   async paginateGameProjects(
-    @Query('tags') tags: string[] = [],
+    @Query('tags') tags: string[],
     @Query('sortBy')
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
     @Query('order')
-    order: 'ASC' | 'DESC' = 'DESC',
+    order: 'ASC' | 'DESC' = 'ASC',
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
   ): Promise<Pagination<Game>> {
@@ -98,6 +98,7 @@ export class GameProjectsController {
     if (limit > 100) {
       limit = 100;
     }
+    console.log({ tags });
     return this.gamesService.paginateGameProjects({
       tags,
       sortBy,
@@ -144,7 +145,11 @@ export class GameProjectsController {
       game.tags.map(async (tag) => this.tagsService.getOrCreateByName(tag)),
     );
 
-    console.log(tags);
+    this.logger.verbose(
+      `Tags of game: ${game.gameName} are ${tags}`,
+      this.constructor.name,
+    );
+
     return await this.gamesService.save({
       ...game,
       tags,

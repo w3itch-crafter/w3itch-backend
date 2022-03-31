@@ -23,10 +23,19 @@ export class GamesService {
   ) {}
 
   public async paginateGameProjects(options): Promise<Pagination<Game>> {
+    console.log(options.tags);
+    const tags = options.tags instanceof Array ? options.tags : [options.tags];
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
-      .leftJoinAndSelect('game.tags', 'tags')
+      .leftJoin('game.tags', 'tag')
+      .leftJoinAndSelect('game.tags', 'tagSelect')
       .orderBy(`game.${options.sortBy}`, options.order);
+
+    if (options.tags) {
+      tags.forEach((tag) => {
+        queryBuilder.andWhere('tag.name = :tag', { tag });
+      });
+    }
 
     return paginate<Game>(queryBuilder, {
       page: options.page,
@@ -46,7 +55,6 @@ export class GamesService {
   public async save(
     game: Omit<Game, keyof BaseEntity | 'ratings'>,
   ): Promise<Game> {
-    console.log({ game });
     return await this.gameRepository.save(game);
   }
 

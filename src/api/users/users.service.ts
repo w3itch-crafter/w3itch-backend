@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 
@@ -41,7 +45,7 @@ export class UsersService {
     const isAlreadyExists = await this.usersRepository.findOne({ username });
 
     if (isAlreadyExists) {
-      throw new BadRequestException('Username already exists.');
+      throw new ConflictException('Username already exists.');
     }
 
     const user = await this.usersRepository.findOne(uid);

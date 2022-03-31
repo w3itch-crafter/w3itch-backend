@@ -19,6 +19,9 @@ export class AccountsMetamaskController {
     private readonly jwtCookieHelper: JWTCookieHelper,
   ) {}
   @Post('/verification-code')
+  @ApiOperation({
+    summary: 'Request a verification code to login with MetaMask',
+  })
   async generateVerificationCodeForMetaMask(
     @Body() verifyCode: VerificationCodeDto,
   ): Promise<{ code }> {
