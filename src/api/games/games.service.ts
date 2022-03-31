@@ -10,8 +10,8 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 
+import { BaseEntity } from '../../entities/base.entity';
 import { Game } from '../../entities/Game.entity';
-import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 
 @Injectable()
 export class GamesService {
@@ -43,7 +43,10 @@ export class GamesService {
     return game;
   }
 
-  public async save(game: Game, file: string): Promise<Game> {
+  public async save(
+    game: Omit<Game, keyof BaseEntity | 'ratings'>,
+  ): Promise<Game> {
+    console.log({ game });
     return await this.gameRepository.save(game);
   }
 

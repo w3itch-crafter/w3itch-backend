@@ -1,17 +1,18 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { IsString, Length } from 'class-validator';
-import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { Game } from './Game.entity';
 
 @Entity()
 export class Tag extends BaseEntity {
-  @PrimaryColumn()
+  @Column()
   @Length(2, 60)
   @IsString()
   name: string;
 
-  @PrimaryColumn()
+  @Column()
   @Length(2, 60)
   @IsString()
   label: string;
@@ -20,6 +21,7 @@ export class Tag extends BaseEntity {
   @IsString()
   description: string;
 
+  @ApiHideProperty()
   @ManyToMany(() => Game, (game) => game.tags)
   game: Game;
 }

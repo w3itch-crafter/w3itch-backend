@@ -32,9 +32,11 @@ import { JWTAuthGuard } from '../../auth/guard';
 import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
+import { Tag } from '../../entities/Tag.entity';
 import { UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
+import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
@@ -47,6 +49,7 @@ export class GameProjectsController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly gamesService: GamesService,
+    private readonly tagsService: TagsService,
     private readonly easyRpgGamesService: EasyRpgGamesService,
   ) {}
 
@@ -122,10 +125,8 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateGameProjectWithFileDto,
   ) {
-    const game: Game = body.game;
-
-    game.userId = user.id;
-    const filename = file.originalname;
+    // TODO: need a pipe to transform the string to DTO due to the mime type
+    const game = JSON.parse(body.game as unknown as string);
 
     // gameName must be unique
     await this.gamesService.validateGameName(game.gameName);
@@ -137,7 +138,18 @@ export class GameProjectsController {
     if (file?.mimetype !== 'application/zip') {
       throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
     }
-    this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
-    return await this.gamesService.save(game, filename);
+
+    // this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
+    const tags: Tag[] = await Promise.all(
+      game.tags.map(async (tag) => this.tagsService.getOrCreateByName(tag)),
+    );
+
+    console.log(tags);
+    return await this.gamesService.save({
+      ...game,
+      tags,
+      userId: user.id,
+      file: file.originalname,
+    });
   }
 }
