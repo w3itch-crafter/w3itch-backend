@@ -1,4 +1,9 @@
 import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiResponseProperty,
+} from '@nestjs/swagger';
+import {
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -23,6 +28,8 @@ import { Tag } from './Tag.entity';
 
 @Entity()
 export class Game extends BaseEntity {
+  @ApiResponseProperty()
+  @ApiProperty({ description: `Creator's user ID` })
   @Column()
   @Length(1, 50)
   @IsInt()
@@ -34,12 +41,14 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @example 'Example'
    */
+  @ApiProperty({ description: `Title` })
   @Column()
   @Length(1, 50)
   @IsString()
   @IsNotEmpty()
   title: string;
 
+  @ApiProperty()
   @Column({ default: PaymentMode.FREE })
   @IsEnum(PaymentMode)
   @IsNotEmpty()
@@ -50,11 +59,13 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @example 'This is an example project'
    */
+  @ApiProperty({ description: `Short description or tagline` })
   @Column()
   @Length(1, 120)
   @IsString()
   subtitle: string;
 
+  @ApiProperty({ description: `For player` })
   @Column()
   @Length(1, 150)
   @IsString()
@@ -62,11 +73,14 @@ export class Game extends BaseEntity {
   @Matches(/^[^-_].*[^-_]$/)
   gameName: string;
 
+  @ApiResponseProperty()
+  @ApiProperty({ description: `Original name` })
   @Column()
   @Length(1, 150)
   @IsString()
   file: string;
 
+  @ApiProperty({ description: `Classification` })
   @Column({ default: ProjectClassification.GAMES })
   @IsEnum(ProjectClassification)
   @IsNotEmpty()
@@ -77,6 +91,7 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @default 'rm2k3e'
    */
+  @ApiProperty()
   @Column({
     comment: 'Kind of the project (game engine)',
     default: GameEngine.RM2K3E,
@@ -85,15 +100,18 @@ export class Game extends BaseEntity {
   @IsNotEmpty()
   kind: GameEngine;
 
+  @ApiProperty()
   @Column()
   @IsEnum(ReleaseStatus)
   releaseStatus: ReleaseStatus;
 
+  @ApiProperty({ description: `Screenshot URLs` })
   @Column('simple-array', { comment: 'Game screenshots' })
   @IsUrl({ each: true })
   @IsOptional()
   screenshots: string[];
 
+  @ApiProperty({ description: `Cover URL` })
   @Column()
   @IsUrl()
   @IsNotEmpty()
@@ -105,25 +123,36 @@ export class Game extends BaseEntity {
   @JoinTable()
   tags: string[];
 
+  @ApiProperty({ description: `Tokens to be held/paid to play this game` })
   @Column()
   @IsInt()
   tokenId: number;
 
+  @ApiProperty({
+    description: `Links to other app stores`,
+  })
   @Column('simple-array')
   @Length(1, 120)
   @IsString({ each: true })
   appStoreLinks: string[];
 
+  @ApiProperty()
   @Column('text')
   @IsString()
   @IsNotEmpty()
   description: string;
 
+  @ApiProperty({
+    description: `The community type of this game`,
+  })
   @Column({ default: Community.DISQUS })
   @IsEnum(Community)
   @IsNotEmpty()
   community: Community;
 
+  @ApiProperty({
+    description: `The category that best describes this game`,
+  })
   @Column({ default: Genre.NO_GENRE })
   @IsEnum(Genre)
   @IsNotEmpty()

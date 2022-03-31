@@ -1,33 +1,46 @@
 import {
-  Inject,
-  LoggerService,
-  Get,
-  Param,
-  Controller,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Query,
   BadRequestException,
   Body,
-  UploadedFile,
-  UseInterceptors,
+  Controller,
+  DefaultValuePipe,
+  Get,
+  Inject,
+  LoggerService,
+  Param,
+  ParseIntPipe,
   Post,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,
+  ApiCookieAuth,
+  ApiExtraModels,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Pagination } from 'nestjs-typeorm-paginate';
+
+import { JWTAuthGuard } from '../../auth/guard';
+import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
+import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
+import { UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
+import { PaginationResponse } from '../../utils/responseClass';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
+@ApiExtraModels(PaginationResponse)
 @ApiTags('games')
 @Controller('game-projects')
 export class GameProjectsController {
@@ -40,6 +53,7 @@ export class GameProjectsController {
 
   @Get('/')
   @ApiOperation({ summary: 'paignate game projects' })
+  @ApiGeneralPaginationResponse(Game)
   async paginateGameProjects(
     @Query('tags') tags: string[],
     @Query('sortBy', new DefaultValuePipe(GamesListSortBy.TIME))
@@ -67,10 +81,14 @@ export class GameProjectsController {
     });
   }
   @Get('/:id(\\d+)')
+  @ApiOperation({ summary: 'get game project by id' })
+  @ApiOkResponse({ type: Game })
+  @ApiNotFoundResponse({ description: 'Game not found' })
   async getGameProjectById(@Param('id') id: number) {
     return this.gamesService.getGameProjectById(id);
   }
-  @Post('/')
+
+  @ApiCookieAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create game project, game file format: zip' })
   @ApiBody({
@@ -87,12 +105,17 @@ export class GameProjectsController {
       },
     },
   })
+  @Post('/')
+  @UseGuards(JWTAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async createGameProject(
+    @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
     @Body() body,
   ) {
     const game = JSON.parse(body.game) as Game;
+    game.userId = user.id;
+    game.file = file.originalname;
     this.logger.verbose(
       `File: ${file.originalname}, Game: ${game}`,
       this.constructor.name,

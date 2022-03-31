@@ -1,4 +1,9 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  LoggerService,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -27,7 +32,11 @@ export class GamesService {
   }
 
   public async getGameProjectById(id: number): Promise<Game> {
-    return await this.gameRepository.findOne(id);
+    const game = await this.gameRepository.findOne(id);
+    if (!game) {
+      throw new NotFoundException('Game not found');
+    }
+    return game;
   }
 
   public async save(game: Game): Promise<Game> {

@@ -25,7 +25,7 @@ export abstract class TransformCreatedResponse<T> {
   readonly message: string;
 }
 
-abstract class PaginationMeta implements IPaginationMeta {
+export class PaginationMeta implements IPaginationMeta {
   @ApiProperty({
     description: 'Amount of items on this specific page',
     example: 10,
@@ -51,7 +51,7 @@ abstract class PaginationMeta implements IPaginationMeta {
   readonly currentPage: number;
 }
 
-abstract class PaginationLinks implements IPaginationLinks {
+export class PaginationLinks implements IPaginationLinks {
   @ApiProperty({
     description: 'A link to the "first" page',
     default: '',
