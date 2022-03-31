@@ -1,16 +1,24 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
-import { Column, Entity, ManyToMany } from 'typeorm';
+import { IsString, Length } from 'class-validator';
+import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
 import { Game } from './Game.entity';
 
 @Entity()
 export class Tag extends BaseEntity {
-  @Column('text', { comment: 'Name of the tag' })
+  @PrimaryColumn()
   @Length(2, 60)
   @IsString()
-  @IsNotEmpty()
   name: string;
+
+  @PrimaryColumn()
+  @Length(2, 60)
+  @IsString()
+  label: string;
+
+  @Column('text', { default: '' })
+  @IsString()
+  description: string;
 
   @ManyToMany(() => Game, (game) => game.tags)
   game: Game;

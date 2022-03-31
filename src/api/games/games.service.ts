@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   LoggerService,
@@ -7,9 +8,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 
 @Injectable()
 export class GamesService {
@@ -21,8 +23,10 @@ export class GamesService {
   ) {}
 
   public async paginateGameProjects(options): Promise<Pagination<Game>> {
-    const queryBuilder = this.gameRepository.createQueryBuilder();
-    queryBuilder.orderBy(options.sortBy, options.order);
+    const queryBuilder = this.gameRepository
+      .createQueryBuilder('game')
+      .leftJoinAndSelect('game.tags', 'tags')
+      .orderBy(`game.${options.sortBy}`, options.order);
 
     return paginate<Game>(queryBuilder, {
       page: options.page,
@@ -39,8 +43,14 @@ export class GamesService {
     return game;
   }
 
-  public async save(game: Game): Promise<Game> {
-    //TODO tag
+  public async save(game: Game, file: string): Promise<Game> {
     return await this.gameRepository.save(game);
+  }
+
+  public async validateGameName(gameName: string): Promise<void> {
+    const game = await this.gameRepository.findOne({ where: { gameName } });
+    if (game) {
+      throw new ConflictException('Game name already exists');
+    }
   }
 }

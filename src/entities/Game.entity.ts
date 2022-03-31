@@ -13,7 +13,7 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
 import {
   Community,
@@ -24,6 +24,7 @@ import {
   ReleaseStatus,
 } from '../types/enum';
 import { BaseEntity } from './base.entity';
+import { Rating } from './Rating.entity';
 import { Tag } from './Tag.entity';
 
 @Entity()
@@ -31,7 +32,6 @@ export class Game extends BaseEntity {
   @ApiResponseProperty()
   @ApiProperty({ description: `Creator's user ID` })
   @Column()
-  @Length(1, 50)
   @IsInt()
   @IsNotEmpty()
   userId: number;
@@ -66,8 +66,8 @@ export class Game extends BaseEntity {
   subtitle: string;
 
   @ApiProperty({ description: `For player` })
-  @Column()
-  @Length(1, 150)
+  @Column({ unique: true })
+  @Length(1, 50)
   @IsString()
   // doesn't allow starts or ends with _ or -
   @Matches(/^[^-_].*[^-_]$/)
@@ -121,7 +121,10 @@ export class Game extends BaseEntity {
     cascade: true,
   })
   @JoinTable()
-  tags: string[];
+  tags: Tag[];
+
+  @OneToMany(() => Rating, (rating) => rating.game)
+  ratings: Rating[];
 
   @ApiProperty({ description: `Tokens to be held/paid to play this game` })
   @Column()
