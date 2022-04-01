@@ -86,6 +86,13 @@ export class EasyRpgGamesService {
     }
   }
 
+  public deleteGameDirectory(game: string) {
+    const cwd = process.cwd();
+    const targetPath = `${cwd}/thirdparty/games/${game}`;
+    this.logger.log(`Delete ${targetPath}`, this.constructor.name);
+    findRemoveSync(targetPath, { dir: '*', files: '*.*' });
+  }
+
   public uploadGame(
     game: string,
     engine: GameEngine,

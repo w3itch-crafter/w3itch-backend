@@ -39,10 +39,11 @@ export class GamesService {
       .orderBy(`game.${sortBy}`, order);
 
     if (username) {
-      queryBuilder.andWhere('game.username=:username', {
-        username,
+      queryBuilder.andWhere('game.username = :username', {
+        username: username,
       });
     }
+
     if (tags) {
       tags.forEach((tag) => {
         queryBuilder.andWhere('tag.name = :tag', { tag });
@@ -56,7 +57,7 @@ export class GamesService {
     });
   }
 
-  public async getGameProjectById(id: number): Promise<Game> {
+  public async findOne(id: number): Promise<Game> {
     const game = await this.gameRepository.findOne(id);
     if (!game) {
       throw new NotFoundException('Game not found');
@@ -68,7 +69,15 @@ export class GamesService {
     return await this.gameRepository.save(game);
   }
 
-  public async validate(game: UpdateGameProjectDto): Promise<void> {
+  public async update(id, game: Partial<PostedGameEntity>): Promise<Game> {
+    return await this.gameRepository.save({ id, game });
+  }
+
+  public async delete(id: number): Promise<void> {
+    await this.gameRepository.delete(id);
+  }
+
+  public async validateGameName(game: UpdateGameProjectDto): Promise<void> {
     const exists = await this.gameRepository.findOne({
       where: { gameName: game.gameName },
     });

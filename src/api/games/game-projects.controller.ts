@@ -3,11 +3,14 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
+  ForbiddenException,
   Get,
   Inject,
   LoggerService,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -25,6 +28,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { plainToClass } from 'class-transformer';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
@@ -33,12 +37,14 @@ import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagin
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
-import { UserJWTPayload } from '../../types';
+import { PostedGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
+import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
@@ -120,7 +126,7 @@ export class GameProjectsController {
   @ApiOkResponse({ type: Game })
   @ApiNotFoundResponse({ description: 'Game not found' })
   async getGameProjectById(@Param('id') id: number) {
-    return this.gamesService.getGameProjectById(id);
+    return this.gamesService.findOne(id);
   }
 
   @Post('/')
@@ -134,11 +140,8 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateGameProjectWithFileDto,
   ) {
-    // TODO: need a pipe to transform the string to DTO due to the mime type
-    const game = JSON.parse(body.game as unknown as string);
-
-    // The object must be validated before continue
-    await this.gamesService.validate(game);
+    const game = plainToClass(CreateGameProjectDto, body.game);
+    await this.gamesService.validateGameName(game);
 
     this.logger.verbose(
       `File: ${file.originalname}, Game: ${body.game}`,
@@ -164,11 +167,108 @@ export class GameProjectsController {
     });
   }
 
+  @Patch('/:id')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Update game project, game file format: zip' })
+  @UseInterceptors(FileInterceptor('file'))
+  async updateGameProject(
+    @Param('id') id: number,
+    @CurrentUser() user: UserJWTPayload,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: UpdateGameProjectWithFileDto,
+  ) {
+    const game = plainToClass(CreateGameProjectDto, body.game);
+    const target = await this.gamesService.findOne(id);
+
+    if (user.username !== target.username) {
+      throw new ForbiddenException(
+        "You don't have permission to update this project",
+      );
+    }
+
+    if (game.gameName && game.gameName !== target.gameName) {
+      await this.gamesService.validateGameName(game);
+    }
+
+    if (file) {
+      this.logger.verbose(
+        `Update File: ${file.originalname}, Game: ${game}`,
+        this.constructor.name,
+      );
+      if (file?.mimetype !== 'application/zip') {
+        throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
+      }
+      this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
+    } else {
+      this.logger.verbose(
+        `Update game: ${game} with no file uploaded`,
+        this.constructor.name,
+      );
+    }
+
+    const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
+    this.logger.verbose(
+      `Tags of game: ${game.gameName} are ${tags}`,
+      this.constructor.name,
+    );
+
+    const entityToUpdate: Partial<PostedGameEntity> = { ...game, tags };
+    if (file) {
+      entityToUpdate.file = file.originalname;
+    }
+
+    return await this.gamesService.update(id, entityToUpdate);
+  }
+
   @Post('/validate')
   @ApiOperation({
     summary: 'Validate a Game DTO which is to create a game project',
   })
   async validate(@Body() body: UpdateGameProjectDto) {
-    await this.gamesService.validate(body);
+    await this.gamesService.validateGameName(body);
+  }
+
+  @Delete('/:id')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Delete the game project and the file directory associated',
+  })
+  async deleteGameProject(
+    @Param('id') id: number,
+    @CurrentUser() user: UserJWTPayload,
+  ) {
+    const target = await this.gamesService.findOne(id);
+
+    if (user.username !== target.username) {
+      throw new ForbiddenException(
+        "You don't have permission to delete this project",
+      );
+    }
+
+    this.easyRpgGamesService.deleteGameDirectory(target.file);
+    await this.gamesService.delete(id);
+  }
+
+  @Delete('/:id/file')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Delete the file directory of the game project' })
+  async deleteGameProjectFiles(
+    @Param('id') id: number,
+    @CurrentUser() user: UserJWTPayload,
+  ) {
+    const target = await this.gamesService.findOne(id);
+
+    if (user.username !== target.username) {
+      throw new ForbiddenException(
+        "You don't have permission to delete the files of this project",
+      );
+    }
+
+    this.easyRpgGamesService.deleteGameDirectory(target.file);
+    await this.gamesService.update(id, { file: null });
   }
 }

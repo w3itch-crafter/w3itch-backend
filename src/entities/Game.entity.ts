@@ -72,7 +72,7 @@ export class Game extends BaseEntity {
 
   @ApiResponseProperty()
   @ApiProperty({ description: `Original name` })
-  @Column()
+  @Column({ nullable: true })
   @Length(1, 150)
   @IsString()
   file: string;
