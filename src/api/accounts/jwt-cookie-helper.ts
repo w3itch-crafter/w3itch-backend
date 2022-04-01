@@ -15,7 +15,7 @@ export class JWTCookieHelper {
       sameSite: 'none',
       secure: true,
       httpOnly: true,
-      path: this.configService.get<string>(`cookies.${name}_token_path`),
+      path: this.configService.get<string>(`cookies.${name}TokenPath`),
     };
   }
 

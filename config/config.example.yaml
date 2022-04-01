@@ -24,7 +24,7 @@ jwt:
   accessTokenExpires: '20m'
   refreshTokenExpires: '30d'
   issuer:
-  algorithm: 'HS512'
+  algorithm: 'RS512'
   audience: []
 
 cookies:

@@ -28,7 +28,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
@@ -140,7 +140,11 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateGameProjectWithFileDto,
   ) {
-    const game = plainToClass(CreateGameProjectDto, body.game);
+    const game = plainToInstance(
+      CreateGameProjectDto,
+      JSON.parse(body.game as unknown as string),
+    );
+
     await this.gamesService.validateGameName(game);
 
     this.logger.verbose(

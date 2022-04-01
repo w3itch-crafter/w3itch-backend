@@ -57,11 +57,11 @@ export class AccountsMetamaskService {
 
   async signupVerify(signupDto: AccountsSignupMetaMaskDto): Promise<void> {
     await this.loginVerify(signupDto);
-    const usernameExists = await this.usersService.validateUsername(
+    const validation = await this.usersService.validateUsername(
       signupDto.username,
     );
-    if (usernameExists) {
-      throw new ConflictException('Username already exists.');
+    if (validation.isExists) {
+      throw new ConflictException('Username already exists');
     }
   }
 }
