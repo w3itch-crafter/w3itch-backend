@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
@@ -30,7 +31,6 @@ export class GamesService {
     );
 
     const { page, limit, username, sortBy, order } = options;
-    const tags = options.tags instanceof Array ? options.tags : [options.tags];
 
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
@@ -43,11 +43,15 @@ export class GamesService {
         username: username,
       });
     }
-
-    if (tags) {
-      tags.forEach((tag) => {
-        queryBuilder.andWhere('tag.name = :tag', { tag });
-      });
+    const { tags } = options;
+    if (isNotEmpty(tags)) {
+      if (tags instanceof Array) {
+        tags.forEach((tag) => {
+          queryBuilder.andWhere('tag.name = :tag', { tag });
+        });
+      } else {
+        queryBuilder.andWhere('tag.name = :tag', { tag: tags });
+      }
     }
 
     return paginate<Game>(queryBuilder, {

@@ -192,7 +192,7 @@ export class GameProjectsController {
 
     if (file) {
       this.logger.verbose(
-        `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
+        `Update File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
       if (file?.mimetype !== 'application/zip') {
