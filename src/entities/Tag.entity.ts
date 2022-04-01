@@ -19,7 +19,7 @@ export class Tag extends BaseEntity {
   @IsString()
   label: string;
 
-  @Column('text', { default: '' })
+  @Column('text', { nullable: true })
   @IsString()
   description: string;
 
