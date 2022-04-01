@@ -24,7 +24,10 @@ export class GamesService {
   ) {}
 
   public async paginateGameProjects(options): Promise<Pagination<Game>> {
-    console.log(options.tags);
+    this.logger.verbose(
+      `Query: ${JSON.stringify(options)}`,
+      this.constructor.name,
+    );
     const tags = options.tags instanceof Array ? options.tags : [options.tags];
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
