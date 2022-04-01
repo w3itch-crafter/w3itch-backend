@@ -4,11 +4,10 @@ import {
   Injectable,
   LoggerService,
 } from '@nestjs/common';
-import AdmZip from 'adm-zip';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { createReadStream } from 'fs';
+import { createReadStream, renameSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -16,6 +15,9 @@ import { join } from 'path';
 import process from 'process';
 
 import { GameEngine } from '../../types/enum';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const AdmZip = require('adm-zip-iconv');
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
 
@@ -47,7 +49,7 @@ export class EasyRpgGamesService {
     const env = Object.assign({}, process.env);
     const options: execa.Options = { cwd: path, env, reject };
     const exec = execa(this.genCacheBin, options);
-    this.logger.log(`gencache: ${exec.stdout}`, this.constructor.name);
+    this.logger.log(`gencache: ${path}`, this.constructor.name);
     return exec;
   }
 
@@ -98,21 +100,28 @@ export class EasyRpgGamesService {
     engine: GameEngine,
     file: Express.Multer.File,
   ) {
-    const zip = new AdmZip(file.buffer);
+    const zip = new AdmZip(file.buffer, 'Shift_JIS');
     const rpgRtFlags = {
       lmt: false,
       ldb: false,
       ini: false,
       exe: false,
     };
+    let entryPath = '';
     zip.getEntries().forEach((entry, index, arr) => {
       this.logger.verbose(entry.entryName, this.constructor.name);
       rpgRtExtNames.forEach((extName) => {
-        if (`RPG_RT.${extName}` === entry.entryName) {
+        const { entryName } = entry;
+        if (
+          entryName.endsWith(`RPG_RT.${extName}`) &&
+          !entryName.startsWith('__MACOSX/')
+        ) {
           rpgRtFlags[extName] = true;
+          entryPath = entryName.substring(0, entryName.indexOf('RPG_RT.'));
         }
       });
     });
+
     rpgRtExtNames.forEach((extName) => {
       if (!rpgRtFlags[extName]) {
         throw new BadRequestException(
@@ -121,11 +130,23 @@ export class EasyRpgGamesService {
       }
     });
     const cwd = process.cwd();
+    const tempPath = join(cwd, 'thirdparty', 'temp', game);
     const targetPath = join(cwd, 'thirdparty', 'games', game);
     this.logger.debug(`Delete ${targetPath}`, this.constructor.name);
     findRemoveSync(targetPath, { dir: '*', files: '*.*' });
-    this.logger.debug(`Extract game to ${targetPath}`, this.constructor.name);
-    zip.extractAllTo(/*target path*/ targetPath, /*overwrite*/ true);
+    if (entryPath) {
+      this.logger.debug(`Extract Game to ${tempPath}`, this.constructor.name);
+      zip.extractAllTo(tempPath, true);
+      const gamePath = join(tempPath, entryPath);
+      this.logger.debug(
+        `Move Game from ${gamePath} to ${targetPath}`,
+        this.constructor.name,
+      );
+      renameSync(gamePath, targetPath);
+    } else {
+      this.logger.debug(`Extract Game to ${targetPath}`, this.constructor.name);
+      zip.extractAllTo(targetPath, true);
+    }
     this.generateGameCache(targetPath);
   }
 }

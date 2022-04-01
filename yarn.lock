@@ -2536,10 +2536,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"adm-zip@npm:^0.5.9":
-  version: 0.5.9
-  resolution: "adm-zip@npm:0.5.9"
-  checksum: 4909bc04119fdd5e8f8ba43826e50623e5c427cf0a939c809d4f9456a6a03c6aa0544e82088739de9ba16b7649f71b99ccbbddc7b2c38bd6143f9c4726cc7ed9
+"adm-zip-iconv@npm:^0.4.9":
+  version: 0.4.9
+  resolution: "adm-zip-iconv@npm:0.4.9"
+  dependencies:
+    iconv-lite: ^0.4.18
+  checksum: e488ca71cf5c0ed68a49a6e883cbc66d7633522657ea5c52749dd5cac613d92fe7491d40f6a24b005ba560d4007471cb7dc67db26fe9814fd343cc583133b624
   languageName: node
   linkType: hard
 
@@ -6055,7 +6057,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:0.4.24, iconv-lite@npm:^0.4.24, iconv-lite@npm:^0.4.4":
+"iconv-lite@npm:0.4.24, iconv-lite@npm:^0.4.18, iconv-lite@npm:^0.4.24, iconv-lite@npm:^0.4.4":
   version: 0.4.24
   resolution: "iconv-lite@npm:0.4.24"
   dependencies:
@@ -11434,7 +11436,7 @@ __metadata:
     "@types/supertest": ^2.0.11
     "@typescript-eslint/eslint-plugin": ^5.14.0
     "@typescript-eslint/parser": ^5.14.0
-    adm-zip: ^0.5.9
+    adm-zip-iconv: ^0.4.9
     bull: ^4.7.0
     cache-manager: ^3.6.0
     cache-manager-ioredis: ^2.1.0
