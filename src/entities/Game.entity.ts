@@ -136,7 +136,7 @@ export class Game extends BaseEntity {
   })
   @Column('simple-array')
   @Length(1, 120)
-  @IsString({ each: true })
+  @IsUrl({ each: true })
   appStoreLinks: string[];
 
   @ApiProperty()

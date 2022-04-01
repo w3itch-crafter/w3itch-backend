@@ -10,8 +10,9 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 
-import { BaseEntity } from '../../entities/base.entity';
 import { Game } from '../../entities/Game.entity';
+import { PostedGameEntity } from '../../types';
+import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 
 @Injectable()
 export class GamesService {
@@ -52,15 +53,15 @@ export class GamesService {
     return game;
   }
 
-  public async save(
-    game: Omit<Game, keyof BaseEntity | 'ratings'>,
-  ): Promise<Game> {
+  public async save(game: PostedGameEntity): Promise<Game> {
     return await this.gameRepository.save(game);
   }
 
-  public async validateGameName(gameName: string): Promise<void> {
-    const game = await this.gameRepository.findOne({ where: { gameName } });
-    if (game) {
+  public async validate(game: UpdateGameProjectDto): Promise<void> {
+    const exists = await this.gameRepository.findOne({
+      where: { gameName: game.gameName },
+    });
+    if (exists) {
       throw new ConflictException('Game name already exists');
     }
   }

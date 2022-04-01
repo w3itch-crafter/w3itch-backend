@@ -8,6 +8,7 @@ import {
   LoggerService,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -38,6 +39,7 @@ import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
+import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
@@ -129,8 +131,8 @@ export class GameProjectsController {
     // TODO: need a pipe to transform the string to DTO due to the mime type
     const game = JSON.parse(body.game as unknown as string);
 
-    // gameName must be unique
-    await this.gamesService.validateGameName(game.gameName);
+    // The object must be validated before continue
+    await this.gamesService.validate(game);
 
     this.logger.verbose(
       `File: ${file.originalname}, Game: ${game}`,
@@ -140,7 +142,7 @@ export class GameProjectsController {
       throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
     }
 
-    // this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
+    this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
     const tags: Tag[] = await Promise.all(
       game.tags.map(async (tag) => this.tagsService.getOrCreateByName(tag)),
     );
@@ -156,5 +158,13 @@ export class GameProjectsController {
       userId: user.id,
       file: file.originalname,
     });
+  }
+
+  @Post('/validate')
+  @ApiOperation({
+    summary: 'Validate a Game DTO which is to create a game project',
+  })
+  async validate(@Body() body: UpdateGameProjectDto) {
+    await this.gamesService.validate(body);
   }
 }

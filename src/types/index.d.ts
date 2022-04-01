@@ -1,6 +1,8 @@
 import { JwtPayload } from 'jsonwebtoken';
 
 import { Account } from '../entities/Account.entity';
+import { BaseEntity } from '../entities/base.entity';
+import { Game } from '../entities/Game.entity';
 import { User } from '../entities/User.entity';
 
 export interface UserJWTPayload extends JwtPayload, User {
@@ -10,8 +12,4 @@ export interface UserJWTPayload extends JwtPayload, User {
   account: Account;
 }
 
-export interface TransformResponse<T = any> {
-  data: T;
-  statusCode: number;
-  message: string;
-}
+export type PostedGameEntity = Omit<Game, keyof BaseEntity | 'ratings'>;
