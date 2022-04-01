@@ -8,7 +8,8 @@ import { User } from '../../../entities/User.entity';
 import { AccountsManager } from '../accounts.manager';
 import { JWTCookieHelper } from '../jwt-cookie-helper';
 import { AccountsMetamaskService } from './accounts-metamask.service';
-import { AccountsMetaMaskDto } from './dto/accounts-metamask.dto';
+import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
+import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
 @ApiTags('Accounts MetaMask')
 @Controller('accounts/metamask')
@@ -35,10 +36,10 @@ export class AccountsMetamaskController {
   @ApiOperation({ summary: 'Signup using metamask' })
   async signup(
     @Res({ passthrough: true }) res: Response,
-    @Body() accountsMetaMaskDto: AccountsMetaMaskDto,
+    @Body() accountsSignupMetaMaskDto: AccountsSignupMetaMaskDto,
   ): Promise<{ user: User; account: Account }> {
     const { user, account, tokens } = await this.accountsManager.signup(
-      accountsMetaMaskDto,
+      accountsSignupMetaMaskDto,
     );
 
     await this.jwtCookieHelper.JWTCookieWriter(res, tokens);
@@ -49,7 +50,7 @@ export class AccountsMetamaskController {
   @ApiOperation({ summary: 'Login with metamask' })
   async login(
     @Res({ passthrough: true }) res: Response,
-    @Body() accountsMetaMaskDto: AccountsMetaMaskDto,
+    @Body() accountsMetaMaskDto: AccountsLoginMetaMaskDto,
   ): Promise<{ user: User; account: Account }> {
     const { user, account, tokens } = await this.accountsManager.login(
       accountsMetaMaskDto,

@@ -15,7 +15,6 @@ import { JwtStrategy } from './strategy';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         return {
-          secretOrPrivateKey: JWT_KEY.privateKey,
           privateKey: JWT_KEY.privateKey,
           publicKey: JWT_KEY.publicKey,
           audience: configService.get<string[]>('jwt.audience'),

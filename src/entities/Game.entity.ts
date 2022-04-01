@@ -1,8 +1,4 @@
-import {
-  ApiHideProperty,
-  ApiProperty,
-  ApiResponseProperty,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
   IsEnum,
   IsInt,

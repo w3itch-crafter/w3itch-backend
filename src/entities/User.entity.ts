@@ -5,7 +5,7 @@ import { BaseEntity } from './base.entity';
 
 @Entity()
 export class User extends BaseEntity {
-  @Column({ default: '' })
+  @Column({ unique: true })
   @Matches(/^[a-z0-9-]+$/)
   @Length(3, 15)
   username: string;

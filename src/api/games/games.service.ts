@@ -28,27 +28,30 @@ export class GamesService {
       `Query: ${JSON.stringify(options)}`,
       this.constructor.name,
     );
+
+    const { page, limit, username, sortBy, order } = options;
     const tags = options.tags instanceof Array ? options.tags : [options.tags];
+
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
       .leftJoin('game.tags', 'tag')
       .leftJoinAndSelect('game.tags', 'tagSelect')
-      .orderBy(`game.${options.sortBy}`, options.order);
+      .orderBy(`game.${sortBy}`, order);
 
-    if (options.username) {
+    if (username) {
       queryBuilder.andWhere('game.username=:username', {
-        username: options.username,
+        username,
       });
     }
-    if (options.tags) {
+    if (tags) {
       tags.forEach((tag) => {
         queryBuilder.andWhere('tag.name = :tag', { tag });
       });
     }
 
     return paginate<Game>(queryBuilder, {
-      page: options.page,
-      limit: options.limit,
+      page,
+      limit,
       route: '/game-projects',
     });
   }

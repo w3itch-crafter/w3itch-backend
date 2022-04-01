@@ -1,10 +1,8 @@
 import {
   BadRequestException,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -12,12 +10,14 @@ import { AuthenticationService } from '../../auth/service';
 import { Account } from '../../entities/Account.entity';
 import { User } from '../../entities/User.entity';
 import { UsersService } from '../users/users.service';
-import { AccountsVerifier } from './accounts.verifier';
+import {
+  AccountsLoginVerifier,
+  AccountsSignupVerifier,
+} from './accounts.verifier';
 import { JWTTokens, Platforms } from './type';
 
 @Injectable()
 export class AccountsService {
-  private logger = new Logger(AccountsService.name);
   constructor(
     @InjectRepository(Account)
     private readonly accountsRepository: Repository<Account>,
@@ -38,6 +38,24 @@ export class AccountsService {
     return await this.accountsRepository.delete(accountId);
   }
 
+  private async initUser(
+    username: string,
+    userAccountData: {
+      accountId: string;
+      platform: string;
+    },
+  ): Promise<{ user: User; userAccount: Account }> {
+    const user = await this.usersService.save({
+      username,
+    });
+    const userAccount = await this.save({
+      ...userAccountData,
+      userId: user.id,
+    });
+
+    return { user, userAccount };
+  }
+
   async getUser(userAccountData: {
     accountId: string;
     platform: string;
@@ -51,36 +69,26 @@ export class AccountsService {
     return { user, userAccount };
   }
 
-  async initUser(userAccountData: {
-    accountId: string;
-    platform: string;
-  }): Promise<{ user: User; userAccount: Account }> {
-    const user = await this.usersService.save();
-    const userAccount = await this.save({
-      ...userAccountData,
-      userId: user.id,
-    });
-
-    return { user, userAccount };
-  }
-
-  async signup(accountDto: any, platform: Platforms, verify: AccountsVerifier) {
-    await verify(accountDto);
+  async login(
+    accountLoginDto: any,
+    platform: Platforms,
+    verify: AccountsLoginVerifier,
+  ) {
+    await verify(accountLoginDto);
 
     const userAccountData = {
-      accountId: accountDto.account,
+      accountId: accountLoginDto.account,
       platform,
     };
 
-    const hasAlreadySigned: { user; userAccount } = await this.getUser(
-      userAccountData,
-    );
+    const { user, userAccount } = await this.getUser(userAccountData);
 
-    if (hasAlreadySigned.user) {
-      throw new BadRequestException('User is signed already, please login.');
+    if (!user || !userAccount) {
+      throw new UnauthorizedException(
+        'User account does not exist.',
+        'UserNotFound',
+      );
     }
-
-    const { user, userAccount } = await this.initUser(userAccountData);
 
     const tokens: JWTTokens = await this.authService.signLoginJWT(
       user,
@@ -93,22 +101,30 @@ export class AccountsService {
     };
   }
 
-  async login(accountDto: any, platform: Platforms, verify: AccountsVerifier) {
-    await verify(accountDto);
+  async signup(
+    accountSignupDto: any,
+    platform: Platforms,
+    verify: AccountsSignupVerifier,
+  ) {
+    await verify(accountSignupDto);
 
     const userAccountData = {
-      accountId: accountDto.account,
+      accountId: accountSignupDto.account,
       platform,
     };
 
-    const { user, userAccount } = await this.getUser(userAccountData);
+    const hasAlreadySigned: { user; userAccount } = await this.getUser(
+      userAccountData,
+    );
 
-    if (!user || !userAccount) {
-      throw new UnauthorizedException(
-        'User account does not exist.',
-        'UserNotFound',
-      );
+    if (hasAlreadySigned.user) {
+      throw new BadRequestException('User is signed already, please login.');
     }
+
+    const { user, userAccount } = await this.initUser(
+      accountSignupDto.username,
+      userAccountData,
+    );
 
     const tokens: JWTTokens = await this.authService.signLoginJWT(
       user,

@@ -1,19 +1,23 @@
 import { AccountsService } from './accounts.service';
-import { AccountsVerifier } from './accounts.verifier';
+import {
+  AccountsLoginVerifier,
+  AccountsSignupVerifier,
+} from './accounts.verifier';
 import { Platforms } from './type';
 
 export class AccountsManager {
   constructor(
     private readonly accountsService: AccountsService,
     private readonly platform: Platforms,
-    private readonly verify: AccountsVerifier,
+    private readonly loginVerify: AccountsLoginVerifier,
+    private readonly signupVerify: AccountsSignupVerifier,
   ) {}
 
-  async signup(accountDto: any) {
+  async signup(accountSignupDto: any) {
     return await this.accountsService.signup(
-      accountDto,
+      accountSignupDto,
       this.platform,
-      this.verify,
+      this.signupVerify,
     );
   }
 
@@ -21,7 +25,7 @@ export class AccountsManager {
     return await this.accountsService.login(
       accountDto,
       this.platform,
-      this.verify,
+      this.loginVerify,
     );
   }
 }

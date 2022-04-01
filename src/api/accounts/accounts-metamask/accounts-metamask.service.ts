@@ -1,13 +1,22 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
 
 import { AppCacheService } from '../../../cache/service';
-import { AccountsMetaMaskDto } from './dto/accounts-metamask.dto';
+import { UsersService } from '../../users/users.service';
+import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
+import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
 @Injectable()
 export class AccountsMetamaskService {
-  constructor(private readonly cacheService: AppCacheService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cacheService: AppCacheService,
+  ) {}
 
   async generateMetamaskNonce(address: string): Promise<string> {
     return await this.cacheService.generateVerificationCode(
@@ -16,10 +25,10 @@ export class AccountsMetamaskService {
     );
   }
 
-  async verify(accountsMetaMaskDto: AccountsMetaMaskDto): Promise<void> {
+  async loginVerify(loginDto: AccountsLoginMetaMaskDto): Promise<void> {
     const nonce = await this.cacheService.getVerificationCode(
       'metamask-login',
-      accountsMetaMaskDto.account,
+      loginDto.account,
     );
 
     if (nonce === null) {
@@ -33,16 +42,26 @@ export class AccountsMetamaskService {
     const msgBufferHex = bufferToHex(Buffer.from(message, 'utf8'));
     const address = recoverPersonalSignature({
       data: msgBufferHex,
-      sig: accountsMetaMaskDto.signature,
+      sig: loginDto.signature,
     });
 
     // The signature verification is successful if the address found with
     // sigUtil.recoverPersonalSignature matches the initial publicAddress
     const isSignatureVerified =
-      address.toLowerCase() === accountsMetaMaskDto.account.toLowerCase();
+      address.toLowerCase() === loginDto.account.toLowerCase();
 
     if (!isSignatureVerified) {
       throw new BadRequestException('MetaMask authentication is not verified.');
+    }
+  }
+
+  async signupVerify(signupDto: AccountsSignupMetaMaskDto): Promise<void> {
+    await this.loginVerify(signupDto);
+    const usernameExists = await this.usersService.validateUsername(
+      signupDto.username,
+    );
+    if (usernameExists) {
+      throw new ConflictException('Username already exists.');
     }
   }
 }

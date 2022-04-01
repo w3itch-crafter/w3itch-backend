@@ -1,21 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEthereumAddress,
-  IsNotEmpty,
-  Length,
-  MaxLength,
-} from 'class-validator';
+import { IsEthereumAddress, Length } from 'class-validator';
 
-export class AccountsMetaMaskDto {
+export class AccountsLoginMetaMaskDto {
   @ApiProperty({
     default: '0x1234567890',
   })
-  @MaxLength(42)
+  @Length(42, 42)
   @IsEthereumAddress()
-  @IsNotEmpty()
   account: string;
 
+  @ApiProperty({
+    default: '0x1234567890',
+  })
   @Length(132, 132)
-  @IsNotEmpty()
   signature: string;
 }

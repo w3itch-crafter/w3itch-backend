@@ -9,7 +9,8 @@ import { AccountsModule } from '../accounts.module';
 import { AccountsService } from '../accounts.service';
 import { AccountsMetamaskController } from './accounts-metamask.controller';
 import { AccountsMetamaskService } from './accounts-metamask.service';
-import { AccountsMetaMaskDto } from './dto/accounts-metamask.dto';
+import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
+import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
 @Module({
   imports: [
@@ -30,8 +31,10 @@ import { AccountsMetaMaskDto } from './dto/accounts-metamask.dto';
         new AccountsManager(
           accountsService,
           'metamask',
-          (accountsMetamaskDto: AccountsMetaMaskDto) =>
-            accountsMetaMaskService.verify(accountsMetamaskDto),
+          (loginDto: AccountsLoginMetaMaskDto) =>
+            accountsMetaMaskService.loginVerify(loginDto),
+          (signupDto: AccountsSignupMetaMaskDto) =>
+            accountsMetaMaskService.signupVerify(signupDto),
         ),
       inject: [AccountsService, AccountsMetamaskService],
     },

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 
@@ -39,22 +35,6 @@ export class UsersService {
     return {
       isExists: Boolean(await this.usersRepository.findOne({ username })),
     };
-  }
-
-  async updateUsername(uid: number, username: string): Promise<User> {
-    const isAlreadyExists = await this.usersRepository.findOne({ username });
-
-    if (isAlreadyExists) {
-      throw new ConflictException('Username already exists.');
-    }
-
-    const user = await this.usersRepository.findOne(uid);
-    if (user.username !== '') {
-      throw new BadRequestException('User already has a username');
-    }
-
-    await this.usersRepository.update(uid, { username });
-    return await this.usersRepository.findOne(uid);
   }
 
   async getUserInfo(uid: number): Promise<User> {

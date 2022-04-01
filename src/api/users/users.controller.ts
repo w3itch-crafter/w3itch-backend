@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Patch,
   Post,
-  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
@@ -16,7 +15,6 @@ import { CurrentUser } from '../../decorators/user.decorator';
 import { User } from '../../entities/User.entity';
 import { UserJWTPayload } from '../../types';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateUsernameDto } from './dto/update-username.dto';
 import { ValidateUsernameDto } from './dto/validate-username.dto';
 import { UsersService } from './users.service';
 
@@ -39,15 +37,6 @@ export class UsersController {
     @CurrentUser() user: UserJWTPayload,
   ): Promise<User> {
     return this.usersService.update(user.id, updateUserDto);
-  }
-
-  @Put('me/username')
-  @UseGuards(JWTAuthGuard)
-  async setMyUsername(
-    @CurrentUser() user: UserJWTPayload,
-    @Body() body: UpdateUsernameDto,
-  ): Promise<User> {
-    return this.usersService.updateUsername(user.id, body.username);
   }
 
   @Post('username/validate')

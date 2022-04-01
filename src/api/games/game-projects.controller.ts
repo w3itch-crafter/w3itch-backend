@@ -8,7 +8,6 @@ import {
   LoggerService,
   Param,
   ParseIntPipe,
-  Patch,
   Post,
   Query,
   UploadedFile,
@@ -115,6 +114,7 @@ export class GameProjectsController {
       limit,
     });
   }
+
   @Get('/:id(\\d+)')
   @ApiOperation({ summary: 'get game project by id' })
   @ApiOkResponse({ type: Game })
@@ -149,9 +149,7 @@ export class GameProjectsController {
     }
 
     this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
-    const tags: Tag[] = await Promise.all(
-      game.tags.map(async (tag) => this.tagsService.getOrCreateByName(tag)),
-    );
+    const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
 
     this.logger.verbose(
       `Tags of game: ${game.gameName} are ${JSON.stringify(tags)}`,
