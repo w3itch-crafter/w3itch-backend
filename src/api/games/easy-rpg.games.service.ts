@@ -7,7 +7,7 @@ import {
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { createReadStream, renameSync } from 'fs';
+import { createReadStream, renameSync, rmSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -143,6 +143,7 @@ export class EasyRpgGamesService {
         this.constructor.name,
       );
       renameSync(gamePath, targetPath);
+      rmSync(tempPath, { recursive: true });
     } else {
       this.logger.debug(`Extract Game to ${targetPath}`, this.constructor.name);
       zip.extractAllTo(targetPath, true);
