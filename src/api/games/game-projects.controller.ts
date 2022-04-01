@@ -28,7 +28,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { plainToClass, plainToInstance } from 'class-transformer';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
@@ -41,7 +40,6 @@ import { PostedGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
-import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
@@ -140,11 +138,7 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateGameProjectWithFileDto,
   ) {
-    const game = plainToInstance(
-      CreateGameProjectDto,
-      JSON.parse(body.game as unknown as string),
-    );
-
+    const { game } = body;
     await this.gamesService.validateGameName(game);
 
     this.logger.verbose(
@@ -183,7 +177,7 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UpdateGameProjectWithFileDto,
   ) {
-    const game = plainToClass(CreateGameProjectDto, body.game);
+    const { game } = body;
     const target = await this.gamesService.findOne(id);
 
     if (user.username !== target.username) {
