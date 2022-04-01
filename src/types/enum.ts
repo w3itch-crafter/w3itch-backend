@@ -1,5 +1,5 @@
 export enum GamesListSortBy {
-  RATE = 'rate',
+  RATING = 'rating',
   TIME = 'updatedAt',
 }
 

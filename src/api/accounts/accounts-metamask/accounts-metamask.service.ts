@@ -32,7 +32,7 @@ export class AccountsMetamaskService {
     );
 
     if (nonce === null) {
-      throw new BadRequestException('Invalid verification code.');
+      throw new BadRequestException('Invalid verification code');
     }
 
     const message = `\x19Ethereum Signed Message:\n Code Length: ${nonce.length}; Code: ${nonce}`;
@@ -51,7 +51,7 @@ export class AccountsMetamaskService {
       address.toLowerCase() === loginDto.account.toLowerCase();
 
     if (!isSignatureVerified) {
-      throw new BadRequestException('MetaMask authentication is not verified.');
+      throw new BadRequestException('MetaMask authentication is not verified');
     }
   }
 

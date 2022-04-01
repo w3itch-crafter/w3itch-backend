@@ -142,7 +142,7 @@ export class GameProjectsController {
     await this.gamesService.validateGameName(game);
 
     this.logger.verbose(
-      `File: ${file.originalname}, Game: ${body.game}`,
+      `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
       this.constructor.name,
     );
     if (file?.mimetype !== 'application/zip') {
@@ -192,7 +192,7 @@ export class GameProjectsController {
 
     if (file) {
       this.logger.verbose(
-        `Update File: ${file.originalname}, Game: ${game}`,
+        `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
       if (file?.mimetype !== 'application/zip') {

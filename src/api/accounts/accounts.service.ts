@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -85,7 +81,7 @@ export class AccountsService {
 
     if (!user || !userAccount) {
       throw new UnauthorizedException(
-        'User account does not exist.',
+        'User account does not exist',
         'UserNotFound',
       );
     }
@@ -117,14 +113,9 @@ export class AccountsService {
       userAccountData,
     );
 
-    if (hasAlreadySigned.user) {
-      throw new BadRequestException('User is signed already, please login.');
-    }
-
-    const { user, userAccount } = await this.initUser(
-      accountSignupDto.username,
-      userAccountData,
-    );
+    const { user, userAccount } = hasAlreadySigned
+      ? hasAlreadySigned
+      : await this.initUser(accountSignupDto.username, userAccountData);
 
     const tokens: JWTTokens = await this.authService.signLoginJWT(
       user,

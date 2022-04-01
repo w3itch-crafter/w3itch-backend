@@ -38,7 +38,7 @@ export class AccountsTokenController {
     const token = req.cookies[refreshTokenName];
     if (!token) {
       throw new UnauthorizedException(
-        'Failed to refresh token; You must login.',
+        'Failed to refresh token; You must login',
       );
     }
     let payload: UserJWTPayload;
@@ -47,7 +47,7 @@ export class AccountsTokenController {
     } catch (e) {
       console.log(e);
       throw new UnauthorizedException(
-        'Failed to refresh token; You must login.',
+        'Failed to refresh token; You must login',
       );
     }
     const { user, tokens } = await this.loginService.refresh(
