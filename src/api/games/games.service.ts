@@ -35,6 +35,11 @@ export class GamesService {
       .leftJoinAndSelect('game.tags', 'tagSelect')
       .orderBy(`game.${options.sortBy}`, options.order);
 
+    if (options.username) {
+      queryBuilder.andWhere('game.username=:username', {
+        username: options.username,
+      });
+    }
     if (options.tags) {
       tags.forEach((tag) => {
         queryBuilder.andWhere('tag.name = :tag', { tag });

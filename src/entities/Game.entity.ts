@@ -30,11 +30,12 @@ import { Tag } from './Tag.entity';
 @Entity()
 export class Game extends BaseEntity {
   @ApiResponseProperty()
-  @ApiProperty({ description: `Creator's user ID` })
+  @ApiProperty({ description: `Creator's username` })
   @Column()
-  @IsInt()
+  @Matches(/^[a-z0-9-]+$/)
+  @Length(3, 15)
   @IsNotEmpty()
-  userId: number;
+  username: string;
 
   /**
    * Game title

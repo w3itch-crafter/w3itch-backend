@@ -58,6 +58,10 @@ export class GameProjectsController {
   @Get('/')
   @ApiOperation({ summary: 'paignate game projects' })
   @ApiQuery({
+    name: 'username',
+    required: false,
+  })
+  @ApiQuery({
     name: 'tags',
     required: false,
     isArray: true,
@@ -83,6 +87,7 @@ export class GameProjectsController {
   })
   @ApiGeneralPaginationResponse(Game)
   async paginateGameProjects(
+    @Query('username') username: string,
     @Query('tags') tags: string[],
     @Query('sortBy')
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
@@ -100,8 +105,9 @@ export class GameProjectsController {
     if (limit > 100) {
       limit = 100;
     }
-    console.log({ tags });
+
     return this.gamesService.paginateGameProjects({
+      username,
       tags,
       sortBy,
       order,
@@ -135,7 +141,7 @@ export class GameProjectsController {
     await this.gamesService.validate(game);
 
     this.logger.verbose(
-      `File: ${file.originalname}, Game: ${game}`,
+      `File: ${file.originalname}, Game: ${body.game}`,
       this.constructor.name,
     );
     if (file?.mimetype !== 'application/zip') {
@@ -148,14 +154,14 @@ export class GameProjectsController {
     );
 
     this.logger.verbose(
-      `Tags of game: ${game.gameName} are ${tags}`,
+      `Tags of game: ${game.gameName} are ${JSON.stringify(tags)}`,
       this.constructor.name,
     );
 
     return await this.gamesService.save({
       ...game,
       tags,
-      userId: user.id,
+      username: user.username,
       file: file.originalname,
     });
   }
