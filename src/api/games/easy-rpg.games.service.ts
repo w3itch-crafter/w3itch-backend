@@ -14,6 +14,7 @@ import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import process from 'process';
+
 import { GameEngine } from '../../types/enum';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
@@ -113,10 +114,10 @@ export class EasyRpgGamesService {
       }
     });
     const cwd = process.cwd();
-    const targetPath = `${cwd}/thirdparty/games/${game}`;
-    this.logger.log(`Delete ${targetPath}`, this.constructor.name);
+    const targetPath = join(cwd, 'thirdparty', 'games', game);
+    this.logger.debug(`Delete ${targetPath}`, this.constructor.name);
     findRemoveSync(targetPath, { dir: '*', files: '*.*' });
-    this.logger.log(`Extract game to ${targetPath}`, this.constructor.name);
+    this.logger.debug(`Extract game to ${targetPath}`, this.constructor.name);
     zip.extractAllTo(/*target path*/ targetPath, /*overwrite*/ true);
     this.generateGameCache(targetPath);
   }
