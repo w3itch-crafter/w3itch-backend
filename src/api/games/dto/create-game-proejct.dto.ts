@@ -47,6 +47,11 @@ export class CreateGameProjectDto {
   gameName: string;
 
   @ApiProperty({
+    required: false,
+  })
+  charset: string;
+
+  @ApiProperty({
     enum: ProjectClassification,
     default: ProjectClassification.GAMES,
   })

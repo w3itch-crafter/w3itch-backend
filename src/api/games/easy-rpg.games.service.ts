@@ -4,6 +4,7 @@ import {
   Injectable,
   LoggerService,
 } from '@nestjs/common';
+import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
@@ -15,9 +16,6 @@ import { join } from 'path';
 import process from 'process';
 
 import { GameEngine } from '../../types/enum';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AdmZip = require('adm-zip-iconv');
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
 
@@ -99,8 +97,10 @@ export class EasyRpgGamesService {
     game: string,
     engine: GameEngine,
     file: Express.Multer.File,
+    charset?: string,
   ) {
-    const zip = new AdmZip(file.buffer, 'Shift_JIS');
+    console.log(charset);
+    const zip = new AdmZip(file.buffer, charset);
     const rpgRtFlags = {
       lmt: false,
       ldb: false,

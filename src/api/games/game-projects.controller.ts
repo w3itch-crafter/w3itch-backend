@@ -149,7 +149,12 @@ export class GameProjectsController {
       throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
     }
 
-    this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
+    this.easyRpgGamesService.uploadGame(
+      game.gameName,
+      game.kind,
+      file,
+      game.charset,
+    );
     const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
 
     this.logger.verbose(
@@ -198,7 +203,12 @@ export class GameProjectsController {
       if (file?.mimetype !== 'application/zip') {
         throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
       }
-      this.easyRpgGamesService.uploadGame(game.gameName, game.kind, file);
+      this.easyRpgGamesService.uploadGame(
+        game.gameName,
+        game.kind,
+        file,
+        game.charset,
+      );
     } else {
       this.logger.verbose(
         `Update game: ${game} with no file uploaded`,
