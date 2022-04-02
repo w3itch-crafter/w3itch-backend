@@ -27,6 +27,7 @@ export class GamesService {
   private static appendParams(target, options) {
     if (!target) return target;
     const url = new URL(target);
+    delete options.page;
     Object.entries(options).forEach(([key, value]: [string, string]) => {
       if (value) {
         if (key === 'sortBy') {
