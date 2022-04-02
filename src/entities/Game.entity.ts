@@ -116,11 +116,15 @@ export class Game extends BaseEntity {
 
   @ManyToMany(() => Tag, (tag) => tag.game, {
     cascade: true,
+    eager: true,
   })
   @JoinTable()
   tags: Tag[];
 
-  @OneToMany(() => Rating, (rating) => rating.game)
+  @OneToMany(() => Rating, (rating) => rating.game, {
+    cascade: true,
+    eager: true,
+  })
   ratings: Rating[];
 
   @ApiProperty({ description: `Tokens to be held/paid to play this game` })

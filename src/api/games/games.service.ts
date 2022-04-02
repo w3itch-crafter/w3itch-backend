@@ -12,6 +12,7 @@ import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
+import { Rating } from '../../entities/Rating.entity';
 import { PostedGameEntity } from '../../types';
 import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 
@@ -22,6 +23,8 @@ export class GamesService {
     private readonly logger: LoggerService,
     @InjectRepository(Game)
     private readonly gameRepository: Repository<Game>,
+    @InjectRepository(Rating)
+    private readonly ratingRepository: Repository<Rating>,
   ) {}
 
   private static appendParams(target, options) {
@@ -53,8 +56,7 @@ export class GamesService {
 
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
-      .leftJoin('game.tags', 'tag')
-      .leftJoinAndSelect('game.tags', 'tagSelect');
+      .leftJoin('game.tags', 'tag');
 
     if (options.username) {
       queryBuilder.andWhere('game.username = :username', {
@@ -93,11 +95,15 @@ export class GamesService {
   }
 
   public async save(game: PostedGameEntity): Promise<Game> {
+    // ratings are not allowed to be created
+    delete (game as Game).ratings;
     return await this.gameRepository.save(game);
   }
 
-  public async update(id, game: Partial<PostedGameEntity>): Promise<Game> {
-    return await this.gameRepository.save({ id, game });
+  public async update(id, update: Partial<PostedGameEntity>): Promise<Game> {
+    // ratings are not allowed to be updated
+    delete (update as Game).ratings;
+    return await this.gameRepository.save({ id, ...update });
   }
 
   public async delete(id: number): Promise<void> {
@@ -111,5 +117,41 @@ export class GamesService {
     if (exists) {
       throw new ConflictException('Game name already exists');
     }
+  }
+
+  public async deleteRating(gameId: number, username: string): Promise<void> {
+    const game = await this.gameRepository.findOne(gameId);
+    if (!game) {
+      throw new NotFoundException('Game not found');
+    }
+    const rating = game.ratings.find((r) => r.username === username);
+    if (!rating) {
+      throw new NotFoundException('Rating not found');
+    }
+    await this.ratingRepository.delete(rating.id);
+  }
+
+  public async updateRating(
+    gameId: number,
+    username: string,
+    rating: number,
+  ): Promise<Game> {
+    const game = await this.gameRepository.findOne(gameId);
+    if (!game) {
+      throw new NotFoundException('Game not found');
+    }
+    let entity = game.ratings.find((r) => r.username === username);
+    if (entity) {
+      entity.rating = rating;
+    } else {
+      entity = new Rating();
+      entity.game = game;
+      entity.username = username;
+      entity.rating = rating;
+      game.ratings.push(entity);
+    }
+    await this.gameRepository.save(game);
+    // query it again to get the updated rating
+    return await this.gameRepository.findOne(gameId);
   }
 }

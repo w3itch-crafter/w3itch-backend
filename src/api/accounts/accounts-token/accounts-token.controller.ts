@@ -45,7 +45,6 @@ export class AccountsTokenController {
     try {
       payload = await this.jwtService.verify(token);
     } catch (e) {
-      console.log(e);
       throw new UnauthorizedException(
         'Failed to refresh token; You must login',
       );

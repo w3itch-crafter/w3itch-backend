@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isNotEmpty } from 'class-validator';
 import { Repository } from 'typeorm';
 
 import { Tag } from '../../entities/Tag.entity';
@@ -36,11 +37,15 @@ export class TagsService {
   }
 
   async getOrCreateByNames(names: string[]): Promise<Tag[]> {
-    return await Promise.all(
-      names.map(async (name) => {
-        const exists = await this.tagsRepository.findOne({ name });
-        return exists || this.tagsRepository.create({ name, label: name });
-      }),
-    );
+    if (isNotEmpty(names)) {
+      return await Promise.all(
+        names.map(async (name) => {
+          const exists = await this.tagsRepository.findOne({ name });
+          return exists || this.tagsRepository.create({ name, label: name });
+        }),
+      );
+    } else {
+      return [];
+    }
   }
 }

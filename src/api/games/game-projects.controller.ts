@@ -41,6 +41,7 @@ import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
+import { UpdateRatingDto } from './dto/update-rating.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
@@ -246,6 +247,37 @@ export class GameProjectsController {
     await this.gamesService.delete(id);
   }
 
+  @Patch('/:id/rating')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Create or update your rating of a game project',
+  })
+  async updateRating(
+    @Param('id') gameId: number,
+    @CurrentUser() user: UserJWTPayload,
+    @Body() body: UpdateRatingDto,
+  ): Promise<Game> {
+    return await this.gamesService.updateRating(
+      gameId,
+      user.username,
+      body.rating,
+    );
+  }
+
+  @Delete('/:id/rating')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Delete your rating of a game project',
+  })
+  async deleteRating(
+    @Param('id') gameId: number,
+    @CurrentUser() user: UserJWTPayload,
+  ): Promise<void> {
+    return await this.gamesService.deleteRating(gameId, user.username);
+  }
+
   @Delete('/:id/file')
   @UseGuards(JWTAuthGuard)
   @ApiCookieAuth()
@@ -258,11 +290,11 @@ export class GameProjectsController {
 
     if (user.username !== target.username) {
       throw new ForbiddenException(
-        "You don't have permission to delete the files of this project",
+        "You don't have permission to delete the file of this project",
       );
     }
 
-    this.easyRpgGamesService.deleteGameDirectory(target.file);
     await this.gamesService.update(id, { file: null });
+    this.easyRpgGamesService.deleteGameDirectory(target.file);
   }
 }
