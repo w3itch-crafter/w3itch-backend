@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { Rating } from '../../entities/Rating.entity';
@@ -95,14 +95,10 @@ export class GamesService {
   }
 
   public async save(game: PostedGameEntity): Promise<Game> {
-    // ratings are not allowed to be created
-    delete (game as Game).ratings;
     return await this.gameRepository.save(game);
   }
 
   public async update(id, update: Partial<PostedGameEntity>): Promise<Game> {
-    // ratings are not allowed to be updated
-    delete (update as Game).ratings;
     return await this.gameRepository.save({ id, ...update });
   }
 
@@ -112,7 +108,7 @@ export class GamesService {
 
   public async validateGameName(game: UpdateGameProjectDto): Promise<void> {
     const exists = await this.gameRepository.findOne({
-      where: { gameName: game.gameName },
+      where: { gameName: ILike(game.gameName) },
     });
     if (exists) {
       throw new ConflictException('Game name already exists');
