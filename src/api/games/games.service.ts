@@ -103,6 +103,13 @@ export class GamesService {
   }
 
   public async delete(id: number): Promise<void> {
+    const game = await this.gameRepository.findOne(id);
+    // delete relate ratings
+    await Promise.all(
+      game.ratings.map(async (rating) => {
+        await this.ratingRepository.remove(rating);
+      }),
+    );
     await this.gameRepository.delete(id);
   }
 

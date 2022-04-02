@@ -41,7 +41,10 @@ export class TagsService {
       return await Promise.all(
         names.map(async (name) => {
           const exists = await this.tagsRepository.findOne({ name });
-          return exists || this.tagsRepository.create({ name, label: name });
+          return (
+            exists ||
+            this.tagsRepository.create({ name, label: name, description: null })
+          );
         }),
       );
     } else {

@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
+  IsString,
   IsUrl,
   Length,
   Matches,
@@ -98,6 +100,8 @@ export class CreateGameProjectDto {
   appStoreLinks: string[];
 
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   description: string;
 
   @ApiProperty({

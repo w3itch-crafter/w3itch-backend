@@ -13,7 +13,9 @@ export class Rating extends BaseEntity {
   username: string;
 
   @ApiHideProperty()
-  @ManyToOne(() => Game, (game) => game.ratings)
+  @ManyToOne(() => Game, (game) => game.ratings, {
+    onDelete: 'CASCADE',
+  })
   game: Game;
 
   @Column()

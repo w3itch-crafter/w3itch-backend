@@ -243,7 +243,7 @@ export class GameProjectsController {
       );
     }
 
-    this.easyRpgGamesService.deleteGameDirectory(target.file);
+    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
     await this.gamesService.delete(id);
   }
 
@@ -295,6 +295,6 @@ export class GameProjectsController {
     }
 
     await this.gamesService.update(id, { file: null });
-    this.easyRpgGamesService.deleteGameDirectory(target.file);
+    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
   }
 }
