@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IPaginationLinks, IPaginationMeta } from 'nestjs-typeorm-paginate';
 
 export abstract class TransformResponse<T> {
   abstract get data(): T | T[];
@@ -25,7 +24,7 @@ export abstract class TransformCreatedResponse<T> {
   readonly message: string;
 }
 
-export class PaginationMeta implements IPaginationMeta {
+export class PaginationMeta implements PaginationMeta {
   @ApiProperty({
     description: 'Amount of items on this specific page',
     example: 10,
@@ -51,7 +50,13 @@ export class PaginationMeta implements IPaginationMeta {
   readonly currentPage: number;
 }
 
-export class PaginationLinks implements IPaginationLinks {
+export class PaginationLinks implements PaginationLinks {
+  @ApiProperty({
+    description: 'Link of the "current" page',
+    default: '',
+    example: '/site/info?limit=10',
+  })
+  readonly current: string;
   @ApiProperty({
     description: 'A link to the "first" page',
     default: '',

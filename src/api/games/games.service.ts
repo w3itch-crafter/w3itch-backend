@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
@@ -24,25 +24,43 @@ export class GamesService {
     private readonly gameRepository: Repository<Game>,
   ) {}
 
-  public async paginateGameProjects(options): Promise<Pagination<Game>> {
+  private static appendParams(target, options) {
+    if (!target) return target;
+    const url = new URL(target);
+    Object.entries(options).forEach(([key, value]: [string, string]) => {
+      if (value) {
+        if (key === 'sortBy') {
+          url.searchParams.set(key, value);
+        } else {
+          url.searchParams.append(key, value);
+        }
+      }
+    });
+    return url.toString();
+  }
+
+  public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
+    query.sortBy = [[options.sortBy, options.order]];
+    query.tags = options.tags;
+
     this.logger.verbose(
-      `Query: ${JSON.stringify(options)}`,
+      `Query: ${JSON.stringify(query)}; queryOptions: ${JSON.stringify(
+        options,
+      )}`,
       this.constructor.name,
     );
-
-    const { page, limit, username, sortBy, order } = options;
 
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
       .leftJoin('game.tags', 'tag')
-      .leftJoinAndSelect('game.tags', 'tagSelect')
-      .orderBy(`game.${sortBy}`, order);
+      .leftJoinAndSelect('game.tags', 'tagSelect');
 
-    if (username) {
+    if (options.username) {
       queryBuilder.andWhere('game.username = :username', {
-        username: username,
+        username: options.username,
       });
     }
+
     const { tags } = options;
     if (isNotEmpty(tags)) {
       if (tags instanceof Array) {
@@ -54,11 +72,15 @@ export class GamesService {
       }
     }
 
-    return paginate<Game>(queryBuilder, {
-      page,
-      limit,
-      route: '/game-projects',
+    const config: PaginateConfig<Game> = {
+      sortableColumns: ['updatedAt'],
+    };
+
+    const result = await paginate<Game>(query, queryBuilder, config);
+    Object.keys(result.links).map(function (key) {
+      result.links[key] = GamesService.appendParams(result.links[key], options);
     });
+    return result;
   }
 
   public async findOne(id: number): Promise<Game> {

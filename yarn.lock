@@ -8267,13 +8267,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nestjs-typeorm-paginate@npm:^3.2.0-alpha":
-  version: 3.2.0-alpha
-  resolution: "nestjs-typeorm-paginate@npm:3.2.0-alpha"
+"nestjs-paginate@npm:^2.5.4":
+  version: 2.5.4
+  resolution: "nestjs-paginate@npm:2.5.4"
+  dependencies:
+    lodash: ^4.17.21
   peerDependencies:
-    "@nestjs/common": ^6.1.1 || ^5.6.2 || ^7.0.0 || ^8.0.0
-    typeorm: ^0.2.12
-  checksum: 298170d8b7cc4dfba6f16404f8f6463320635747f62566552e2fda6d39db214e987c82b4490717f542b8723831abfae38aca9bd9ab1f0b1c1a62053897e07d2e
+    "@nestjs/common": ^8.4.1
+    express: ^4.17.3
+    fastify: ^3.27.4
+    typeorm: ^0.2.45
+  checksum: f2fc578cf6ca404f9bbc57dd62bba4ef26b3a122e6c81729bdea802a3343290dade2a74cd288aa69b9f39fd95aefdab9da516da156cfb202c20165368f002f65
   languageName: node
   linkType: hard
 
@@ -11462,7 +11466,7 @@ __metadata:
     mime-types: ^2.1.35
     mysql2: ^2.3.3
     nest-winston: ^1.6.2
-    nestjs-typeorm-paginate: ^3.2.0-alpha
+    nestjs-paginate: ^2.5.4
     passport: ^0.5.2
     passport-jwt: ^4.0.0
     prettier: ^2.5.1

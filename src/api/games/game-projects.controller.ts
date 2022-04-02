@@ -2,14 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   ForbiddenException,
   Get,
   Inject,
   LoggerService,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -29,7 +27,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 
 import { JWTAuthGuard } from '../../auth/guard';
 import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
@@ -96,27 +94,15 @@ export class GameProjectsController {
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
     @Query('order')
     order: 'ASC' | 'DESC' = 'ASC',
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
-  ): Promise<Pagination<Game>> {
-    if (page <= 0) {
-      page = 1;
-    }
-    if (limit <= 0) {
-      limit = 1;
-    }
-    if (limit > 100) {
-      limit = 100;
-    }
-
-    return this.gamesService.paginateGameProjects({
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<Game>> {
+    const options = {
       username,
       tags,
       sortBy,
       order,
-      page,
-      limit,
-    });
+    };
+    return this.gamesService.paginateGameProjects(query, options);
   }
 
   @Get('/:id(\\d+)')
