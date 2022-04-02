@@ -14,7 +14,7 @@ import { ILike, Repository } from 'typeorm';
 import { Game } from '../../entities/Game.entity';
 import { Rating } from '../../entities/Rating.entity';
 import { PostedGameEntity } from '../../types';
-import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
+import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 
 @Injectable()
 export class GamesService {
@@ -66,13 +66,9 @@ export class GamesService {
 
     const { tags } = options;
     if (isNotEmpty(tags)) {
-      if (tags instanceof Array) {
-        tags.forEach((tag) => {
-          queryBuilder.andWhere('tag.name = :tag', { tag });
-        });
-      } else {
-        queryBuilder.andWhere('tag.name = :tag', { tag: tags });
-      }
+      (tags instanceof Array ? tags : [tags]).forEach((tag) => {
+        queryBuilder.andWhere('tag.name = :tag', { tag });
+      });
     }
 
     const config: PaginateConfig<Game> = {
@@ -113,12 +109,14 @@ export class GamesService {
     await this.gameRepository.delete(id);
   }
 
-  public async validateGameName(game: UpdateGameProjectDto): Promise<void> {
-    const exists = await this.gameRepository.findOne({
-      where: { gameName: ILike(game.gameName) },
-    });
-    if (exists) {
-      throw new ConflictException('Game name already exists');
+  public async validateGameName(game: ValidateGameProjectDto): Promise<void> {
+    if (game.gameName) {
+      const exists = await this.gameRepository.findOne({
+        where: { gameName: ILike(game.gameName) },
+      });
+      if (exists) {
+        throw new ConflictException('Game name already exists');
+      }
     }
   }
 

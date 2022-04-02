@@ -5,6 +5,8 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   LoggerService,
   Param,
@@ -39,9 +41,9 @@ import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
-import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
+import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
@@ -91,6 +93,7 @@ export class GameProjectsController {
   async paginateGameProjects(
     @Query('username') username: string,
     @Query('tags') tags: string[],
+    // TODO: implement sortBy rating
     @Query('sortBy')
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
     @Query('order')
@@ -178,10 +181,6 @@ export class GameProjectsController {
       );
     }
 
-    if (game.gameName && game.gameName !== target.gameName) {
-      await this.gamesService.validateGameName(game);
-    }
-
     if (file) {
       this.logger.verbose(
         `Update File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
@@ -191,21 +190,21 @@ export class GameProjectsController {
         throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
       }
       this.easyRpgGamesService.uploadGame(
-        game.gameName,
+        target.gameName,
         game.kind,
         file,
         game.charset,
       );
     } else {
       this.logger.verbose(
-        `Update game: ${game} with no file uploaded`,
+        `Update game entity: ${JSON.stringify(game)} with no file uploaded`,
         this.constructor.name,
       );
     }
 
     const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
     this.logger.verbose(
-      `Tags of game: ${game.gameName} are ${tags}`,
+      `Tags of game: ${target.gameName} are ${JSON.stringify(tags)}`,
       this.constructor.name,
     );
 
@@ -218,11 +217,12 @@ export class GameProjectsController {
   }
 
   @Post('/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Validate a Game DTO which is to create a game project',
   })
-  async validate(@Body() body: UpdateGameProjectDto) {
-    await this.gamesService.validateGameName(body);
+  async validate(@Body() game: ValidateGameProjectDto) {
+    await this.gamesService.validateGameName(game);
   }
 
   @Delete('/:id')
