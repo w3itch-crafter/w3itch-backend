@@ -99,7 +99,7 @@ export class EasyRpgGamesService {
     file: Express.Multer.File,
     charset?: string,
   ) {
-    console.log(charset);
+    this.logger.verbose(`Use charset ${charset}`, this.constructor.name);
     const zip = new AdmZip(file.buffer, charset);
     const rpgRtFlags = {
       lmt: false,

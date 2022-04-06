@@ -51,6 +51,7 @@ export class CreateGameProjectDto {
   @ApiProperty({
     required: false,
   })
+  @IsOptional()
   charset: string;
 
   @ApiProperty({
