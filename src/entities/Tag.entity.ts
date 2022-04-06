@@ -24,6 +24,8 @@ export class Tag extends BaseEntity {
   description: string;
 
   @ApiHideProperty()
-  @ManyToMany(() => Game, (game) => game.tags)
+  @ManyToMany(() => Game, (game) => game.tags, {
+    onDelete: 'CASCADE',
+  })
   game: Game;
 }

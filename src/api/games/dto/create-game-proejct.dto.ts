@@ -86,6 +86,7 @@ export class CreateGameProjectDto {
   cover: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @Length(2, 60, { each: true })
   @Matches(/^[a-z0-9\-]+$/, { each: true })
   tags: string[];

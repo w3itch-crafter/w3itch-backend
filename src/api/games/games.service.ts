@@ -72,6 +72,7 @@ export class GamesService {
     }
 
     const config: PaginateConfig<Game> = {
+      relations: ['tags', 'ratings'],
       sortableColumns: ['updatedAt'],
     };
 
@@ -83,7 +84,9 @@ export class GamesService {
   }
 
   public async findOne(id: number): Promise<Game> {
-    const game = await this.gameRepository.findOne(id);
+    const game = await this.gameRepository.findOne(id, {
+      relations: ['tags', 'ratings'],
+    });
     if (!game) {
       throw new NotFoundException('Game not found');
     }

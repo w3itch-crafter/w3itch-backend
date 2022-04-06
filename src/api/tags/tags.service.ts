@@ -18,18 +18,11 @@ export class TagsService {
   }
 
   async save(name: string, updateTagDto: UpdateTagDto): Promise<Tag> {
-    const exists = await this.tagsRepository.findOne({ name });
-    if (exists) {
-      return this.tagsRepository.save({
-        ...exists,
-        ...updateTagDto,
-      });
-    } else {
-      return this.tagsRepository.create({
-        name,
-        ...updateTagDto,
-      });
-    }
+    const exists = (await this.tagsRepository.findOne({ name })) || { name };
+    return this.tagsRepository.save({
+      ...exists,
+      ...updateTagDto,
+    });
   }
 
   async fineOneByName(name: string): Promise<Tag> {
