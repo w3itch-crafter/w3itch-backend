@@ -35,8 +35,9 @@ import { JWTAuthGuard } from '../../auth/guard';
 import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
+import { Rating } from '../../entities/Rating.entity';
 import { Tag } from '../../entities/Tag.entity';
-import { PostedGameEntity, UserJWTPayload } from '../../types';
+import { UpdateGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
@@ -208,7 +209,7 @@ export class GameProjectsController {
       this.constructor.name,
     );
 
-    const entityToUpdate: Partial<PostedGameEntity> = { ...game, tags };
+    const entityToUpdate: Partial<UpdateGameEntity> = { ...game, tags };
     if (file) {
       entityToUpdate.file = file.originalname;
     }
@@ -257,7 +258,7 @@ export class GameProjectsController {
     @Param('id') gameId: number,
     @CurrentUser() user: UserJWTPayload,
     @Body() body: UpdateRatingDto,
-  ): Promise<Game> {
+  ): Promise<Rating> {
     return await this.gamesService.updateRating(
       gameId,
       user.username,

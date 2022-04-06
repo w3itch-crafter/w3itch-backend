@@ -12,7 +12,4 @@ export interface UserJWTPayload extends JwtPayload, User {
   account: Account;
 }
 
-export type PostedGameEntity = Omit<
-  Game,
-  keyof BaseEntity | 'ratings' | 'calculateRating'
->;
+export type UpdateGameEntity = Omit<Game, keyof BaseEntity | 'rating'>;

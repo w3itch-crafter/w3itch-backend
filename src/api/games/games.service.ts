@@ -9,11 +9,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { ILike, Repository } from 'typeorm';
+import { getRepository, ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { Rating } from '../../entities/Rating.entity';
-import { PostedGameEntity } from '../../types';
+import { UpdateGameEntity } from '../../types';
+import { GamesListSortBy } from '../../types/enum';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 
 @Injectable()
@@ -41,6 +42,29 @@ export class GamesService {
       }
     });
     return url.toString();
+  }
+
+  /**
+   * Async task to update the rating column of a game
+   * call this method when user add/update/delete a rating
+   * @param {number} gameId
+   * @returns {Promise<void>}
+   * @private
+   */
+  private async updateGameRating(gameId: number) {
+    const ratings = await getRepository(Rating).find({
+      where: { gameId },
+      select: ['rating'],
+    });
+    let rating: number | null = null;
+    if (ratings.length) {
+      const ratingsCount = ratings.length;
+      const ratingValues = ratings.map((rating) => rating.rating);
+      rating = Math.floor(
+        ratingValues.reduce((a, b) => a + b, 0) / ratingsCount,
+      );
+    }
+    await this.gameRepository.save({ id: gameId, rating });
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
@@ -72,8 +96,8 @@ export class GamesService {
     }
 
     const config: PaginateConfig<Game> = {
-      relations: ['tags', 'ratings'],
-      sortableColumns: ['updatedAt'],
+      relations: ['tags'],
+      sortableColumns: Object.values(GamesListSortBy),
     };
 
     const result = await paginate<Game>(query, queryBuilder, config);
@@ -85,7 +109,7 @@ export class GamesService {
 
   public async findOne(id: number): Promise<Game> {
     const game = await this.gameRepository.findOne(id, {
-      relations: ['tags', 'ratings'],
+      relations: ['tags'],
     });
     if (!game) {
       throw new NotFoundException('Game not found');
@@ -93,22 +117,15 @@ export class GamesService {
     return game;
   }
 
-  public async save(game: PostedGameEntity): Promise<Game> {
+  public async save(game: UpdateGameEntity): Promise<Game> {
     return await this.gameRepository.save(game);
   }
 
-  public async update(id, update: Partial<PostedGameEntity>): Promise<Game> {
+  public async update(id, update: Partial<UpdateGameEntity>): Promise<Game> {
     return await this.gameRepository.save({ id, ...update });
   }
 
   public async delete(id: number): Promise<void> {
-    const game = await this.gameRepository.findOne(id);
-    // delete relate ratings
-    await Promise.all(
-      game.ratings.map(async (rating) => {
-        await this.ratingRepository.remove(rating);
-      }),
-    );
     await this.gameRepository.delete(id);
   }
 
@@ -124,38 +141,38 @@ export class GamesService {
   }
 
   public async deleteRating(gameId: number, username: string): Promise<void> {
-    const game = await this.gameRepository.findOne(gameId);
-    if (!game) {
-      throw new NotFoundException('Game not found');
-    }
-    const rating = game.ratings.find((r) => r.username === username);
+    const rating = await this.ratingRepository.findOne({
+      where: { gameId, username },
+    });
     if (!rating) {
       throw new NotFoundException('Rating not found');
     }
     await this.ratingRepository.delete(rating.id);
+    this.updateGameRating(gameId).then();
   }
 
   public async updateRating(
     gameId: number,
     username: string,
     rating: number,
-  ): Promise<Game> {
-    const game = await this.gameRepository.findOne(gameId);
+  ): Promise<Rating> {
+    const game = await this.gameRepository.count({ where: { id: gameId } });
     if (!game) {
       throw new NotFoundException('Game not found');
     }
-    let entity = game.ratings.find((r) => r.username === username);
+    let entity = await this.ratingRepository.findOne({
+      where: { gameId, username },
+    });
     if (entity) {
       entity.rating = rating;
     } else {
       entity = new Rating();
-      entity.game = game;
+      entity.gameId = gameId;
       entity.username = username;
       entity.rating = rating;
-      game.ratings.push(entity);
     }
-    await this.gameRepository.save(game);
-    // query it again to get the updated rating
-    return await this.gameRepository.findOne(gameId);
+    await this.ratingRepository.save(entity);
+    this.updateGameRating(gameId).then();
+    return entity;
   }
 }

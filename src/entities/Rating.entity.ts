@@ -1,22 +1,20 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Max, Min } from 'class-validator';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
+import { Column, Entity } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
-import { Game } from './Game.entity';
 
 @Entity()
 export class Rating extends BaseEntity {
+  @ApiHideProperty()
+  @Column()
+  @IsInt()
+  gameId: number;
+
   @Column()
   @IsString()
   @IsNotEmpty()
   username: string;
-
-  @ApiHideProperty()
-  @ManyToOne(() => Game, (game) => game.ratings, {
-    onDelete: 'CASCADE',
-  })
-  game: Game;
 
   @Column()
   @Min(100)

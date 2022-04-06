@@ -9,15 +9,7 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import {
-  AfterLoad,
-  Column,
-  Entity,
-  getRepository,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
 
 import {
   Community,
@@ -28,7 +20,6 @@ import {
   ReleaseStatus,
 } from '../types/enum';
 import { BaseEntity } from './base.entity';
-import { Rating } from './Rating.entity';
 import { Tag } from './Tag.entity';
 
 @Entity()
@@ -130,12 +121,10 @@ export class Game extends BaseEntity {
   @JoinTable()
   tags: Tag[];
 
-  @OneToMany(() => Rating, (rating) => rating.game, {
-    cascade: true,
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  ratings: Rating[];
+  @ApiProperty({ description: 'Calculated average rating of the game' })
+  @Column({ nullable: true })
+  @IsInt()
+  rating: number;
 
   @ApiProperty({ description: `Tokens to be held/paid to play this game` })
   @Column()
@@ -171,31 +160,4 @@ export class Game extends BaseEntity {
   @IsEnum(Genre)
   @IsNotEmpty()
   genre: Genre;
-
-  // TODO
-  // After load is called after the entity loads during find() and similar
-  @AfterLoad()
-  async calculateRating() {
-    // const result = await getRepository(Rating).find({
-    //   where: { game: this.id },
-    //   select: ['rating'],
-    // });
-    // console.log(result);
-  }
-  //
-  //   const ratingsAboveZero = result?.entities?.filter(x => parseFloat(x.ratingValue));
-  //   const count = ratingsAboveZero.length;
-  //
-  //   if (count > 0) {
-  //     this.rating =
-  //       ratingsAboveZero.reduce((acc, curr) => {
-  //         return acc + parseFloat(curr.ratingValue);
-  //       }, 0) / count;
-  //
-  //     this.ratingCount = count;
-  //   } else {
-  //     this.rating = 0;
-  //     this.ratingCount = 0;
-  //   }
-  // };
 }
