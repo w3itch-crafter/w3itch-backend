@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
 import { User } from '../../../entities/User.entity';
@@ -16,6 +16,7 @@ import { UserJWTPayload } from '../../../types';
 import { JWTCookieHelper } from '../jwt-cookie-helper';
 import { AccountsTokenService } from './accounts-token.service';
 
+@ApiCookieAuth()
 @ApiTags('Accounts Token')
 @Controller('accounts/tokens')
 export class AccountsTokenController {

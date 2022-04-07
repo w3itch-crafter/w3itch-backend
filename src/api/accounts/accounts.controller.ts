@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
 import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
@@ -13,6 +13,7 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get('mine')
+  @ApiCookieAuth()
   @UseGuards(JWTAuthGuard)
   async getMyAccounts(@CurrentUser() user: UserJWTPayload): Promise<Account[]> {
     return await this.accountsService.find({ userId: user.id });

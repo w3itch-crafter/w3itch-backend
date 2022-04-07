@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { TagsService } from './tags.service';
@@ -24,6 +24,7 @@ export class TagsController {
   }
 
   @Patch(':name')
+  @ApiCookieAuth()
   @ApiOperation({
     summary: "Update a tag entity by it's name, or create it if not found",
   })

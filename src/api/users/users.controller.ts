@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
   UseGuards,
@@ -18,19 +19,25 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateUsernameDto } from './dto/validate-username.dto';
 import { UsersService } from './users.service';
 
-@ApiCookieAuth()
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get('me')
+  @ApiCookieAuth()
   @UseGuards(JWTAuthGuard)
   async getMyInfo(@CurrentUser() user: UserJWTPayload): Promise<User> {
-    return this.usersService.getUserInfo(user.id);
+    return this.usersService.getUserInfo({ id: user.id });
+  }
+
+  @Get(':username')
+  async getUserByUsername(@Param('username') username: string): Promise<User> {
+    return this.usersService.getUserInfo({ username });
   }
 
   @Patch('me')
+  @ApiCookieAuth()
   @UseGuards(JWTAuthGuard)
   async updateMyInfo(
     @Body() updateUserDto: UpdateUserDto,

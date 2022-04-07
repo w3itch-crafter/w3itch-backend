@@ -37,8 +37,8 @@ export class UsersService {
     };
   }
 
-  async getUserInfo(uid: number): Promise<User> {
-    return await this.usersRepository.findOne(uid);
+  async getUserInfo(conditions: Partial<User>): Promise<User> {
+    return await this.usersRepository.findOne({ where: conditions });
   }
 
   async update(uid: number, updateUserDto: UpdateUserDto): Promise<User> {
