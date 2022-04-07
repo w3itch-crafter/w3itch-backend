@@ -8,14 +8,14 @@ import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { cpSync, createReadStream, rmSync } from 'fs';
+import { cpSync, rmSync } from 'fs';
 import { readdir } from 'fs/promises';
-import { lookup } from 'mime-types';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import process from 'process';
 
 import { GameEngine } from '../../types/enum';
+import { serveFileWithETag } from '../../utils/serveFileWithETag';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
 
@@ -58,17 +58,7 @@ export class EasyRpgGamesService {
       'thirdparty',
       decodeURIComponent(path),
     );
-    const file = createReadStream(filePath);
-    file
-      .on('open', () => {
-        const contentType = lookup(filePath) || 'application/octet-stream';
-        res.setHeader('Content-Type', contentType);
-        file.pipe(res);
-      })
-      .on('error', () => {
-        file.close();
-        file.pipe(res.sendStatus(404));
-      });
+    await serveFileWithETag(req, res, filePath);
   }
 
   public async generateGameCache(path: string): Promise<void> {

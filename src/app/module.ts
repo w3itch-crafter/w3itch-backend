@@ -11,13 +11,13 @@ import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accoun
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
 import { GamesModule } from '../api/games/games.module';
 import { PlayerModule } from '../api/player/module';
+import { StoragesModule } from '../api/storages/module';
 import { UsersModule } from '../api/users/users.module';
 import { AppCacheModule } from '../cache/module';
 import { configBuilder } from '../configs';
 import { BullConfigService } from '../configs/bull';
 import { TypeORMConfigService } from '../configs/typeorm';
 import { WinstonConfigService } from '../configs/winston';
-import { StoragesModule } from '../api/storages/module';
 
 @Module({
   imports: [

@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -11,10 +12,10 @@ import { AppModule } from './app/module';
 import { RequestNotAcceptableException } from './exceptions';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const configService = app.get<ConfigService>(ConfigService);
-  const appPort = +configService.get<number>('app.port', 3000);
+  const appPort = configService.get<number>('app.port', 3000);
   const enableSwagger = configService.get<boolean>('swagger.enable', false);
   const limit = configService.get<string>('app.bodyParser.limit', '50mb');
 
@@ -45,7 +46,6 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(formCors({ exception: new RequestNotAcceptableException() }));
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-
   await app.listen(appPort);
 }
 bootstrap();
