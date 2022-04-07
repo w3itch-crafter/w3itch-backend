@@ -13,6 +13,7 @@ import {
 import {
   Community,
   GameEngine,
+  GameFileCharset,
   Genre,
   PaymentMode,
   ProjectClassification,
@@ -49,10 +50,13 @@ export class CreateGameProjectDto {
   gameName: string;
 
   @ApiProperty({
+    enum: GameFileCharset,
+    default: GameFileCharset.UTF8,
     required: false,
   })
+  @IsEnum(GameFileCharset)
   @IsOptional()
-  charset: string;
+  charset: GameFileCharset;
 
   @ApiProperty({
     enum: ProjectClassification,

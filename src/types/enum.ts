@@ -17,6 +17,12 @@ export enum PaymentMode {
   DISABLE_PAYMENTS = 'DISABLE_PAYMENTS',
 }
 
+export enum GameFileCharset {
+  UTF8 = 'UTF8',
+  GBK = 'GBK',
+  SHIFT_JIS = 'SHIFT_JIS',
+}
+
 export enum ReleaseStatus {
   RELEASED = 'RELEASED',
   IN_DEVELOPMENT = 'IN_DEVELOPMENT',
