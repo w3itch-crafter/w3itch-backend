@@ -52,7 +52,7 @@ export class AccountsService {
     return { user, userAccount };
   }
 
-  async getUser(userAccountData: {
+  async getUserAndAccount(userAccountData: {
     accountId: string;
     platform: string;
   }): Promise<{ user: User; userAccount: Account }> {
@@ -77,8 +77,7 @@ export class AccountsService {
       platform,
     };
 
-    const { user, userAccount } = await this.getUser(userAccountData);
-
+    const { user, userAccount } = await this.getUserAndAccount(userAccountData);
     if (!user || !userAccount) {
       throw new UnauthorizedException(
         'User account does not exist',
@@ -109,13 +108,17 @@ export class AccountsService {
       platform,
     };
 
-    const hasAlreadySigned: { user; userAccount } = await this.getUser(
-      userAccountData,
-    );
+    // if user has registered before, return the user
+    let { user, userAccount } = await this.getUserAndAccount(userAccountData);
 
-    const { user, userAccount } = hasAlreadySigned
-      ? hasAlreadySigned
-      : await this.initUser(accountSignupDto.username, userAccountData);
+    if (!user || !userAccount) {
+      const userAndAccount = await this.initUser(
+        accountSignupDto.username,
+        userAccountData,
+      );
+      user = userAndAccount.user;
+      userAccount = userAndAccount.userAccount;
+    }
 
     const tokens: JWTTokens = await this.authService.signLoginJWT(
       user,
