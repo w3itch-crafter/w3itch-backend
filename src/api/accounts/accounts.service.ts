@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindConditions, Repository } from 'typeorm';
 
 import { AuthenticationService } from '../../auth/service';
 import { Account } from '../../entities/Account.entity';
@@ -21,13 +21,13 @@ export class AccountsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async find(searchParams: any): Promise<Account[]> {
+  async find(searchParams: FindConditions<Account>): Promise<Account[]> {
     return await this.accountsRepository.find(searchParams);
   }
   async findOne(searchParams: any, options = {}): Promise<Account> {
     return await this.accountsRepository.findOne(searchParams, options);
   }
-  async save(saveParams: any): Promise<Account> {
+  async save(saveParams: Partial<Account>): Promise<Account> {
     return await this.accountsRepository.save(saveParams);
   }
   async delete(accountId: number) {
