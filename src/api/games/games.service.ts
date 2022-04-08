@@ -9,10 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { getRepository, ILike, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
-import { Rating } from '../../entities/Rating.entity';
 import { UpdateGameEntity } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
@@ -24,8 +23,6 @@ export class GamesService {
     private readonly logger: LoggerService,
     @InjectRepository(Game)
     private readonly gameRepository: Repository<Game>,
-    @InjectRepository(Rating)
-    private readonly ratingRepository: Repository<Rating>,
   ) {}
 
   private static appendParams(target, options) {
@@ -42,29 +39,6 @@ export class GamesService {
       }
     });
     return url.toString();
-  }
-
-  /**
-   * Async task to update the rating column of a game
-   * call this method when user add/update/delete a rating
-   * @param {number} gameId
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async updateGameRating(gameId: number) {
-    const ratings = await getRepository(Rating).find({
-      where: { gameId },
-      select: ['rating'],
-    });
-    let rating: number | null = null;
-    if (ratings.length) {
-      const ratingsCount = ratings.length;
-      const ratingValues = ratings.map((rating) => rating.rating);
-      rating = Math.floor(
-        ratingValues.reduce((a, b) => a + b, 0) / ratingsCount,
-      );
-    }
-    await this.gameRepository.save({ id: gameId, rating });
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
@@ -138,41 +112,5 @@ export class GamesService {
         throw new ConflictException('Game name already exists');
       }
     }
-  }
-
-  public async deleteRating(gameId: number, username: string): Promise<void> {
-    const rating = await this.ratingRepository.findOne({
-      where: { gameId, username },
-    });
-    if (!rating) {
-      throw new NotFoundException('Rating not found');
-    }
-    await this.ratingRepository.delete(rating.id);
-    this.updateGameRating(gameId).then();
-  }
-
-  public async updateRating(
-    gameId: number,
-    username: string,
-    rating: number,
-  ): Promise<Rating> {
-    const game = await this.gameRepository.count({ where: { id: gameId } });
-    if (!game) {
-      throw new NotFoundException('Game not found');
-    }
-    let entity = await this.ratingRepository.findOne({
-      where: { gameId, username },
-    });
-    if (entity) {
-      entity.rating = rating;
-    } else {
-      entity = new Rating();
-      entity.gameId = gameId;
-      entity.username = username;
-      entity.rating = rating;
-    }
-    await this.ratingRepository.save(entity);
-    this.updateGameRating(gameId).then();
-    return entity;
   }
 }

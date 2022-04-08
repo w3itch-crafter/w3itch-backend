@@ -35,7 +35,6 @@ import { JWTAuthGuard } from '../../auth/guard';
 import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
-import { Rating } from '../../entities/Rating.entity';
 import { Tag } from '../../entities/Tag.entity';
 import { UpdateGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
@@ -43,13 +42,12 @@ import { PaginationResponse } from '../../utils/responseClass';
 import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
-import { UpdateRatingDto } from './dto/update-rating.dto';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesService } from './games.service';
 
 @ApiExtraModels(PaginationResponse)
-@ApiTags('Games')
+@ApiTags('Game Projects')
 @Controller('game-projects')
 export class GameProjectsController {
   constructor(
@@ -94,7 +92,6 @@ export class GameProjectsController {
   async paginateGameProjects(
     @Query('username') username: string,
     @Query('tags') tags: string[],
-    // TODO: implement sortBy rating
     @Query('sortBy')
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
     @Query('order')
@@ -246,37 +243,6 @@ export class GameProjectsController {
 
     this.easyRpgGamesService.deleteGameDirectory(target.gameName);
     await this.gamesService.delete(id);
-  }
-
-  @Patch('/:id/rating')
-  @UseGuards(JWTAuthGuard)
-  @ApiCookieAuth()
-  @ApiOperation({
-    summary: 'Create or update your rating of a game project',
-  })
-  async updateRating(
-    @Param('id') gameId: number,
-    @CurrentUser() user: UserJWTPayload,
-    @Body() body: UpdateRatingDto,
-  ): Promise<Rating> {
-    return await this.gamesService.updateRating(
-      gameId,
-      user.username,
-      body.rating,
-    );
-  }
-
-  @Delete('/:id/rating')
-  @UseGuards(JWTAuthGuard)
-  @ApiCookieAuth()
-  @ApiOperation({
-    summary: 'Delete your rating of a game project',
-  })
-  async deleteRating(
-    @Param('id') gameId: number,
-    @CurrentUser() user: UserJWTPayload,
-  ): Promise<void> {
-    return await this.gamesService.deleteRating(gameId, user.username);
   }
 
   @Delete('/:id/file')

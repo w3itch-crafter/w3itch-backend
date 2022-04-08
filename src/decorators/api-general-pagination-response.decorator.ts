@@ -1,13 +1,9 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
-import {
-  PaginationLinks,
-  PaginationMeta,
-  PaginationResponse,
-} from '../utils/responseClass';
+import { PaginationLinks, PaginationMeta } from '../utils/responseClass';
 
-export const ApiGeneralPaginationResponse = <TModel extends Type<any>>(
+export const ApiGeneralPaginationResponse = <TModel extends Type>(
   model: TModel,
   description?: string,
   status?: number,
