@@ -9,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 
-import { Game } from '../../../entities/Game.entity';
 import { Token } from '../../../entities/Token.entity';
 import { CreateTokenDto } from './dto/create-token.dto';
 import { DeleteTokenDto } from './dto/delete-token.dto';

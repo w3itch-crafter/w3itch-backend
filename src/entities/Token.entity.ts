@@ -28,7 +28,7 @@ export class Token extends BaseEntity {
 
   @Column()
   @IsString()
-  chainName: number;
+  chainName: string;
 
   @ApiHideProperty()
   @OneToMany(() => Price, (price) => price.token, {
