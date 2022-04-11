@@ -31,7 +31,7 @@ export class PricesService {
 
   public async findByGameId(gameId: number): Promise<Price[]> {
     return await this.priceRepository.find({
-      where: { gameId },
+      where: { game: gameId },
     });
   }
 
@@ -41,7 +41,7 @@ export class PricesService {
     dto: CreatePriceDto,
   ): Promise<Price> {
     const exists = await this.priceRepository.findOne({
-      where: { gameId, chainId },
+      where: { game: gameId, chainId },
     });
     if (exists) {
       throw new ConflictException('Price already exists');
@@ -65,7 +65,7 @@ export class PricesService {
   ): Promise<Price> {
     const entity = await this.priceRepository.findOne({
       relations: ['token'],
-      where: { gameId, chainId },
+      where: { game: gameId, chainId },
     });
     if (!entity) {
       throw new NotFoundException('Price not found');
@@ -81,7 +81,7 @@ export class PricesService {
 
   public async delete(gameId: number, chainId: number): Promise<void> {
     const price = await this.priceRepository.findOne({
-      where: { gameId, chainId },
+      where: { game: gameId, chainId },
     });
     if (!price) {
       throw new NotFoundException('Price not found');

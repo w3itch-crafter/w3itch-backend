@@ -13,5 +13,5 @@ export class CreateTokenDto {
 
   @ApiProperty()
   @IsString()
-  chainName: number;
+  chainName: string;
 }
