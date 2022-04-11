@@ -23,15 +23,9 @@ export class AddPriceAndTokenEntities1649650434777
     await queryRunner.query(
       `ALTER TABLE \`price\` ADD CONSTRAINT \`FK_0f7d44f60de0aa336171ef85474\` FOREIGN KEY (\`gameId\`) REFERENCES \`game\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
-    await queryRunner.query(
-      `ALTER TABLE \`price\` ADD CONSTRAINT \`FK_73e0bda35e85d197e3d00484d05\` FOREIGN KEY (\`token_address\`, \`token_address\`) REFERENCES \`token\`(\`id\`,\`address\`) ON DELETE CASCADE ON UPDATE NO ACTION`,
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE \`price\` DROP FOREIGN KEY \`FK_73e0bda35e85d197e3d00484d05\``,
-    );
     await queryRunner.query(
       `ALTER TABLE \`price\` DROP FOREIGN KEY \`FK_0f7d44f60de0aa336171ef85474\``,
     );

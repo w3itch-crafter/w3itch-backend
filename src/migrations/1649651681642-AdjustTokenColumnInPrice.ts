@@ -7,9 +7,6 @@ export class AdjustTokenColumnInPrice1649651681642
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `DROP INDEX \`FK_78a45f54bcd050be9097a0dba24\` ON \`rating\``,
-    );
-    await queryRunner.query(
       `ALTER TABLE \`price\` DROP COLUMN \`token_address\``,
     );
     await queryRunner.query(
@@ -33,9 +30,6 @@ export class AdjustTokenColumnInPrice1649651681642
     await queryRunner.query(`ALTER TABLE \`price\` DROP COLUMN \`tokenId\``);
     await queryRunner.query(
       `ALTER TABLE \`price\` ADD \`token_address\` varchar(255) NOT NULL`,
-    );
-    await queryRunner.query(
-      `CREATE INDEX \`FK_78a45f54bcd050be9097a0dba24\` ON \`rating\` (\`gameId\`)`,
     );
   }
 }
