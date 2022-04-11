@@ -9,7 +9,7 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
 import {
   Community,
@@ -20,12 +20,13 @@ import {
   ReleaseStatus,
 } from '../types/enum';
 import { BaseEntity } from './base.entity';
+import { Price } from './Price.entity';
 import { Tag } from './Tag.entity';
 
 @Entity()
 export class Game extends BaseEntity {
   @ApiResponseProperty()
-  @ApiProperty({ description: `Creator's username` })
+  @ApiProperty({ description: "Creator's username" })
   @Column()
   @Matches(/^[a-z0-9-]+$/)
   @Length(3, 15)
@@ -37,7 +38,7 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @example 'Example'
    */
-  @ApiProperty({ description: `Title` })
+  @ApiProperty({ description: 'Title' })
   @Column()
   @Length(1, 50)
   @IsString()
@@ -55,13 +56,13 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @example 'This is an example project'
    */
-  @ApiProperty({ description: `Short description or tagline` })
+  @ApiProperty({ description: 'Short description or tagline' })
   @Column()
   @Length(1, 120)
   @IsString()
   subtitle: string;
 
-  @ApiProperty({ description: `For player` })
+  @ApiProperty({ description: 'For player' })
   @Column({ unique: true })
   @Length(1, 50)
   @IsString()
@@ -70,13 +71,13 @@ export class Game extends BaseEntity {
   gameName: string;
 
   @ApiResponseProperty()
-  @ApiProperty({ description: `Original name` })
+  @ApiProperty({ description: 'Original name' })
   @Column({ nullable: true })
   @Length(1, 150)
   @IsString()
   file: string;
 
-  @ApiProperty({ description: `Classification` })
+  @ApiProperty({ description: 'Classification' })
   @Column({ default: ProjectClassification.GAMES })
   @IsEnum(ProjectClassification)
   @IsNotEmpty()
@@ -101,13 +102,13 @@ export class Game extends BaseEntity {
   @IsEnum(ReleaseStatus)
   releaseStatus: ReleaseStatus;
 
-  @ApiProperty({ description: `Screenshot URLs` })
+  @ApiProperty({ description: 'Screenshot URLs' })
   @Column('simple-array', { comment: 'Game screenshots' })
   @IsUrl({ each: true })
   @IsOptional()
   screenshots: string[];
 
-  @ApiProperty({ description: `Cover URL` })
+  @ApiProperty({ description: 'Cover URL' })
   @Column()
   @IsUrl()
   @IsNotEmpty()
@@ -126,13 +127,12 @@ export class Game extends BaseEntity {
   @IsInt()
   rating: number;
 
-  @ApiProperty({ description: `Tokens to be held/paid to play this game` })
-  @Column()
-  @IsInt()
-  tokenId: number;
+  @ApiProperty({ description: 'Tokens to be held/paid to play this game' })
+  @OneToMany(() => Price, (price) => price.game)
+  prices: Price[];
 
   @ApiProperty({
-    description: `Links to other app stores`,
+    description: 'Links to other app stores',
   })
   @Column('simple-array')
   @Length(1, 120)
@@ -146,7 +146,7 @@ export class Game extends BaseEntity {
   description: string;
 
   @ApiProperty({
-    description: `The community type of this game`,
+    description: 'The community type of this game',
   })
   @Column({ default: Community.DISQUS })
   @IsEnum(Community)
@@ -154,7 +154,7 @@ export class Game extends BaseEntity {
   community: Community;
 
   @ApiProperty({
-    description: `The category that best describes this game`,
+    description: 'The category that best describes this game',
   })
   @Column({ default: Genre.NO_GENRE })
   @IsEnum(Genre)

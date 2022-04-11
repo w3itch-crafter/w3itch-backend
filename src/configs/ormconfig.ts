@@ -2,6 +2,7 @@ import { ConnectionOptions } from 'typeorm';
 
 import { Account } from '../entities/Account.entity';
 import { Game } from '../entities/Game.entity';
+import { Price } from '../entities/Price.entity';
 import { Rating } from '../entities/Rating.entity';
 import { Tag } from '../entities/Tag.entity';
 import { User } from '../entities/User.entity';
@@ -31,7 +32,7 @@ const options: ConnectionOptions = {
   password: config.db.password,
   database: config.db.database,
   charset: config.db.charset || 'utf8mb4_0900_ai_ci',
-  entities: [User, Account, Game, Tag, Rating],
+  entities: [User, Account, Game, Tag, Rating, Price, User],
   synchronize: false,
   timezone: config.db.timezone || 'Z',
   logging: isDevelopment(),

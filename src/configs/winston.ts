@@ -10,6 +10,7 @@ import LokiTransport from 'winston-loki';
 import TransportStream from 'winston-transport';
 
 import { ConfigKeyNotFoundException } from '../exceptions';
+import { isDevelopment } from '../utils';
 
 const defaultLogFormat = (appName: string) =>
   format.combine(
@@ -36,7 +37,7 @@ export class WinstonConfigService implements WinstonModuleOptionsFactory {
 
   async createWinstonModuleOptions(): Promise<WinstonModuleOptions> {
     const appName = this.configService.get<string>('app.name');
-    const level = process.env.NODE_ENV === 'production' ? 'info' : 'debug';
+    const level = isDevelopment() ? 'debug' : 'info';
     const logDir = `/var/log/${appName.toLowerCase()}`;
     const enableLoki = this.configService.get<boolean>(
       'logger.loki.enable',

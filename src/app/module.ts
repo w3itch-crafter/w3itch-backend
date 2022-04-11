@@ -6,8 +6,10 @@ import { WinstonModule } from 'nest-winston';
 import { AccountsModule } from '../api/accounts/accounts.module';
 import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accounts-metamask.module';
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
+import { TokensModule } from '../api/blockchains/tokens/tokens.module';
 import { GamesModule } from '../api/games/games.module';
 import { PlayerModule } from '../api/player/module';
+import { PricesModule } from '../api/prices/prices.module';
 import { RatingsModule } from '../api/ratings/ratings.module';
 import { StoragesModule } from '../api/storages/module';
 import { UsersModule } from '../api/users/users.module';
@@ -38,6 +40,8 @@ import { WinstonConfigService } from '../configs/winston';
     StoragesModule,
     RatingsModule,
     PlayerModule,
+    PricesModule,
+    TokensModule,
     GamesModule,
   ],
 })

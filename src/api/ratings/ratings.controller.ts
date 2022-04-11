@@ -26,7 +26,7 @@ import { UpdateRatingDto } from './dto/update-rating.dto';
 import { RatingsService } from './ratings.service';
 
 @ApiExtraModels(PaginationResponse)
-@ApiTags('Ratings')
+@ApiTags('Game Projects')
 @Controller('game-projects')
 export class RatingsController {
   constructor(

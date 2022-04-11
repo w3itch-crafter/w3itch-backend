@@ -16,7 +16,8 @@ export class Rating extends BaseEntity {
   @IsNotEmpty()
   username: string;
 
-  @Column()
+  @Column({ type: 'decimal' })
+  @IsInt()
   @Min(100)
   @Max(500)
   rating: number;

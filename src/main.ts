@@ -13,7 +13,13 @@ import { RequestNotAcceptableException } from './exceptions';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      enableDebugMessages: true,
+    }),
+  );
   const configService = app.get<ConfigService>(ConfigService);
   const appPort = configService.get<number>('app.port', 3000);
   const enableSwagger = configService.get<boolean>('swagger.enable', false);
