@@ -5,6 +5,7 @@ import { Game } from '../entities/Game.entity';
 import { Price } from '../entities/Price.entity';
 import { Rating } from '../entities/Rating.entity';
 import { Tag } from '../entities/Tag.entity';
+import { Token } from '../entities/Token.entity';
 import { User } from '../entities/User.entity';
 import { isDevelopment } from '../utils';
 import { configBuilder } from './index';
@@ -32,7 +33,7 @@ const options: ConnectionOptions = {
   password: config.db.password,
   database: config.db.database,
   charset: config.db.charset || 'utf8mb4_0900_ai_ci',
-  entities: [User, Account, Game, Tag, Rating, Price, User],
+  entities: [User, Account, Game, Tag, Rating, Price, Token],
   synchronize: false,
   timezone: config.db.timezone || 'Z',
   logging: isDevelopment(),
