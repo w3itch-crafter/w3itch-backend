@@ -1,13 +1,10 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Inject,
   LoggerService,
   Param,
-  Patch,
-  Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -21,9 +18,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { JWTAuthGuard } from '../../../auth/guard';
 import { Token } from '../../../entities/Token.entity';
 import { PaginationResponse } from '../../../utils/responseClass';
-import { CreateTokenDto } from './dto/create-token.dto';
-import { DeleteTokenDto } from './dto/delete-token.dto';
-import { UpdateTokenDto } from './dto/update-token.dto';
+import { AddressValidationPipe } from './pipes/address-validation.pipe';
 import { TokensService } from './tokens.service';
 
 @ApiExtraModels(PaginationResponse)
@@ -46,42 +41,16 @@ export class TokensController {
     return await this.tokensService.getTokensByChainId(chainId);
   }
 
-  @Post('/:chainId/tokens')
+  @Put('/:chainId/tokens/:address')
   @UseGuards(JWTAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Create a token',
   })
   async create(
-    @Param('chainId') chainId: number,
-    @Body() dto: CreateTokenDto,
+    @Param(AddressValidationPipe) param: { chainId: number; address: string },
   ): Promise<Token> {
-    return await this.tokensService.create(chainId, dto);
-  }
-
-  @Patch('/:chainId/tokens')
-  @UseGuards(JWTAuthGuard)
-  @ApiCookieAuth()
-  @ApiOperation({
-    summary: 'Update a token',
-  })
-  async update(
-    @Param('chainId') chainId: number,
-    @Body() dto: UpdateTokenDto,
-  ): Promise<Token> {
-    return await this.tokensService.update(chainId, dto);
-  }
-
-  @Delete('/:chainId/tokens')
-  @UseGuards(JWTAuthGuard)
-  @ApiCookieAuth()
-  @ApiOperation({
-    summary: 'Delete a token',
-  })
-  async delete(
-    @Param('chainId') chainId: number,
-    @Body() dto: DeleteTokenDto,
-  ): Promise<void> {
-    return await this.tokensService.delete(chainId, dto);
+    const { chainId, address } = param;
+    return await this.tokensService.save(chainId, address);
   }
 }

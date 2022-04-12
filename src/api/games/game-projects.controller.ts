@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -150,6 +149,11 @@ export class GameProjectsController {
       this.constructor.name,
     );
 
+    if (!game.donationAddress) {
+      // default donation address is user's login wallet
+      game.donationAddress = user.account.accountId;
+    }
+
     return await this.gamesService.save({
       ...game,
       tags,
@@ -170,14 +174,10 @@ export class GameProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UpdateGameProjectWithFileDto,
   ) {
+    await this.gamesService.verifyOwner(id, user);
+
     const { game } = body;
     const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to update this project",
-      );
-    }
 
     if (file) {
       this.logger.verbose(
@@ -233,14 +233,9 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
+    await this.gamesService.verifyOwner(id, user);
+
     const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to delete this project",
-      );
-    }
-
     this.easyRpgGamesService.deleteGameDirectory(target.gameName);
     await this.gamesService.delete(id);
   }
@@ -253,14 +248,9 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
+    await this.gamesService.verifyOwner(id, user);
+
     const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to delete the file of this project",
-      );
-    }
-
     await this.gamesService.update(id, { file: null });
     this.easyRpgGamesService.deleteGameDirectory(target.gameName);
   }

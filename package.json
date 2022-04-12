@@ -58,6 +58,7 @@
     "find-remove": "^4.0.4",
     "form-cors": "^1.0.2",
     "han": "^0.0.7",
+    "human-standard-token-abi": "^2.0.0",
     "mime-types": "^2.1.35",
     "mysql2": "^2.3.3",
     "nest-winston": "^1.6.2",
@@ -68,6 +69,7 @@
     "rxjs": "^7.5.5",
     "swagger-ui-express": "^4.3.0",
     "typeorm": "^0.2.45",
+    "web3": "^1.7.3",
     "winston": "^3.6.0",
     "winston-loki": "^6.0.5"
   },

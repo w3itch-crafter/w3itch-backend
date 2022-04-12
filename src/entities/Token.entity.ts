@@ -18,6 +18,14 @@ export class Token extends BaseEntity {
   address: string;
 
   @Column()
+  @IsString()
+  name: string;
+
+  @Column()
+  @IsInt()
+  decimals: number;
+
+  @Column()
   @IsUppercase()
   @IsString()
   symbol: string;
@@ -25,10 +33,6 @@ export class Token extends BaseEntity {
   @Column()
   @IsInt()
   chainId: number;
-
-  @Column()
-  @IsString()
-  chainName: string;
 
   @ApiHideProperty()
   @OneToMany(() => Price, (price) => price.token, {

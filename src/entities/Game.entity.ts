@@ -1,6 +1,7 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
   IsEnum,
+  IsEthereumAddress,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -62,7 +63,10 @@ export class Game extends BaseEntity {
   @IsString()
   subtitle: string;
 
-  @ApiProperty({ description: 'For player' })
+  @ApiProperty({
+    minLength: 1,
+    maxLength: 50,
+  })
   @Column({ unique: true })
   @Length(1, 50)
   @IsString()
@@ -77,7 +81,10 @@ export class Game extends BaseEntity {
   @IsString()
   file: string;
 
-  @ApiProperty({ description: 'Classification' })
+  @ApiProperty({
+    enum: ProjectClassification,
+    default: ProjectClassification.GAMES,
+  })
   @Column({ default: ProjectClassification.GAMES })
   @IsEnum(ProjectClassification)
   @IsNotEmpty()
@@ -88,7 +95,10 @@ export class Game extends BaseEntity {
    * @type varchar(255)
    * @default 'rm2k3e'
    */
-  @ApiProperty()
+  @ApiProperty({
+    enum: GameEngine,
+    default: GameEngine.RM2K3E,
+  })
   @Column({
     comment: 'Kind of the project (game engine)',
     default: GameEngine.RM2K3E,
@@ -97,15 +107,19 @@ export class Game extends BaseEntity {
   @IsNotEmpty()
   kind: GameEngine;
 
-  @ApiProperty()
+  @ApiProperty({
+    enum: ReleaseStatus,
+    default: ReleaseStatus.RELEASED,
+  })
   @Column()
   @IsEnum(ReleaseStatus)
   releaseStatus: ReleaseStatus;
 
-  @ApiProperty({ description: 'Screenshot URLs' })
+  @ApiProperty({ description: 'Screenshot URLs', required: false })
   @Column('simple-array', { comment: 'Game screenshots' })
   @IsUrl({ each: true })
   @IsOptional()
+  @IsUrl({}, { each: true })
   screenshots: string[];
 
   @ApiProperty({ description: 'Cover URL' })
@@ -131,12 +145,17 @@ export class Game extends BaseEntity {
   @OneToMany(() => Price, (price) => price.game)
   prices: Price[];
 
+  @ApiProperty({ description: 'Donate wallet address of the creator' })
+  @Column({ nullable: true })
+  @IsEthereumAddress()
+  donationAddress: string;
+
   @ApiProperty({
     description: 'Links to other app stores',
   })
   @Column('simple-array')
-  @Length(1, 120)
-  @IsUrl({ each: true })
+  @IsUrl({}, { each: true })
+  @Length(1, 120, { each: true })
   appStoreLinks: string[];
 
   @ApiProperty()
@@ -146,7 +165,8 @@ export class Game extends BaseEntity {
   description: string;
 
   @ApiProperty({
-    description: 'The community type of this game',
+    enum: Community,
+    default: Community.DISQUS,
   })
   @Column({ default: Community.DISQUS })
   @IsEnum(Community)
@@ -154,7 +174,8 @@ export class Game extends BaseEntity {
   community: Community;
 
   @ApiProperty({
-    description: 'The category that best describes this game',
+    enum: Genre,
+    default: Genre.NO_GENRE,
   })
   @Column({ default: Genre.NO_GENRE })
   @IsEnum(Genre)

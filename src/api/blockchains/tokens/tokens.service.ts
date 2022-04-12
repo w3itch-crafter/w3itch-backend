@@ -1,18 +1,11 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  LoggerService,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 
 import { Token } from '../../../entities/Token.entity';
-import { CreateTokenDto } from './dto/create-token.dto';
-import { DeleteTokenDto } from './dto/delete-token.dto';
-import { UpdateTokenDto } from './dto/update-token.dto';
+import { Web3Provider } from './web3.provider';
 
 @Injectable()
 export class TokensService {
@@ -21,6 +14,7 @@ export class TokensService {
     private readonly logger: LoggerService,
     @InjectRepository(Token)
     private readonly tokenRepository: Repository<Token>,
+    private readonly configService: ConfigService,
   ) {}
 
   public async getTokensByChainId(chainId: number): Promise<Token[]> {
@@ -29,39 +23,11 @@ export class TokensService {
     });
   }
 
-  public async create(chainId: number, dto: CreateTokenDto): Promise<Token> {
-    const exists = await this.tokenRepository.findOne({
-      where: { address: dto.address },
-    });
-    if (exists) {
-      throw new ConflictException('Token already exists');
-    }
-    return await this.tokenRepository.save({ chainId, ...dto });
-  }
-
-  public async update(chainId: number, dto: UpdateTokenDto): Promise<Token> {
-    const entity = await this.tokenRepository.findOne({
-      where: {
-        address: dto.address,
-        chainId,
-      },
-    });
-    if (!entity) {
-      throw new NotFoundException('Token not found');
-    }
-    return await this.tokenRepository.save({ ...entity, ...dto });
-  }
-
-  public async delete(chainId: number, dto: DeleteTokenDto): Promise<void> {
-    const entity = await this.tokenRepository.findOne({
-      where: {
-        address: dto.address,
-        chainId,
-      },
-    });
-    if (!entity) {
-      throw new NotFoundException('Token not found');
-    }
-    await this.tokenRepository.delete(entity.id);
+  public async save(chainId: number, address: string): Promise<Token> {
+    const info = await new Web3Provider(
+      this.configService,
+      chainId,
+    ).getTokenInfo(address);
+    return await this.tokenRepository.save({ chainId, address, ...info });
   }
 }

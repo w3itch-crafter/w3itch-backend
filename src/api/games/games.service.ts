@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   LoggerService,
@@ -12,6 +13,7 @@ import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
 import { ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
+import { User } from '../../entities/User.entity';
 import { UpdateGameEntity } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
@@ -39,6 +41,20 @@ export class GamesService {
       }
     });
     return url.toString();
+  }
+
+  public async verifyOwner(gameId: number, user: User) {
+    const gameProject = await this.gameRepository.findOne(gameId);
+
+    if (!gameProject) {
+      throw new NotFoundException('Game project not found');
+    }
+
+    if (user.username !== gameProject.username) {
+      throw new ForbiddenException(
+        "You don't have permission to modify this game project",
+      );
+    }
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
@@ -91,7 +107,7 @@ export class GamesService {
     return game;
   }
 
-  public async save(game: UpdateGameEntity): Promise<Game> {
+  public async save(game: Partial<Game>): Promise<Game> {
     return await this.gameRepository.save(game);
   }
 

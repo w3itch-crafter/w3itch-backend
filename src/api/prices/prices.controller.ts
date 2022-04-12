@@ -7,7 +7,7 @@ import {
   LoggerService,
   Param,
   Patch,
-  Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,11 +23,10 @@ import { CurrentUser } from '../../decorators/user.decorator';
 import { Price } from '../../entities/Price.entity';
 import { UserJWTPayload } from '../../types';
 import { PaginationResponse } from '../../utils/responseClass';
-import { verifyGameProjectOwner } from '../../utils/verifyGameProjectOwner';
 import { GamesService } from '../games/games.service';
 import { CreatePriceDto } from './dto/create-price.dto';
 import { UpdatePriceDto } from './dto/update-price.dto';
-import { PricesService } from './prices.service';
+import { PricesLogicService } from './prices.logic.service';
 
 @ApiExtraModels(PaginationResponse)
 @ApiTags('Game Projects')
@@ -37,7 +36,7 @@ export class PricesController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly gamesService: GamesService,
-    private readonly pricesService: PricesService,
+    private readonly pricesLogicService: PricesLogicService,
   ) {}
 
   @Get('/:id/prices')
@@ -45,23 +44,22 @@ export class PricesController {
     summary: 'Get an array of the prices of a game project',
   })
   async findByGameId(@Param('id') gameId: number): Promise<Price[]> {
-    return await this.pricesService.findByGameId(gameId);
+    return await this.pricesLogicService.findByGameId(gameId);
   }
 
-  @Post('/:id/prices/:chainId')
+  @Put('/:id/prices/:chainId')
   @UseGuards(JWTAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Create a price of a game project',
   })
-  async create(
+  async createOrOverride(
     @Param('id') gameId: number,
     @Param('chainId') chainId: number,
     @Body() dto: CreatePriceDto,
     @CurrentUser() user: UserJWTPayload,
   ): Promise<Price> {
-    await verifyGameProjectOwner(this.gamesService, gameId, user);
-    return await this.pricesService.create(gameId, chainId, dto);
+    return await this.pricesLogicService.saveByUser(user, gameId, chainId, dto);
   }
 
   @Patch('/:id/prices/:chainId')
@@ -76,8 +74,12 @@ export class PricesController {
     @Body() dto: UpdatePriceDto,
     @CurrentUser() user: UserJWTPayload,
   ): Promise<Price> {
-    await verifyGameProjectOwner(this.gamesService, gameId, user);
-    return await this.pricesService.update(gameId, chainId, dto);
+    return await this.pricesLogicService.updateByUser(
+      user,
+      gameId,
+      chainId,
+      dto,
+    );
   }
 
   @Delete('/:id/prices/:chainId')
@@ -91,7 +93,6 @@ export class PricesController {
     @Param('chainId') chainId: number,
     @CurrentUser() user: UserJWTPayload,
   ): Promise<void> {
-    await verifyGameProjectOwner(this.gamesService, gameId, user);
-    return await this.pricesService.delete(gameId, chainId);
+    return await this.pricesLogicService.deleteByUser(user, gameId, chainId);
   }
 }
