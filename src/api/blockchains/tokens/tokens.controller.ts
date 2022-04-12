@@ -11,6 +11,7 @@ import {
   ApiCookieAuth,
   ApiExtraModels,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -41,6 +42,16 @@ export class TokensController {
     return await this.tokensService.getTokensByChainId(chainId);
   }
 
+  @ApiParam({
+    name: 'address',
+    description: 'Address of the token',
+    type: String,
+  })
+  @ApiParam({
+    name: 'chainId',
+    description: 'Chain ID of the token',
+    type: Number,
+  })
   @Put('/:chainId/tokens/:address')
   @UseGuards(JWTAuthGuard)
   @ApiCookieAuth()

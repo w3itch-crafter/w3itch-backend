@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { ConfigGetOptions } from '@nestjs/config';
 import assert from 'assert';
 import { isISO8601 } from 'class-validator';
@@ -50,6 +51,13 @@ export function isEmptyObj(obj: object): boolean {
 
 export function assertConfig(value: unknown, key: string): void {
   assert(value, new ConfigKeyNotFoundException(key));
+}
+
+export function entityShouldExists(
+  entity: object,
+  classType: { name: string },
+): void {
+  assert(entity, new NotFoundException(`${classType.name} not found`));
 }
 
 export const InferOn: ConfigGetOptions = { infer: true };

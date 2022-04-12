@@ -20,11 +20,11 @@ export class Web3Provider {
     const tokenContract = new this.web3.eth.Contract(abi, address);
 
     const [decimals, name, symbol] = await Promise.all([
-      Number(tokenContract.methods.decimals().call()),
+      tokenContract.methods.decimals().call(),
       tokenContract.methods.name().call(),
       tokenContract.methods.symbol().call(),
     ]);
-    return { decimals, name, symbol };
+    return { decimals: Number(decimals), name, symbol };
   }
 
   public async isContract(address: string) {
