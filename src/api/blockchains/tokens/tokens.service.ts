@@ -23,6 +23,19 @@ export class TokensService {
     });
   }
 
+  public async findOneOrCreate(
+    chainId: number,
+    address: string,
+  ): Promise<Token> {
+    let token = await this.tokenRepository.findOne({
+      where: { chainId, address },
+    });
+    if (!token) {
+      token = await this.save(chainId, address);
+    }
+    return token;
+  }
+
   public async save(chainId: number, address: string): Promise<Token> {
     const info = await new Web3Provider(
       this.configService,

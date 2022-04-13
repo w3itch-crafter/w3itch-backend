@@ -17,7 +17,7 @@ import process from 'process';
 import { GameEngine } from '../../types/enum';
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
 
-const rpgRtExtNames = ['lmt', 'ldb', 'ini', 'exe'];
+const rpgRtExtNames = ['lmt', 'ldb', 'ini'];
 
 @Injectable()
 export class EasyRpgGamesService {
@@ -89,34 +89,49 @@ export class EasyRpgGamesService {
     file: Express.Multer.File,
     charset?: string,
   ) {
-    this.logger.verbose(`Use charset ${charset}`, this.constructor.name);
+    this.logger.verbose(`Using charset ${charset}`, this.constructor.name);
     const zip = new AdmZip(file.buffer, charset);
     const rpgRtFlags = {
       lmt: false,
       ldb: false,
       ini: false,
-      exe: false,
     };
     let entryPath = '';
-    zip.getEntries().forEach((entry, index, arr) => {
-      this.logger.verbose(entry.entryName, this.constructor.name);
+    const entries = zip.getEntries();
+    const entryNames = [];
+    entries.forEach((entry, index) => {
+      const { entryName } = entry;
       rpgRtExtNames.forEach((extName) => {
-        const { entryName } = entry;
         if (
           entryName.endsWith(`RPG_RT.${extName}`) &&
           !entryName.startsWith('__MACOSX/')
         ) {
           rpgRtFlags[extName] = true;
+          this.logger.verbose(
+            `Found RPG_RT.${extName} in ${entryName}`,
+            this.constructor.name,
+          );
           entryPath = entryName.substring(0, entryName.indexOf('RPG_RT.'));
         }
       });
+      if (index % Math.floor(entries.length / 20) === 0) {
+        entryNames.push(entryName);
+      }
     });
+    this.logger.verbose(
+      `Files in zip: ${entries.length}`,
+      this.constructor.name,
+    );
+    this.logger.verbose(
+      'Some of the files in zip: ' + JSON.stringify(entryNames, null, 2),
+      this.constructor.name,
+    );
 
     rpgRtExtNames.forEach((extName) => {
       if (!rpgRtFlags[extName]) {
-        throw new BadRequestException(
-          `Entry not found in zip file: RPG_RT.${extName}`,
-        );
+        const error = `Entry not found in zip file: RPG_RT.${extName}`;
+        this.logger.verbose(error, this.constructor.name);
+        throw new BadRequestException(error);
       }
     });
     const cwd = process.cwd();

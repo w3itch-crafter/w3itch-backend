@@ -1,8 +1,13 @@
+import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import abi from 'human-standard-token-abi';
 import Web3 from 'web3';
 
-import { web3Providers } from '../../../constants/web3-providers';
+const web3Providers = new Map<number, { url: string; token: string }>();
+web3Providers.set(4, {
+  url: 'https://rinkeby.infura.io/v3/',
+  token: 'blockchains.infura.apiToken',
+});
 
 export class Web3Provider {
   web3: Web3;
@@ -11,7 +16,12 @@ export class Web3Provider {
     private readonly configService: ConfigService,
     readonly chainId: number,
   ) {
-    const provider = web3Providers[chainId];
+    if (!web3Providers.get(chainId)) {
+      throw new BadRequestException(
+        `Web3Provider: chainId ${chainId} is not supported`,
+      );
+    }
+    const provider = web3Providers.get(chainId);
     const token = this.configService.get(provider.token);
     this.web3 = new Web3(new Web3.providers.HttpProvider(provider.url + token));
   }

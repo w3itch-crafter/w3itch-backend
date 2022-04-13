@@ -10,11 +10,9 @@ export class AddressValidationPipe implements PipeTransform {
     const { chainId, address } = value;
     let isContract: boolean;
 
+    const web3 = new Web3Provider(this.configService, Number(chainId));
     try {
-      isContract = await new Web3Provider(
-        this.configService,
-        Number(chainId),
-      ).isContract(address);
+      isContract = await web3.isContract(address);
     } catch (error) {
       throw new BadRequestException('Address is not a valid Ethereum address');
     }
@@ -24,6 +22,7 @@ export class AddressValidationPipe implements PipeTransform {
         'Address is not a valid contract address, or it is not on this chain',
       );
     }
+
     return { chainId: Number(chainId), address };
   }
 }

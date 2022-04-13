@@ -4,52 +4,46 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 
 import { Price } from '../../entities/Price.entity';
-import { Token } from '../../entities/Token.entity';
 import { entityShouldExists } from '../../utils';
-import { GamesService } from '../games/games.service';
+import { TokensService } from '../blockchains/tokens/tokens.service';
 import { CreatePriceDto } from './dto/create-price.dto';
-import { UpdatePriceDto } from './dto/update-price.dto';
 
 @Injectable()
-export class PricesBaseService {
+export class PricesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private readonly gamesService: GamesService,
+    private readonly tokensService: TokensService,
     @InjectRepository(Price)
     private readonly priceRepository: Repository<Price>,
-    @InjectRepository(Token)
-    private readonly tokenRepository: Repository<Token>,
   ) {}
 
   public async find(conditions: any): Promise<Price[]> {
     return await this.priceRepository.find(conditions);
   }
 
-  public async save(
-    gameId: number,
-    chainId: number,
-    dto: CreatePriceDto,
-  ): Promise<Price> {
-    const token = await this.tokenRepository.findOne({
-      where: { chainId, address: dto.tokenAddress },
-    });
-    entityShouldExists(token, Token);
-    return await this.priceRepository.save({ chainId, gameId, ...dto });
+  public async save(dto: CreatePriceDto): Promise<Price> {
+    const token = await this.tokensService.findOneOrCreate(
+      dto.chainId,
+      dto.token,
+    );
+    return await this.priceRepository.save({ ...dto, token });
   }
 
   public async update(
     gameId: number,
     chainId: number,
-    dto: UpdatePriceDto,
+    dto: CreatePriceDto,
   ): Promise<Price> {
     const entity = await this.priceRepository.findOne({
       relations: ['token'],
       where: { game: gameId, chainId },
     });
     entityShouldExists(entity, Price);
-    entityShouldExists(entity.token, Token);
-    return await this.priceRepository.save({ ...entity, ...dto });
+    entity.amount = dto.amount;
+    entity.chainId = dto.chainId;
+    entity.token = await this.tokensService.findOneOrCreate(chainId, dto.token);
+    return await this.priceRepository.save(entity);
   }
 
   public async delete(gameId: number, chainId: number): Promise<void> {

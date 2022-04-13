@@ -29,7 +29,7 @@ export class Game extends BaseEntity {
   @ApiResponseProperty()
   @ApiProperty({ description: "Creator's username" })
   @Column()
-  @Matches(/^[a-z0-9-]+$/)
+  @Matches(/^[a-z\d-]+$/)
   @Length(3, 15)
   @IsNotEmpty()
   username: string;
@@ -64,6 +64,7 @@ export class Game extends BaseEntity {
   subtitle: string;
 
   @ApiProperty({
+    description: 'Unique identifier name of the game',
     minLength: 1,
     maxLength: 50,
   })
@@ -82,6 +83,7 @@ export class Game extends BaseEntity {
   file: string;
 
   @ApiProperty({
+    description: 'Project classification',
     enum: ProjectClassification,
     default: ProjectClassification.GAMES,
   })
@@ -97,6 +99,7 @@ export class Game extends BaseEntity {
    */
   @ApiProperty({
     enum: GameEngine,
+    description: 'Kind of the project (game engine)',
     default: GameEngine.RM2K3E,
   })
   @Column({
@@ -108,6 +111,7 @@ export class Game extends BaseEntity {
   kind: GameEngine;
 
   @ApiProperty({
+    description: 'Release status',
     enum: ReleaseStatus,
     default: ReleaseStatus.RELEASED,
   })
@@ -117,7 +121,6 @@ export class Game extends BaseEntity {
 
   @ApiProperty({ description: 'Screenshot URLs', required: false })
   @Column('simple-array', { comment: 'Game screenshots' })
-  @IsUrl({ each: true })
   @IsOptional()
   @IsUrl({}, { each: true })
   screenshots: string[];
@@ -142,13 +145,18 @@ export class Game extends BaseEntity {
   rating: number;
 
   @ApiProperty({ description: 'Tokens to be held/paid to play this game' })
-  @OneToMany(() => Price, (price) => price.game)
+  @OneToMany(() => Price, (price) => price.game, {
+    eager: true,
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   prices: Price[];
 
   @ApiProperty({ description: 'Donate wallet address of the creator' })
   @Column({ nullable: true })
+  @IsOptional()
   @IsEthereumAddress()
-  donationAddress: string;
+  donationAddress?: string;
 
   @ApiProperty({
     description: 'Links to other app stores',
@@ -165,6 +173,7 @@ export class Game extends BaseEntity {
   description: string;
 
   @ApiProperty({
+    description: 'The community type of this game',
     enum: Community,
     default: Community.DISQUS,
   })
@@ -174,6 +183,7 @@ export class Game extends BaseEntity {
   community: Community;
 
   @ApiProperty({
+    description: 'The category that best describes this game',
     enum: Genre,
     default: Genre.NO_GENRE,
   })
