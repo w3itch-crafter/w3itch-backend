@@ -3,8 +3,8 @@ import {
   IsEthereumAddress,
   IsInt,
   IsNotEmpty,
-  IsNumberString,
   IsPositive,
+  Matches,
 } from 'class-validator';
 
 export class CreatePriceDto {
@@ -24,6 +24,8 @@ export class CreatePriceDto {
     description: 'In Wei, based on the decimals of the Token',
   })
   @IsNotEmpty()
-  @IsNumberString()
+  @Matches(/^(?!0+)\d+$/, {
+    message: 'amount must be a positive number string without leading zeros',
+  })
   amount: string;
 }
