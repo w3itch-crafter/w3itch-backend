@@ -38,11 +38,11 @@ import { WinstonConfigService } from '../configs/winston';
     UsersModule,
     AppCacheModule,
     StoragesModule,
-    RatingsModule,
-    PlayerModule,
-    PricesModule,
-    TokensModule,
     GamesModule,
+    PricesModule,
+    RatingsModule,
+    TokensModule,
+    PlayerModule,
   ],
 })
 export class AppModule {}

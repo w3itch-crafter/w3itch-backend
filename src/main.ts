@@ -10,14 +10,16 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { AppModule } from './app/module';
 import { RequestNotAcceptableException } from './exceptions';
+import { validateExceptionLogger } from './utils/validateExceptionLogger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      enableDebugMessages: true,
+      exceptionFactory: validateExceptionLogger(logger),
     }),
   );
   const configService = app.get<ConfigService>(ConfigService);
@@ -51,7 +53,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit, extended: true }));
   app.use(cookieParser());
   app.use(formCors({ exception: new RequestNotAcceptableException() }));
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  app.useLogger(logger);
   await app.listen(appPort);
 }
 bootstrap();

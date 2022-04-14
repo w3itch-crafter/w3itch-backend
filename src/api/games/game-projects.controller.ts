@@ -1,9 +1,7 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -35,16 +33,13 @@ import { JWTAuthGuard } from '../../auth/guard';
 import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagination-response.decorator';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
-import { Tag } from '../../entities/Tag.entity';
-import { UpdateGameEntity, UserJWTPayload } from '../../types';
+import { UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
-import { TagsService } from '../tags/tags.service';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
-import { EasyRpgGamesService } from './easy-rpg.games.service';
-import { GamesService } from './games.service';
+import { GamesLogicService } from './games.logic.service';
 
 @ApiExtraModels(PaginationResponse)
 @ApiTags('Game Projects')
@@ -53,9 +48,7 @@ export class GameProjectsController {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private readonly gamesService: GamesService,
-    private readonly tagsService: TagsService,
-    private readonly easyRpgGamesService: EasyRpgGamesService,
+    private readonly gamesLogicService: GamesLogicService,
   ) {}
 
   @Get('/')
@@ -104,15 +97,7 @@ export class GameProjectsController {
       sortBy,
       order,
     };
-    return this.gamesService.paginateGameProjects(query, options);
-  }
-
-  @Get('/:id(\\d+)')
-  @ApiOperation({ summary: 'get game project by id' })
-  @ApiOkResponse({ type: Game })
-  @ApiNotFoundResponse({ description: 'Game not found' })
-  async getGameProjectById(@Param('id') id: number) {
-    return this.gamesService.findOne(id);
+    return this.gamesLogicService.paginateGameProjects(query, options);
   }
 
   @Post('/')
@@ -125,37 +110,25 @@ export class GameProjectsController {
     @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateGameProjectWithFileDto,
-  ) {
-    const { game } = body;
-    await this.gamesService.validateGameName(game);
+  ): Promise<Game> {
+    return this.gamesLogicService.createGameProject(user, file, body);
+  }
 
-    this.logger.verbose(
-      `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
-      this.constructor.name,
-    );
-    if (file?.mimetype !== 'application/zip') {
-      throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
-    }
+  @Post('/validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Validate a Game DTO which is to create a game project',
+  })
+  async validate(@Body() game: ValidateGameProjectDto) {
+    await this.gamesLogicService.validateGameName(game);
+  }
 
-    this.easyRpgGamesService.uploadGame(
-      game.gameName,
-      game.kind,
-      file,
-      game.charset,
-    );
-    const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
-
-    this.logger.verbose(
-      `Tags of game: ${game.gameName} are ${JSON.stringify(tags)}`,
-      this.constructor.name,
-    );
-
-    return await this.gamesService.save({
-      ...game,
-      tags,
-      username: user.username,
-      file: file.originalname,
-    });
+  @Get('/:id(\\d+)')
+  @ApiOperation({ summary: 'get game project by id' })
+  @ApiOkResponse({ type: Game })
+  @ApiNotFoundResponse({ description: 'Game not found' })
+  async getGameProjectById(@Param('id') id: number) {
+    return this.gamesLogicService.findOne(id);
   }
 
   @Patch('/:id')
@@ -169,58 +142,8 @@ export class GameProjectsController {
     @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UpdateGameProjectWithFileDto,
-  ) {
-    const { game } = body;
-    const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to update this project",
-      );
-    }
-
-    if (file) {
-      this.logger.verbose(
-        `Update File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
-        this.constructor.name,
-      );
-      if (file?.mimetype !== 'application/zip') {
-        throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
-      }
-      this.easyRpgGamesService.uploadGame(
-        target.gameName,
-        game.kind,
-        file,
-        game.charset,
-      );
-    } else {
-      this.logger.verbose(
-        `Update game entity: ${JSON.stringify(game)} with no file uploaded`,
-        this.constructor.name,
-      );
-    }
-
-    const tags: Tag[] = await this.tagsService.getOrCreateByNames(game.tags);
-    this.logger.verbose(
-      `Tags of game: ${target.gameName} are ${JSON.stringify(tags)}`,
-      this.constructor.name,
-    );
-
-    const entityToUpdate: Partial<UpdateGameEntity> = { ...game, tags };
-    if (file) {
-      entityToUpdate.file = file.originalname;
-    }
-
-    return await this.gamesService.update(id, entityToUpdate);
-  }
-
-  @Post('/validate')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Validate a Game DTO which is to create a game project',
-  })
-  async validate(@Body() game: ValidateGameProjectDto) {
-    await this.gamesService.validateGameName(game);
+  ): Promise<Game> {
+    return this.gamesLogicService.updateGameProject(id, user, file, body);
   }
 
   @Delete('/:id')
@@ -233,16 +156,7 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
-    const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to delete this project",
-      );
-    }
-
-    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
-    await this.gamesService.delete(id);
+    await this.gamesLogicService.delete(id, user);
   }
 
   @Delete('/:id/file')
@@ -253,15 +167,6 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
-    const target = await this.gamesService.findOne(id);
-
-    if (user.username !== target.username) {
-      throw new ForbiddenException(
-        "You don't have permission to delete the file of this project",
-      );
-    }
-
-    await this.gamesService.update(id, { file: null });
-    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
+    await this.gamesLogicService.deleteGameProjectFiles(id, user);
   }
 }

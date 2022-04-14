@@ -1,5 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { IsInt, IsPositive } from 'class-validator';
+import { IsInt, IsNumberString, IsPositive } from 'class-validator';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { BaseEntity } from './base.entity';
@@ -13,10 +13,9 @@ export class Price extends BaseEntity {
   @IsPositive()
   chainId: number;
 
-  @Column({ type: 'decimal' })
-  @IsInt()
-  @IsPositive()
-  amount: number;
+  @Column()
+  @IsNumberString()
+  amount: string;
 
   @ApiHideProperty()
   @ManyToOne(() => Game, (game) => game.prices, {
@@ -28,8 +27,6 @@ export class Price extends BaseEntity {
     eager: true,
     onDelete: 'CASCADE',
   })
-  @IsInt()
-  @IsPositive()
   @JoinColumn()
   token: Token;
 }

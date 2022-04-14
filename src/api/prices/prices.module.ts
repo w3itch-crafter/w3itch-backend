@@ -1,21 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Game } from '../../entities/Game.entity';
 import { Price } from '../../entities/Price.entity';
-import { Token } from '../../entities/Token.entity';
-import { GamesModule } from '../games/games.module';
-import { TagsModule } from '../tags/tags.module';
-import { PricesController } from './prices.controller';
+import { TokensModule } from '../blockchains/tokens/tokens.module';
 import { PricesService } from './prices.service';
 
 @Module({
-  imports: [
-    GamesModule,
-    TagsModule,
-    TypeOrmModule.forFeature([Game, Price, Token]),
-  ],
-  controllers: [PricesController],
+  imports: [TokensModule, TypeOrmModule.forFeature([Price])],
   providers: [PricesService],
   exports: [PricesService],
 })

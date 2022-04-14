@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   LoggerService,
@@ -12,12 +13,14 @@ import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
 import { ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
+import { User } from '../../entities/User.entity';
 import { UpdateGameEntity } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
+import { entityShouldExists } from '../../utils';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 
 @Injectable()
-export class GamesService {
+export class GamesBaseService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -41,6 +44,20 @@ export class GamesService {
     return url.toString();
   }
 
+  public async verifyOwner(gameId: number, user: User) {
+    const gameProject = await this.gameRepository.findOne(gameId);
+
+    if (!gameProject) {
+      throw new NotFoundException('Game project not found');
+    }
+
+    if (user.username !== gameProject.username) {
+      throw new ForbiddenException(
+        "You don't have permission to modify this game project",
+      );
+    }
+  }
+
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
     query.sortBy = [[options.sortBy, options.order]];
     query.tags = options.tags;
@@ -54,7 +71,10 @@ export class GamesService {
 
     const queryBuilder = this.gameRepository
       .createQueryBuilder('game')
-      .leftJoin('game.tags', 'tag');
+      .leftJoin('game.tags', 'tag')
+      .leftJoinAndSelect('game.tags', 'tags')
+      .leftJoinAndSelect('game.prices', 'prices')
+      .leftJoinAndSelect('prices.token', 'token');
 
     if (options.username) {
       queryBuilder.andWhere('game.username = :username', {
@@ -70,28 +90,28 @@ export class GamesService {
     }
 
     const config: PaginateConfig<Game> = {
-      relations: ['tags'],
       sortableColumns: Object.values(GamesListSortBy),
     };
 
     const result = await paginate<Game>(query, queryBuilder, config);
     Object.keys(result.links).map(function (key) {
-      result.links[key] = GamesService.appendParams(result.links[key], options);
+      result.links[key] = GamesBaseService.appendParams(
+        result.links[key],
+        options,
+      );
     });
     return result;
   }
 
   public async findOne(id: number): Promise<Game> {
     const game = await this.gameRepository.findOne(id, {
-      relations: ['tags'],
+      relations: ['tags', 'prices', 'prices.token'],
     });
-    if (!game) {
-      throw new NotFoundException('Game not found');
-    }
+    entityShouldExists(game, Game);
     return game;
   }
 
-  public async save(game: UpdateGameEntity): Promise<Game> {
+  public async save(game: Partial<Game>): Promise<Game> {
     return await this.gameRepository.save(game);
   }
 
