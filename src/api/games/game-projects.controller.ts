@@ -100,14 +100,6 @@ export class GameProjectsController {
     return this.gamesLogicService.paginateGameProjects(query, options);
   }
 
-  @Get('/:id(\\d+)')
-  @ApiOperation({ summary: 'get game project by id' })
-  @ApiOkResponse({ type: Game })
-  @ApiNotFoundResponse({ description: 'Game not found' })
-  async getGameProjectById(@Param('id') id: number) {
-    return this.gamesLogicService.findOne(id);
-  }
-
   @Post('/')
   @UseGuards(JWTAuthGuard)
   @ApiCookieAuth()
@@ -120,6 +112,23 @@ export class GameProjectsController {
     @Body() body: CreateGameProjectWithFileDto,
   ): Promise<Game> {
     return this.gamesLogicService.createGameProject(user, file, body);
+  }
+
+  @Post('/validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Validate a Game DTO which is to create a game project',
+  })
+  async validate(@Body() game: ValidateGameProjectDto) {
+    await this.gamesLogicService.validateGameName(game);
+  }
+
+  @Get('/:id(\\d+)')
+  @ApiOperation({ summary: 'get game project by id' })
+  @ApiOkResponse({ type: Game })
+  @ApiNotFoundResponse({ description: 'Game not found' })
+  async getGameProjectById(@Param('id') id: number) {
+    return this.gamesLogicService.findOne(id);
   }
 
   @Patch('/:id')
@@ -135,15 +144,6 @@ export class GameProjectsController {
     @Body() body: UpdateGameProjectWithFileDto,
   ): Promise<Game> {
     return this.gamesLogicService.updateGameProject(id, user, file, body);
-  }
-
-  @Post('/validate')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Validate a Game DTO which is to create a game project',
-  })
-  async validate(@Body() game: ValidateGameProjectDto) {
-    await this.gamesLogicService.validateGameName(game);
   }
 
   @Delete('/:id')
