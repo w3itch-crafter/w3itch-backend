@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { cpSync, rmSync } from 'fs';
+import { cpSync, existsSync, rmSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
@@ -127,13 +127,17 @@ export class EasyRpgGamesService {
       this.constructor.name,
     );
 
+    const noEntryErrors = [];
     rpgRtExtNames.forEach((extName) => {
       if (!rpgRtFlags[extName]) {
         const error = `Entry not found in zip file: RPG_RT.${extName}`;
+        noEntryErrors.push(error);
         this.logger.verbose(error, this.constructor.name);
-        throw new BadRequestException(error);
       }
     });
+    if (noEntryErrors.length > 0) {
+      throw new BadRequestException(noEntryErrors);
+    }
     const cwd = process.cwd();
     const tempPath = join(cwd, 'thirdparty', 'temp', game);
     const targetPath = join(cwd, 'thirdparty', 'games', game);
@@ -152,6 +156,13 @@ export class EasyRpgGamesService {
     } else {
       this.logger.debug(`Extract Game to ${targetPath}`, this.constructor.name);
       zip.extractAllTo(targetPath, true);
+    }
+    if (existsSync(join(targetPath, 'index.json'))) {
+      this.logger.debug(
+        `index.json exists, skipping generateGameCache`,
+        this.constructor.name,
+      );
+      return;
     }
     this.generateGameCache(targetPath);
   }

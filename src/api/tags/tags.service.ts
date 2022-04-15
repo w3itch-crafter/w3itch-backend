@@ -41,7 +41,7 @@ export class TagsService {
         }),
       );
     } else {
-      return [];
+      return names as [] | undefined;
     }
   }
 }
