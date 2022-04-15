@@ -24,15 +24,6 @@ export class CreateGameProjectDto extends OmitType(Game, [
   'createdAt',
   'updatedAt',
 ]) {
-  @ApiProperty({
-    enum: GameFileCharset,
-    default: GameFileCharset.UTF8,
-    required: false,
-  })
-  @IsEnum(GameFileCharset)
-  @IsOptional()
-  charset: GameFileCharset;
-
   @ApiProperty()
   @IsNotEmpty()
   @Length(2, 60, { each: true })

@@ -15,6 +15,7 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import {
   Community,
   GameEngine,
+  GameFileCharset,
   Genre,
   PaymentMode,
   ProjectClassification,
@@ -81,6 +82,16 @@ export class Game extends BaseEntity {
   @Length(1, 150)
   @IsString()
   file: string;
+
+  @ApiProperty({
+    enum: GameFileCharset,
+    default: GameFileCharset.UTF8,
+    required: false,
+  })
+  @Column({ default: GameFileCharset.UTF8 })
+  @IsEnum(GameFileCharset)
+  @IsOptional()
+  charset: GameFileCharset;
 
   @ApiProperty({
     description: 'Project classification',
