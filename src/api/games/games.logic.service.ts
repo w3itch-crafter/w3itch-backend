@@ -76,7 +76,13 @@ export class GamesLogicService {
       `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
       this.constructor.name,
     );
-    if (file?.mimetype !== 'application/zip') {
+    if (
+      ![
+        'application/zip',
+        'application/zip-compressed',
+        'application/x-zip-compressed',
+      ].includes(file?.mimetype.toLowerCase())
+    ) {
       throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
     }
 
