@@ -3,27 +3,32 @@ import { ConfigService } from '@nestjs/config';
 import abi from 'human-standard-token-abi';
 import Web3 from 'web3';
 
-const web3Providers = new Map<number, { url: string; token: string }>();
-web3Providers.set(4, {
-  url: 'https://rinkeby.infura.io/v3/',
-  token: 'blockchains.infura.apiToken',
-});
+import { configBuilder } from '../../../configs';
 
-export class Web3Provider {
-  web3: Web3;
-
-  constructor(
-    private readonly configService: ConfigService,
-    readonly chainId: number,
-  ) {
-    if (!web3Providers.get(chainId)) {
+class ChainMap<K, V> extends Map<K, V> {
+  get(chainId: K): V {
+    if (!this.has(chainId)) {
       throw new BadRequestException(
         `Web3Provider: chainId ${chainId} is not supported`,
       );
     }
-    const provider = web3Providers.get(chainId);
-    const token = this.configService.get(provider.token);
-    this.web3 = new Web3(new Web3.providers.HttpProvider(provider.url + token));
+    return super.get(chainId);
+  }
+}
+
+const providers = [
+  {
+    chainId: 4,
+    url: 'https://rinkeby.infura.io/v3/',
+    token: 'blockchains.infura.apiToken',
+  },
+];
+
+export class Web3Provider {
+  web3: Web3;
+
+  constructor(host: string) {
+    this.web3 = new Web3(new Web3.providers.HttpProvider(host));
   }
 
   public async getTokenInfo(address: string) {
@@ -41,3 +46,14 @@ export class Web3Provider {
     return (await this.web3.eth.getCode(address)) !== '0x';
   }
 }
+
+export const web3Providers = new ChainMap<number, Web3Provider>();
+
+// initialize web3 providers
+const configs = new ConfigService(configBuilder());
+
+providers.forEach((provider) => {
+  const token = configs.get(provider.token);
+  const host = provider.url + token;
+  web3Providers.set(provider.chainId, new Web3Provider(host));
+});

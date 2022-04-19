@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
-import { Web3Provider } from '../web3.provider';
+import { web3Providers } from '../web3.provider';
 
 @Injectable()
 export class AddressValidationPipe implements PipeTransform {
-  constructor(private readonly configService: ConfigService) {}
   async transform(value: { chainId: string; address: string }) {
-    const { chainId, address } = value;
-    let isContract: boolean;
+    const { chainId, address } = {
+      chainId: Number(value.chainId),
+      address: value.address,
+    };
 
-    const web3 = new Web3Provider(this.configService, Number(chainId));
+    let isContract: boolean;
     try {
-      isContract = await web3.isContract(address);
+      isContract = await web3Providers.get(chainId).isContract(address);
     } catch (error) {
       throw new BadRequestException('Address is not a valid Ethereum address');
     }
@@ -23,6 +23,6 @@ export class AddressValidationPipe implements PipeTransform {
       );
     }
 
-    return { chainId: Number(chainId), address };
+    return { chainId, address };
   }
 }

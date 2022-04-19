@@ -5,7 +5,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 
 import { Token } from '../../../entities/Token.entity';
-import { Web3Provider } from './web3.provider';
+import { Web3Provider, web3Providers } from './web3.provider';
 
 @Injectable()
 export class TokensService {
@@ -37,10 +37,7 @@ export class TokensService {
   }
 
   public async save(chainId: number, address: string): Promise<Token> {
-    const info = await new Web3Provider(
-      this.configService,
-      chainId,
-    ).getTokenInfo(address);
+    const info = await web3Providers.get(chainId).getTokenInfo(address);
     return await this.tokenRepository.save({ chainId, address, ...info });
   }
 }
