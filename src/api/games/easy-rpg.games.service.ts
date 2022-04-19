@@ -43,7 +43,7 @@ export class EasyRpgGamesService {
   private async execGenCache(
     path: string,
     reject = true,
-  ): Promise<execa.ExecaChildProcess<string>> {
+  ): Promise<execa.ExecaChildProcess> {
     const env = Object.assign({}, process.env);
     const options: execa.Options = { cwd: path, env, reject };
     const exec = execa(this.genCacheBin, options);

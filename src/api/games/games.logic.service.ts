@@ -4,8 +4,10 @@ import {
   Injectable,
   LoggerService,
 } from '@nestjs/common';
+import fs from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Paginated } from 'nestjs-paginate';
+import path from 'path';
 
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
@@ -56,6 +58,18 @@ export class GamesLogicService {
     };
   }
 
+  public saveUploadedFile(file: Express.Multer.File, gameName: string): void {
+    const downloadPath = path.join('thirdparty', 'downloads', gameName);
+    fs.mkdirSync(downloadPath, { recursive: true });
+    fs.createWriteStream(path.join(downloadPath, file.originalname)).write(
+      file.buffer,
+    );
+    this.logger.log(
+      `File ${file.originalname} was saved to ${downloadPath}`,
+      this.constructor.name,
+    );
+  }
+
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
     return await this.gamesBaseService.paginateGameProjects(query, options);
   }
@@ -102,11 +116,14 @@ export class GamesLogicService {
       game,
     );
 
-    return await this.gamesBaseService.save({
+    const gameProject = await this.gamesBaseService.save({
       ...gameEntityPartial,
       username: user.username,
       file: file.originalname,
     });
+    this.saveUploadedFile(file, game.gameName);
+
+    return gameProject;
   }
 
   public async updateGameProject(
