@@ -16,11 +16,20 @@ class ChainMap<K, V> extends Map<K, V> {
   }
 }
 
-const providers = [
+const providers: {
+  chainId: number;
+  url: string;
+  token: string;
+}[] = [
   {
     chainId: 4,
     url: 'https://rinkeby.infura.io/v3/',
     token: 'blockchains.infura.apiToken',
+  },
+  {
+    chainId: 56,
+    url: 'https://rpc.ankr.com/bsc/',
+    token: '',
   },
 ];
 
@@ -53,7 +62,7 @@ export const web3Providers = new ChainMap<number, Web3Provider>();
 const configs = new ConfigService(configBuilder());
 
 providers.forEach((provider) => {
-  const token = configs.get(provider.token);
+  const token = provider.token ? configs.get(provider.token) : provider.token;
   const host = provider.url + token;
   web3Providers.set(provider.chainId, new Web3Provider(host));
 });
