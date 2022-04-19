@@ -39,7 +39,8 @@ async function bootstrap() {
     });
   }
 
-  let corsOrigins: any = configService.get<string[]>('cors.origins');
+  let corsOrigins: boolean | string[] =
+    configService.get<string[]>('cors.origins');
   if (corsOrigins.includes('*')) {
     corsOrigins = true;
   }
