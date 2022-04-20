@@ -4,7 +4,7 @@ import { CookieOptions, Response } from 'express';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import ms from 'ms';
 
-import { JWTTokens } from './type';
+import { LoginTokens } from '../../types';
 
 @Injectable()
 export class JWTCookieHelper {
@@ -26,7 +26,7 @@ export class JWTCookieHelper {
     'jwt.refreshTokenName',
   );
 
-  async JWTCookieWriter(res: Response, tokens: JWTTokens) {
+  async JWTCookieWriter(res: Response, tokens: LoginTokens) {
     res.cookie(this.accessTokenName, tokens.accessToken, {
       expires: new Date(
         new Date().getTime() +

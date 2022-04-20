@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 
 import { AccountsModule } from '../api/accounts/accounts.module';
+import { AccountsGithubModule } from '../api/accounts/accounts-github/accounts-github.module';
 import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accounts-metamask.module';
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
 import { TokensModule } from '../api/blockchains/tokens/tokens.module';
@@ -33,6 +34,7 @@ import { WinstonConfigService } from '../configs/winston';
       useClass: TypeORMConfigService,
     }),
     AccountsModule,
+    AccountsGithubModule,
     AccountsMetamaskModule,
     AccountsTokenModule,
     UsersModule,

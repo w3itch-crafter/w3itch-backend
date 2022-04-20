@@ -5,9 +5,13 @@ import {
 } from '@nestjs/common';
 import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
+import type { Response } from 'express';
 
 import { AppCacheService } from '../../../cache/service';
+import { LoginResult } from '../../../types';
 import { UsersService } from '../../users/users.service';
+import { AccountsService } from '../accounts.service';
+import { JWTCookieHelper } from '../jwt-cookie-helper';
 import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
 import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
@@ -16,6 +20,8 @@ export class AccountsMetamaskService {
   constructor(
     private readonly usersService: UsersService,
     private readonly cacheService: AppCacheService,
+    private readonly accountsService: AccountsService,
+    private readonly jwtCookieHelper: JWTCookieHelper,
   ) {}
 
   async generateMetamaskNonce(address: string): Promise<string> {
@@ -63,5 +69,31 @@ export class AccountsMetamaskService {
     if (validation.isExists) {
       throw new ConflictException('Username already exists');
     }
+  }
+
+  async login(
+    res: Response,
+    loginDto: AccountsLoginMetaMaskDto,
+  ): Promise<LoginResult> {
+    await this.loginVerify(loginDto);
+    const { user, account, tokens } = await this.accountsService.login(
+      loginDto,
+      'metamask',
+    );
+    await this.jwtCookieHelper.JWTCookieWriter(res, tokens);
+    return { user, account };
+  }
+
+  async signup(
+    res: Response,
+    signupDto: AccountsSignupMetaMaskDto,
+  ): Promise<LoginResult> {
+    await this.signupVerify(signupDto);
+    const { user, account, tokens } = await this.accountsService.signup(
+      signupDto,
+      'metamask',
+    );
+    await this.jwtCookieHelper.JWTCookieWriter(res, tokens);
+    return { user, account };
   }
 }

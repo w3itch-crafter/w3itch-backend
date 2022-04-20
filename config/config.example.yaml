@@ -47,6 +47,10 @@ cache:
   vcode:
     ttl: 300 # seconds
 
+github:
+  client_id:
+  client_secret:
+
 storage:
   ipfs:
     fleek:
