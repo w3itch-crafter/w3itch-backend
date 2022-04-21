@@ -3,7 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
 import { VerificationCodeDto } from '../../../cache/dto/verification-code.dto';
-import { LoginResult } from '../../../types';
+import { LoginResult } from '../types';
 import { AccountsMetamaskService } from './accounts-metamask.service';
 import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
 import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';

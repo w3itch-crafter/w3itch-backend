@@ -5,8 +5,8 @@ import { FindConditions, Repository } from 'typeorm';
 import { AuthenticationService } from '../../auth/service';
 import { Account } from '../../entities/Account.entity';
 import { User } from '../../entities/User.entity';
-import { LoginPlatforms, LoginResult, LoginTokens } from '../../types';
 import { UsersService } from '../users/users.service';
+import { JwtTokens, LoginPlatforms, LoginResult } from './types';
 
 @Injectable()
 export class AccountsService {
@@ -66,7 +66,7 @@ export class AccountsService {
       account: string;
     },
     platform: LoginPlatforms,
-  ): Promise<LoginResult & { tokens: LoginTokens }> {
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
     const userAccountData = {
       accountId: accountLoginDto.account,
       platform,
@@ -80,7 +80,7 @@ export class AccountsService {
       );
     }
 
-    const tokens: LoginTokens = await this.authService.signLoginJWT(
+    const tokens: JwtTokens = await this.authService.signLoginJWT(
       user,
       userAccount,
     );
@@ -97,7 +97,9 @@ export class AccountsService {
       username: string;
     },
     platform: LoginPlatforms,
-  ): Promise<LoginResult & { tokens: LoginTokens }> {
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
+    await this.usersService.validateUsername(accountSignupDto.username);
+
     const userAccountData = {
       accountId: accountSignupDto.account,
       platform,
@@ -115,7 +117,7 @@ export class AccountsService {
       userAccount = userAndAccount.userAccount;
     }
 
-    const tokens: LoginTokens = await this.authService.signLoginJWT(
+    const tokens: JwtTokens = await this.authService.signLoginJWT(
       user,
       userAccount,
     );

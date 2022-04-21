@@ -5,10 +5,10 @@ import { Request, Response } from 'express';
 import * as randomstring from 'randomstring';
 
 import { AppCacheService } from '../../../cache/service';
-import { LoginTokens } from '../../../types';
 import { UsersService } from '../../users/users.service';
 import { AccountsService } from '../accounts.service';
-import { JWTCookieHelper } from '../jwt-cookie-helper';
+import { JwtCookieHelper } from '../jwt-cookie-helper.service';
+import { JwtTokens } from '../types';
 import { AccountsSignupGithubDto } from './dto/accounts-signup-github.dto';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class AccountsGithubService {
     private readonly usersService: UsersService,
     private readonly accountsService: AccountsService,
     private readonly cacheService: AppCacheService,
-    private readonly jwtCookieHelper: JWTCookieHelper,
+    private readonly jwtCookieHelper: JwtCookieHelper,
     private readonly configService: ConfigService,
   ) {}
 
@@ -65,8 +65,8 @@ export class AccountsGithubService {
     this.cacheService.del(authorizeCallbackDto.state);
 
     const fetchTokenForm = {
-      client_id: this.configService.get<string>('github.client_id'),
-      client_secret: this.configService.get<string>('github.client_secret'),
+      client_id: this.configService.get<string>('github.clientId'),
+      client_secret: this.configService.get<string>('github.clientSecret'),
       code: authorizeCallbackDto.code,
     };
 
@@ -90,15 +90,15 @@ export class AccountsGithubService {
       },
     );
 
-    let tokens: LoginTokens;
+    let loginTokens: JwtTokens;
     const githubUsername = res.data.login;
 
     if (state === '_login') {
-      tokens = (
+      loginTokens = (
         await this.accountsService.login({ account: githubUsername }, 'github')
       ).tokens;
     } else {
-      tokens = (
+      loginTokens = (
         await this.accountsService.signup(
           { account: githubUsername, username: state },
           'github',
@@ -106,7 +106,7 @@ export class AccountsGithubService {
       ).tokens;
     }
 
-    await this.jwtCookieHelper.JWTCookieWriter(response, tokens);
+    await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
     response.redirect(authorizeCallbackDto.redirect_url);
   }
 }

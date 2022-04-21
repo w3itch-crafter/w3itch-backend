@@ -48,8 +48,8 @@ cache:
     ttl: 300 # seconds
 
 github:
-  client_id:
-  client_secret:
+  clientId:
+  clientSecret:
 
 storage:
   ipfs:

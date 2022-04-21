@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Response } from 'express';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import ms from 'ms';
 
-import { LoginTokens } from '../../types';
+import { JwtTokens } from './types';
 
 @Injectable()
-export class JWTCookieHelper {
+export class JwtCookieHelper {
   constructor(private configService: ConfigService) {}
 
   private getCookiesOptions(name: string): Partial<CookieOptions> {
@@ -26,7 +25,7 @@ export class JWTCookieHelper {
     'jwt.refreshTokenName',
   );
 
-  async JWTCookieWriter(res: Response, tokens: LoginTokens) {
+  async writeJwtCookies(res: Response, tokens: JwtTokens) {
     res.cookie(this.accessTokenName, tokens.accessToken, {
       expires: new Date(
         new Date().getTime() +
@@ -44,7 +43,7 @@ export class JWTCookieHelper {
     });
   }
 
-  async JWTCookieDeleter(res: Response) {
+  async deleteJwtCookies(res: Response) {
     res.clearCookie(this.accessTokenName, this.getCookiesOptions('access'));
     res.clearCookie(this.refreshTokenName, this.getCookiesOptions('refresh'));
   }

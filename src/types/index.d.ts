@@ -13,15 +13,3 @@ export interface UserJWTPayload extends JwtPayload, User {
 }
 
 export type UpdateGameEntity = Omit<Game, keyof BaseEntity | 'rating'>;
-
-export type LoginPlatforms = 'metamask' | 'github';
-
-export type LoginTokens = {
-  accessToken: string;
-  refreshToken: string;
-};
-
-export type LoginResult = {
-  user: User;
-  account: Account;
-};
