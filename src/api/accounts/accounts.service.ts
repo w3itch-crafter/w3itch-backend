@@ -6,11 +6,7 @@ import { AuthenticationService } from '../../auth/service';
 import { Account } from '../../entities/Account.entity';
 import { User } from '../../entities/User.entity';
 import { UsersService } from '../users/users.service';
-import {
-  AccountsLoginVerifier,
-  AccountsSignupVerifier,
-} from './accounts.verifier';
-import { JWTTokens, Platforms } from './type';
+import { JwtTokens, LoginPlatforms, LoginResult } from './types';
 
 @Injectable()
 export class AccountsService {
@@ -66,12 +62,11 @@ export class AccountsService {
   }
 
   async login(
-    accountLoginDto: any,
-    platform: Platforms,
-    verify: AccountsLoginVerifier,
-  ) {
-    await verify(accountLoginDto);
-
+    accountLoginDto: {
+      account: string;
+    },
+    platform: LoginPlatforms,
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
     const userAccountData = {
       accountId: accountLoginDto.account,
       platform,
@@ -85,7 +80,7 @@ export class AccountsService {
       );
     }
 
-    const tokens: JWTTokens = await this.authService.signLoginJWT(
+    const tokens: JwtTokens = await this.authService.signLoginJWT(
       user,
       userAccount,
     );
@@ -97,11 +92,13 @@ export class AccountsService {
   }
 
   async signup(
-    accountSignupDto: any,
-    platform: Platforms,
-    verify: AccountsSignupVerifier,
-  ) {
-    await verify(accountSignupDto);
+    accountSignupDto: {
+      account: string;
+      username: string;
+    },
+    platform: LoginPlatforms,
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
+    await this.usersService.validateUsername(accountSignupDto.username);
 
     const userAccountData = {
       accountId: accountSignupDto.account,
@@ -120,7 +117,7 @@ export class AccountsService {
       userAccount = userAndAccount.userAccount;
     }
 
-    const tokens: JWTTokens = await this.authService.signLoginJWT(
+    const tokens: JwtTokens = await this.authService.signLoginJWT(
       user,
       userAccount,
     );

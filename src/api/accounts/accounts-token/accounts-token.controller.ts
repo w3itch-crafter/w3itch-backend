@@ -13,7 +13,7 @@ import { Request, Response } from 'express';
 
 import { User } from '../../../entities/User.entity';
 import { UserJWTPayload } from '../../../types';
-import { JWTCookieHelper } from '../jwt-cookie-helper';
+import { JwtCookieHelper } from '../jwt-cookie-helper.service';
 import { AccountsTokenService } from './accounts-token.service';
 
 @ApiCookieAuth()
@@ -24,7 +24,7 @@ export class AccountsTokenController {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly loginService: AccountsTokenService,
-    private readonly jwtCookieHelper: JWTCookieHelper,
+    private readonly jwtCookieHelper: JwtCookieHelper,
   ) {}
 
   @Patch()
@@ -54,7 +54,7 @@ export class AccountsTokenController {
       payload.sub,
       payload.account.id,
     );
-    await this.jwtCookieHelper.JWTCookieWriter(res, tokens);
+    await this.jwtCookieHelper.writeJwtCookies(res, tokens);
     return user;
   }
 
@@ -64,6 +64,6 @@ export class AccountsTokenController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.jwtCookieHelper.JWTCookieDeleter(res);
+    await this.jwtCookieHelper.deleteJwtCookies(res);
   }
 }
