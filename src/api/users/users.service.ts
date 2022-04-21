@@ -8,15 +8,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  usernameBlacklist: string[];
+  usernameReserved: string[];
 
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {
-    this.usernameBlacklist = this.configService.get<string[]>(
-      'username.blacklist',
+    this.usernameReserved = this.configService.get<string[]>(
+      'user.username.reservedList',
       [],
     );
   }
@@ -41,9 +41,9 @@ export class UsersService {
   }
 
   async validateUsername(username: string): Promise<void> {
-    if (this.usernameBlacklist.includes(username)) {
+    if (this.usernameReserved.includes(username)) {
       throw new BadRequestException(
-        `This username ${username} is not allowed, please choose another one`,
+        `This username ${username} is reserved, please choose another one.`,
       );
     }
     if (await this.findOne({ username })) {

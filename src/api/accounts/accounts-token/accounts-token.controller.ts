@@ -34,7 +34,7 @@ export class AccountsTokenController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<User> {
     const refreshTokenName = this.configService.get<string>(
-      'jwt.refreshTokenName',
+      'auth.jwt.refreshTokenName',
     );
     const token = req.cookies[refreshTokenName];
     if (!token) {

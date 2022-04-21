@@ -40,7 +40,7 @@ async function bootstrap() {
   }
 
   let corsOrigins: boolean | string[] =
-    configService.get<string[]>('cors.origins');
+    configService.get<string[]>('auth.cors.origins');
   if (corsOrigins.includes('*')) {
     corsOrigins = true;
   }

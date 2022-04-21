@@ -17,13 +17,13 @@ import { JwtStrategy } from './strategy';
         return {
           privateKey: JWT_KEY.privateKey,
           publicKey: JWT_KEY.publicKey,
-          audience: configService.get<string[]>('jwt.audience'),
-          issuer: configService.get<string>('jwt.issuer'),
+          audience: configService.get<string[]>('auth.jwt.audience'),
+          issuer: configService.get<string>('auth.jwt.issuer'),
           signOptions: {
-            algorithm: configService.get<Algorithm>('jwt.algorithm'),
+            algorithm: configService.get<Algorithm>('auth.jwt.algorithm'),
           },
           verifyOptions: {
-            algorithms: [configService.get<Algorithm>('jwt.algorithm')],
+            algorithms: [configService.get<Algorithm>('auth.jwt.algorithm')],
           },
         };
       },

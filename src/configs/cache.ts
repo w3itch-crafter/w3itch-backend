@@ -14,10 +14,10 @@ export class CacheConfigService implements CacheOptionsFactory {
     return {
       ttl: 10, // 10sec
       store: RedisStore,
-      host: this.configService.get<string>('redis.host'),
-      port: +this.configService.get<number>('redis.port'),
-      username: this.configService.get<string>('redis.user'),
-      password: this.configService.get<string>('redis.pass'),
+      host: this.configService.get<string>('cache.redis.host'),
+      port: +this.configService.get<number>('cache.redis.port'),
+      username: this.configService.get<string>('cache.redis.user'),
+      password: this.configService.get<string>('cache.redis.pass'),
       /**
        * Maybe need for future
        * From package cache-manager-ioredis:
@@ -29,8 +29,8 @@ export class CacheConfigService implements CacheOptionsFactory {
       //    */
       //   nodes: [
       //     {
-      //       host: this.configService.get<string>('redis.host'),
-      //       port: +this.configService.get<number>('redis.port'),
+      //       host: this.configService.get<string>('cache.redis.host'),
+      //       port: +this.configService.get<number>('cache.redis.port'),
       //     },
       //   ],
       //   /**
@@ -38,8 +38,8 @@ export class CacheConfigService implements CacheOptionsFactory {
       //    */
       //   options: {
       //     redisOptions: {
-      //       username: this.configService.get<string>('redis.user'),
-      //       password: this.configService.get<string>('redis.pass'),
+      //       username: this.configService.get<string>('cache.redis.user'),
+      //       password: this.configService.get<string>('cache.redis.pass'),
       //     },
       //   },
       // },

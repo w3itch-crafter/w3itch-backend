@@ -1,8 +1,14 @@
 app:
   name: w3itch-backend
-  port: 3000
+  port: 3002
   bodyParser:
-    limit: 500mb
+    limit: 50mb
+  swagger:
+    enable: true
+  logger:
+    loki:
+      enable: true
+      url: 'http://127.0.0.1:3100'
 
 db:
   host:
@@ -11,61 +17,55 @@ db:
   password:
   database:
   charset: utf8mb4_general_ci
-  timzone: Z
+  timezone: 'Z' # UTC
 
-redis:
-  host: localhost
-  port: 6379
-  pass:
+auth:
+  jwt:
+    accessTokenName: 'w3itch_access_token'
+    refreshTokenName: 'w3itch_refresh_token'
+    accessTokenExpires: '20m'
+    refreshTokenExpires: '30d'
+    issuer:
+    algorithm: 'RS512'
+    audience: []
 
-jwt:
-  accessTokenName: 'w3itch_access_token'
-  refreshTokenName: 'w3itch_refresh_token'
-  accessTokenExpires: '20m'
-  refreshTokenExpires: '30d'
-  issuer:
-  algorithm: 'RS512'
-  audience: []
+  cookies:
+    accessTokenPath: '/'
+    refreshTokenPath: '/accounts/tokens'
 
-cookies:
-  accessTokenPath: '/'
-  refreshTokenPath: '/accounts/tokens'
-
-cors:
-  origins:
-    - '*'
-
-swagger:
-  enable: true
-
-logger:
-  loki:
-    enable: false
-    url: 'http://127.0.0.1:3100'
+  cors:
+    origins:
+      - '*'
 
 cache:
+  redis:
+    host: '127.0.0.1'
+    port: 6379
+    pass:
   vcode:
-    ttl: 300 # seconds
-
-github:
-  clientId:
-  clientSecret:
+    ttl: 3000 # seconds
 
 storage:
   ipfs:
     fleek:
       apiKey:
       apiSecret:
-      folder: w3itch/attachment
+      folder: w3itch-test/attachment
     gateways:
-      - https://ipfs.fleek.co
+      - https://ipfs.fleek.cob
 
-blockchains:
+blockchain:
   infura:
     apiToken:
 
-username:
-  blacklist:
-    - blog
-    - api
-  # - etc.
+account:
+  github:
+    clientId:
+    clientSecret:
+
+user:
+  username:
+    reservedList:
+      - blog
+      - api
+    # - etc.

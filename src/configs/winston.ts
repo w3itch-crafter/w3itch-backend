@@ -40,7 +40,7 @@ export class WinstonConfigService implements WinstonModuleOptionsFactory {
     const level = isDevelopment() ? 'debug' : 'info';
     const logDir = `/var/log/${appName.toLowerCase()}`;
     const enableLoki = this.configService.get<boolean>(
-      'logger.loki.enable',
+      'app.logger.loki.enable',
       false,
     );
 
@@ -75,8 +75,8 @@ export class WinstonConfigService implements WinstonModuleOptionsFactory {
     ];
 
     if (enableLoki) {
-      const lokiUrl = this.configService.get<string>('logger.loki.url');
-      assert(lokiUrl, new ConfigKeyNotFoundException('logger.loki.url'));
+      const lokiUrl = this.configService.get<string>('app.logger.loki.url');
+      assert(lokiUrl, new ConfigKeyNotFoundException('app.logger.loki.url'));
       const lokiTransport: TransportStream = new LokiTransport({
         level: 'silly',
         json: true,
