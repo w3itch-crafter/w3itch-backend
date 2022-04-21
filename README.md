@@ -40,10 +40,11 @@ db:
   charset: utf8mb4_general_ci
   timzone: Z
 
-redis:
-  host: localhost
-  port: 6379
-  pass:
+cache:
+  redis:
+    host: localhost
+    port: 6379
+    pass:
 
 storage:
   ipfs:
