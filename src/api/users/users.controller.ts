@@ -48,9 +48,7 @@ export class UsersController {
 
   @Post('username/validate')
   @HttpCode(HttpStatus.OK)
-  async validateUsername(
-    @Body() body: ValidateUsernameDto,
-  ): Promise<{ isExists: boolean }> {
+  async validateUsername(@Body() body: ValidateUsernameDto): Promise<void> {
     return this.usersService.validateUsername(body.username);
   }
 }

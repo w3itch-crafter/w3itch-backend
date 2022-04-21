@@ -72,8 +72,9 @@ export class Game extends BaseEntity {
   @Column({ unique: true })
   @Length(1, 50)
   @IsString()
-  // doesn't allow starts or ends with _ or -
-  @Matches(/^[^-_].*[^-_]$/)
+  @Matches(/^[^-_].*[^-_]$/, {
+    message: 'Game name must not start or end with - or _',
+  })
   gameName: string;
 
   @ApiResponseProperty()

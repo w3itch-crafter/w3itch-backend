@@ -63,3 +63,9 @@ storage:
 blockchains:
   infura:
     apiToken:
+
+username:
+  blacklist:
+    - blog
+    - api
+  # - etc.
