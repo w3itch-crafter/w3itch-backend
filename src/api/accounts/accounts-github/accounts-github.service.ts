@@ -43,7 +43,7 @@ export class AccountsGithubService {
     const result = new URL('https://github.com/login/oauth/authorize');
     result.searchParams.append(
       'client_id',
-      this.configService.get<string>('github.client_id'),
+      this.configService.get<string>('github.clientId'),
     );
     result.searchParams.append('state', stateKeyRand);
     result.searchParams.append('redirect_uri', origin.toString());
