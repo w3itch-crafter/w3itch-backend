@@ -36,7 +36,9 @@ export class AccountsGithubService {
       ttl,
     );
 
-    const origin = new URL(request.protocol + '://' + request.get('host'));
+    const protocol = request.headers['x-forwarded-proto'] || 'http';
+    const origin = new URL(protocol + '://' + request.get('host'));
+
     origin.pathname = '/accounts/github/authorize-callback';
     origin.searchParams.append('redirect_url', request.headers.origin);
 
