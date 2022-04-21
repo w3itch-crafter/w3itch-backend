@@ -29,9 +29,11 @@ export class AccountsGithubService {
     // But here we use stateKey to store the user's username if they sign up
     const stateKeyRand = randomstring.generate();
     const stateValue = signupDto?.username || '_login';
+    const ttl = this.configService.get<number>('cache.vcode.ttl');
     await this.cacheService.set(
       `github_authorize_request_state_${stateKeyRand}`,
       stateValue,
+      ttl,
     );
 
     const origin = new URL(request.protocol + '://' + request.get('host'));
