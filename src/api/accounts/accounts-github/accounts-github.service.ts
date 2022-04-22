@@ -146,33 +146,40 @@ export class AccountsGithubService {
     }
 
     let loginTokens: JwtTokens;
-    try {
-      if (state === '_login') {
+    if (state === '_login') {
+      try {
         loginTokens = (
           await this.accountsService.login(
             { account: githubUsername },
             'github',
           )
         ).tokens;
-      } else {
-        redirectUrl.searchParams.append('method', 'signup');
-        loginTokens = (
-          await this.accountsService.signup(
-            { account: githubUsername, username: state },
-            'github',
-          )
-        ).tokens;
+      } catch (error) {
+        this.logger.verbose(`Failed to login with github: ${error.message}`);
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'false',
+          code: '401',
+        });
       }
-      await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
-    } catch (error) {
-      this.logger.verbose(
-        `Failed to login/signup with github: ${error.message}`,
-      );
-      return this.redirectWithParams(response, redirectUrl, {
-        success: 'false',
-        code: '400',
-      });
-    }
+    } else
+      try {
+        {
+          redirectUrl.searchParams.append('method', 'signup');
+          loginTokens = (
+            await this.accountsService.signup(
+              { account: githubUsername, username: state },
+              'github',
+            )
+          ).tokens;
+        }
+      } catch (error) {
+        this.logger.verbose(`Failed to signup with github: ${error.message}`);
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'false',
+          code: '400',
+        });
+      }
+    await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
 
     return this.redirectWithParams(response, redirectUrl, {
       success: 'true',
