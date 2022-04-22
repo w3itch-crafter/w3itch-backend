@@ -11,4 +11,12 @@ export class AccountsSignupGithubDto {
   })
   @Length(3, 15)
   username: string;
+
+  @ApiProperty({
+    default: '/oauth',
+  })
+  @Matches(/^\//, {
+    message: 'redirectUri should start with /',
+  })
+  redirectUri: string;
 }
