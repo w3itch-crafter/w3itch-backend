@@ -73,7 +73,8 @@ export class Game extends BaseEntity {
   @Length(1, 50)
   @IsString()
   @Matches(/^[^-_].*[^-_]$/, {
-    message: 'Game name must not start or end with - or _',
+    message:
+      'Game name must not start or end with - or _, and length must be between 1 and 50',
   })
   gameName: string;
 

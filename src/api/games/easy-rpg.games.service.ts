@@ -49,7 +49,7 @@ export class EasyRpgGamesService {
     // set the recursive argument to 6
     // https://github.com/EasyRPG/Player/issues/2771
     const exec = execa(this.genCacheBin, ['-r', '6'], options);
-    this.logger.log(`gencache -r 6: ${path}`, this.constructor.name);
+    this.logger.log(`gencache -r 6 ${path}`, this.constructor.name);
     return exec;
   }
 

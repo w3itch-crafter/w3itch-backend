@@ -68,9 +68,7 @@ config/arweave.json
 !.yarn/versions
 
 # RPGMaker 2003
-/thirdparty/games
-/thirdparty/gencache/bin
-/thirdparty/temp
+thirdparty/*
 
 # JWT keys
 /config/JWT_PRIVATE_KEY.pem
