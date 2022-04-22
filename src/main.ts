@@ -24,7 +24,7 @@ async function bootstrap() {
   );
   const configService = app.get<ConfigService>(ConfigService);
   const appPort = configService.get<number>('app.port', 3000);
-  const enableSwagger = configService.get<boolean>('swagger.enable', false);
+  const enableSwagger = configService.get<boolean>('app.swagger.enable', false);
   const limit = configService.get<string>('app.bodyParser.limit', '50mb');
 
   if (enableSwagger) {
