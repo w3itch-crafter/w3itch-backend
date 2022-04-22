@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
 import { JWTAuthGuard } from '../../auth/guard';
@@ -16,7 +6,6 @@ import { CurrentUser } from '../../decorators/user.decorator';
 import { User } from '../../entities/User.entity';
 import { UserJWTPayload } from '../../types';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ValidateUsernameDto } from './dto/validate-username.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('Users')
@@ -44,13 +33,5 @@ export class UsersController {
     @CurrentUser() user: UserJWTPayload,
   ): Promise<User> {
     return this.usersService.update(user.id, updateUserDto);
-  }
-
-  @Post('username/validate')
-  @HttpCode(HttpStatus.OK)
-  async validateUsername(
-    @Body() body: ValidateUsernameDto,
-  ): Promise<{ isExists: boolean }> {
-    return this.usersService.validateUsername(body.username);
   }
 }

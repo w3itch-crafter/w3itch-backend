@@ -45,7 +45,7 @@ export class AccountsGithubService {
     const result = new URL('https://github.com/login/oauth/authorize');
     result.searchParams.append(
       'client_id',
-      this.configService.get<string>('github.clientId'),
+      this.configService.get<string>('account.github.clientId'),
     );
     result.searchParams.append('state', stateKeyRand);
     result.searchParams.append('redirect_uri', origin.toString());
@@ -69,8 +69,10 @@ export class AccountsGithubService {
     this.cacheService.del(authorizeCallbackDto.state);
 
     const fetchTokenForm = {
-      client_id: this.configService.get<string>('github.clientId'),
-      client_secret: this.configService.get<string>('github.clientSecret'),
+      client_id: this.configService.get<string>('account.github.clientId'),
+      client_secret: this.configService.get<string>(
+        'account.github.clientSecret',
+      ),
       code: authorizeCallbackDto.code,
     };
 

@@ -24,7 +24,7 @@ const providers: {
   {
     chainId: 4,
     url: 'https://rinkeby.infura.io/v3/',
-    token: 'blockchains.infura.apiToken',
+    token: 'blockchain.infura.apiToken',
   },
   {
     chainId: 56,

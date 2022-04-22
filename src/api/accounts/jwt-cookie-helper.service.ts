@@ -14,22 +14,22 @@ export class JwtCookieHelper {
       sameSite: 'none',
       secure: true,
       httpOnly: true,
-      path: this.configService.get<string>(`cookies.${name}TokenPath`),
+      path: this.configService.get<string>(`auth.cookies.${name}TokenPath`),
     };
   }
 
   private accessTokenName = this.configService.get<string>(
-    'jwt.accessTokenName',
+    'auth.jwt.accessTokenName',
   );
   private refreshTokenName = this.configService.get<string>(
-    'jwt.refreshTokenName',
+    'auth.jwt.refreshTokenName',
   );
 
   async writeJwtCookies(res: Response, tokens: JwtTokens) {
     res.cookie(this.accessTokenName, tokens.accessToken, {
       expires: new Date(
         new Date().getTime() +
-          ms(this.configService.get<string>('jwt.accessTokenExpires')),
+          ms(this.configService.get<string>('auth.jwt.accessTokenExpires')),
       ),
       ...this.getCookiesOptions('access'),
     });
@@ -37,7 +37,7 @@ export class JwtCookieHelper {
     res.cookie(this.refreshTokenName, tokens.refreshToken, {
       expires: new Date(
         new Date().getTime() +
-          ms(this.configService.get<string>('jwt.refreshTokenExpires')),
+          ms(this.configService.get<string>('auth.jwt.refreshTokenExpires')),
       ),
       ...this.getCookiesOptions('refresh'),
     });

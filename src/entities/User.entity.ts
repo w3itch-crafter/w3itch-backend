@@ -6,7 +6,10 @@ import { BaseEntity } from './base.entity';
 @Entity()
 export class User extends BaseEntity {
   @Column({ unique: true })
-  @Matches(/^[a-z0-9-]+$/)
+  @Matches(/^[a-z\d-]+$/, {
+    message:
+      'username should contain only lowercase letters, numbers and dashes (-)',
+  })
   @Length(3, 15)
   username: string;
 

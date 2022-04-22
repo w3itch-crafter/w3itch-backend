@@ -98,17 +98,15 @@ export class AccountsService {
     },
     platform: LoginPlatforms,
   ): Promise<LoginResult & { tokens: JwtTokens }> {
-    await this.usersService.validateUsername(accountSignupDto.username);
-
     const userAccountData = {
       accountId: accountSignupDto.account,
       platform,
     };
 
-    // if user has registered before, return the user
+    // if the user has registered before, skip the signup
     let { user, userAccount } = await this.getUserAndAccount(userAccountData);
-
     if (!user || !userAccount) {
+      await this.usersService.validateUsername(accountSignupDto.username);
       const userAndAccount = await this.initUser(
         accountSignupDto.username,
         userAccountData,

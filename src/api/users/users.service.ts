@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 
@@ -7,13 +8,21 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
+  usernameReserved: string[];
+
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.usernameReserved = this.configService.get<string[]>(
+      'user.username.reservedList',
+      [],
+    );
+  }
 
-  async findOne(uid: number, options = {}) {
-    return await this.usersRepository.findOne(uid, options);
+  async findOne(condition, options = {}) {
+    return await this.usersRepository.findOne(condition, options);
   }
 
   async search(
@@ -31,10 +40,17 @@ export class UsersService {
     return { result, total };
   }
 
-  async validateUsername(username: string): Promise<{ isExists: boolean }> {
-    return {
-      isExists: Boolean(await this.usersRepository.findOne({ username })),
-    };
+  async validateUsername(username: string): Promise<void> {
+    if (this.usernameReserved.includes(username)) {
+      throw new BadRequestException(
+        `This username ${username} is reserved, please choose another one.`,
+      );
+    }
+    if (await this.findOne({ username })) {
+      throw new BadRequestException(
+        `This username ${username} is already taken, please choose another one`,
+      );
+    }
   }
 
   async getUserInfo(conditions: Partial<User>): Promise<User> {
