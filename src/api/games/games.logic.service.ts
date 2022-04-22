@@ -33,6 +33,18 @@ export class GamesLogicService {
     private readonly pricesService: PricesService,
   ) {}
 
+  public checkFileMimeTypeAcceptable(file: Express.Multer.File): void {
+    if (
+      ![
+        'application/zip',
+        'application/zip-compressed',
+        'application/x-zip-compressed',
+      ].includes(file?.mimetype.toLowerCase())
+    ) {
+      throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
+    }
+  }
+
   private async convertTagsAndPricesFromDtoToEntities(
     game: CreateGameProjectDto | UpdateGameProjectDto,
   ): Promise<Partial<Game>> {
@@ -90,15 +102,7 @@ export class GamesLogicService {
       `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
       this.constructor.name,
     );
-    if (
-      ![
-        'application/zip',
-        'application/zip-compressed',
-        'application/x-zip-compressed',
-      ].includes(file?.mimetype.toLowerCase())
-    ) {
-      throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
-    }
+    this.checkFileMimeTypeAcceptable(file);
 
     this.easyRpgGamesService.uploadGame(
       game.gameName,
@@ -142,9 +146,8 @@ export class GamesLogicService {
         `Update File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
-      if (file?.mimetype !== 'application/zip') {
-        throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
-      }
+      this.checkFileMimeTypeAcceptable(file);
+
       this.easyRpgGamesService.uploadGame(
         target.gameName,
         game.kind,
