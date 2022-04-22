@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
 import findRemoveSync from 'find-remove';
-import { cpSync, existsSync, rmSync } from 'fs';
+import { cpSync, existsSync, rmSync, statSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
@@ -60,7 +60,22 @@ export class EasyRpgGamesService {
       'thirdparty',
       decodeURIComponent(path),
     );
-    await serveFileWithETag(req, res, filePath);
+    try {
+      statSync(filePath);
+      await serveFileWithETag(req, res, filePath);
+    } catch (error) {
+      // if the file doesn't exist, fallback to the rtp directory
+      if (error.code === 'ENOENT') {
+        const filePath = join(
+          process.cwd(),
+          'thirdparty',
+          // remove first two directory levels
+          // eg. /games/yumenikki/Sound -> /rtp/Sound
+          decodeURIComponent(path.replace(/\/?.+?\/.+?\//, '/rtp/')),
+        );
+        await serveFileWithETag(req, res, filePath);
+      }
+    }
   }
 
   public async generateGameCache(path: string): Promise<void> {
