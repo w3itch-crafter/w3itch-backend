@@ -68,7 +68,9 @@ config/arweave.json
 !.yarn/versions
 
 # RPGMaker 2003
-thirdparty/*
+/thirdparty/**/*
+!/thirdparty/**/
+!/thirdparty/**/.gitkeep
 !thirdparty/player
 
 
