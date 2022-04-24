@@ -50,15 +50,14 @@ export class AccountsGithubService {
       stateValue,
       ttl,
     );
+    const redirectUrl = new URL(request.headers.origin);
+    redirectUrl.pathname = dto.redirectUri;
 
-    const redirect_url = new URL(request.headers.origin);
-    redirect_url.pathname = dto.redirectUri;
-
-    const protocol = request.headers['x-forwarded-proto'] || 'http';
-    const origin = new URL(protocol + '://' + request.get('host'));
-
-    origin.pathname = '/accounts/github/authorize-callback';
-    origin.searchParams.append('redirect_url', redirect_url.toString());
+    await this.cacheService.set(
+      `github_authorize_request_state_${stateKeyRand}_redirect_url`,
+      redirectUrl.toString(),
+      ttl,
+    );
 
     const result = new URL('https://github.com/login/oauth/authorize');
     result.searchParams.append(
@@ -66,7 +65,6 @@ export class AccountsGithubService {
       this.configService.get<string>('account.github.clientId'),
     );
     result.searchParams.append('state', stateKeyRand);
-    result.searchParams.append('redirect_uri', origin.toString());
     return result.toString();
   }
 
@@ -75,6 +73,7 @@ export class AccountsGithubService {
     authorizeCallbackDto: any,
   ): Promise<void> {
     const stateKey = `github_authorize_request_state_${authorizeCallbackDto.state}`;
+    const redirectUrlKey = `github_authorize_request_state_${authorizeCallbackDto.state}_redirect_url`;
     const state = await this.cacheService.get<string>(stateKey);
 
     /**
@@ -85,7 +84,9 @@ export class AccountsGithubService {
      * - method: 'login' or 'signup' - only if the state found
      * - service: 'GitHub' here
      */
-    const redirectUrl = new URL(authorizeCallbackDto.redirect_url);
+    const redirectUrl = new URL(
+      await this.cacheService.get<string>(redirectUrlKey),
+    );
     redirectUrl.searchParams.append('service', 'GitHub');
 
     if (!state) {

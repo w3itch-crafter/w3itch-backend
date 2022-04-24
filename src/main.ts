@@ -50,10 +50,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // after set this option we can know the requested protocol is https or http
-  // for GitHub callback method to keep the protocol
-  app.set('trust proxy');
-
   app.use(bodyParser.json({ limit }));
   app.use(bodyParser.urlencoded({ limit, extended: true }));
   app.use(cookieParser());
