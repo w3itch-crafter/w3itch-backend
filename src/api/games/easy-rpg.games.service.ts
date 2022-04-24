@@ -149,7 +149,6 @@ export class EasyRpgGamesService {
     game: string,
     entryPath: string,
   ): Promise<void> {
-    this.deleteGameDirectory(game);
     const tempPath = join(EasyRpgGamesService.getThirdpartyDir('temp'), game);
     const targetPath = join(
       EasyRpgGamesService.getThirdpartyDir('games'),
@@ -158,6 +157,10 @@ export class EasyRpgGamesService {
 
     this.logger.debug(`Extract Game to ${tempPath}`, this.constructor.name);
     zip.extractAllTo(tempPath, true);
+
+    //clean up the target directory
+    this.deleteGameDirectory(game);
+
     const gamePath = join(tempPath, entryPath);
     this.logger.debug(
       `Move Game from ${gamePath} to ${targetPath}`,
