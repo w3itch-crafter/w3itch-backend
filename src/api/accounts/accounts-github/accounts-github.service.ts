@@ -102,7 +102,9 @@ export class AccountsGithubService {
     );
 
     // noinspection ES6MissingAwait
-    this.cacheService.del(authorizeCallbackDto.state);
+    this.cacheService.del(stateKey);
+    // noinspection ES6MissingAwait
+    this.cacheService.del(redirectUrlKey);
 
     const fetchTokenForm = {
       client_id: this.configService.get<string>('account.github.clientId'),
