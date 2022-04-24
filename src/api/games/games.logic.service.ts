@@ -178,7 +178,6 @@ export class GamesLogicService {
     if (file) {
       gameEntityPartial.file = file.originalname;
     }
-    console.log(gameEntityPartial);
     return await this.gamesBaseService.update(id, gameEntityPartial);
   }
 
