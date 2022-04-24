@@ -7,9 +7,7 @@ import {
 import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
-import findRemoveSync from 'find-remove';
 import { cpSync, existsSync, rmSync, statSync } from 'fs';
-import { readdir } from 'fs/promises';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import process from 'process';
@@ -34,21 +32,20 @@ export class EasyRpgGamesService {
     'gencache',
   );
 
-  private readonly gamesDir: string = join(
-    process.cwd(),
-    'thirdparty',
-    'games',
-  );
+  public static getThirdpartyDir(subdir: string): string {
+    return join(process.cwd(), 'thirdparty', subdir);
+  }
 
   private async execGenCache(
     path: string,
     reject = true,
   ): Promise<execa.ExecaChildProcess> {
+    this.logger.log(`Exec gencache on ${path}`, this.constructor.name);
     const env = Object.assign({}, process.env);
     const options: execa.Options = { cwd: path, env, reject };
     // set the recursive argument to 6
     // https://github.com/EasyRPG/Player/issues/2771
-    const exec = execa(this.genCacheBin, ['-r', '6'], options);
+    const exec = execa(this.genCacheBin, ['-r', '6', path], options);
     this.logger.log(`gencache -r 6 ${path}`, this.constructor.name);
     return exec;
   }
@@ -78,36 +75,25 @@ export class EasyRpgGamesService {
     }
   }
 
-  public async generateGameCache(path: string): Promise<void> {
-    this.logger.log(`Exec gencache on ${path}`, this.constructor.name);
-    await this.execGenCache(path);
-  }
-
-  public async generateAllGameCaches(): Promise<void> {
-    const files = await readdir(this.gamesDir, { withFileTypes: true });
-    const dirs = files
-      .filter((dirent) => dirent.isDirectory())
-      .map((dir) => join(this.gamesDir, dir.name));
-    for (const dir of dirs) {
-      this.generateGameCache(dir);
+  public deleteGameDirectory(game: string) {
+    const targetPath = join(
+      EasyRpgGamesService.getThirdpartyDir('games'),
+      game,
+    );
+    try {
+      rmSync(targetPath, { recursive: true });
+      this.logger.log(`Deleted ${targetPath}`, this.constructor.name);
+    } catch (error) {
+      // target directory doesn't exist, nothing to delete
     }
   }
 
-  public deleteGameDirectory(game: string) {
-    const cwd = process.cwd();
-    const targetPath = `${cwd}/thirdparty/games/${game}`;
-    this.logger.log(`Delete ${targetPath}`, this.constructor.name);
-    findRemoveSync(targetPath, { dir: '*', files: '*.*' });
-  }
-
-  public uploadGame(
-    game: string,
-    engine: GameEngine,
-    file: Express.Multer.File,
-    charset?: string,
-  ) {
-    this.logger.verbose(`Using charset ${charset}`, this.constructor.name);
-    const zip = new AdmZip(file.buffer, charset);
+  /**
+   * Check if the game has all the required files
+   * @param {AdmZip} zip game zip object
+   * @returns {string} entryPath
+   */
+  public checkGameRpgRtFilesExist(zip: AdmZip): string {
     const rpgRtFlags = {
       lmt: false,
       ldb: false,
@@ -155,32 +141,66 @@ export class EasyRpgGamesService {
     if (noEntryErrors.length > 0) {
       throw new BadRequestException(noEntryErrors);
     }
-    const cwd = process.cwd();
-    const tempPath = join(cwd, 'thirdparty', 'temp', game);
-    const targetPath = join(cwd, 'thirdparty', 'games', game);
-    this.logger.debug(`Delete ${targetPath}`, this.constructor.name);
-    findRemoveSync(targetPath, { dir: '*', files: '*.*' });
-    if (entryPath) {
-      this.logger.debug(`Extract Game to ${tempPath}`, this.constructor.name);
-      zip.extractAllTo(tempPath, true);
-      const gamePath = join(tempPath, entryPath);
-      this.logger.debug(
-        `Move Game from ${gamePath} to ${targetPath}`,
-        this.constructor.name,
-      );
-      cpSync(gamePath, targetPath, { recursive: true });
-      rmSync(tempPath, { recursive: true });
+    return entryPath;
+  }
+
+  public async extractGame(
+    zip: AdmZip,
+    game: string,
+    entryPath: string,
+  ): Promise<void> {
+    this.deleteGameDirectory(game);
+    const tempPath = join(EasyRpgGamesService.getThirdpartyDir('temp'), game);
+    const targetPath = join(
+      EasyRpgGamesService.getThirdpartyDir('games'),
+      game,
+    );
+
+    this.logger.debug(`Extract Game to ${tempPath}`, this.constructor.name);
+    zip.extractAllTo(tempPath, true);
+    const gamePath = join(tempPath, entryPath);
+    this.logger.debug(
+      `Move Game from ${gamePath} to ${targetPath}`,
+      this.constructor.name,
+    );
+    cpSync(gamePath, targetPath, { recursive: true });
+
+    if (!existsSync(join(targetPath, 'index.json'))) {
+      // copy files from the rtp folder
+      // use a filter to skip the exist files (don't overwrite)
+      cpSync(EasyRpgGamesService.getThirdpartyDir('rtp'), gamePath, {
+        recursive: true,
+        filter: (_, dest) => {
+          try {
+            return !statSync(join(tempPath, dest));
+          } catch (error) {
+            return true;
+          }
+        },
+      });
+      // generate index.json in gamePath, move it to targetPath
+      await this.execGenCache(gamePath);
+      cpSync(join(gamePath, 'index.json'), join(targetPath, 'index.json'));
     } else {
-      this.logger.debug(`Extract Game to ${targetPath}`, this.constructor.name);
-      zip.extractAllTo(targetPath, true);
-    }
-    if (existsSync(join(targetPath, 'index.json'))) {
       this.logger.debug(
         `index.json exists, skipping generateGameCache`,
         this.constructor.name,
       );
-      return;
     }
-    this.generateGameCache(targetPath);
+
+    this.logger.log(`Delete ${tempPath}`, this.constructor.name);
+    rmSync(tempPath, { recursive: true });
+  }
+
+  public uploadGame(
+    game: string,
+    engine: GameEngine,
+    file: Express.Multer.File,
+    charset?: string,
+  ): Promise<void> {
+    this.logger.verbose(`Using charset ${charset}`, this.constructor.name);
+    const zip = new AdmZip(file.buffer, charset);
+    const entryPath = this.checkGameRpgRtFilesExist(zip);
+    return this.extractGame(zip, game, entryPath);
   }
 }

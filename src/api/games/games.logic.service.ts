@@ -5,9 +5,10 @@ import {
   LoggerService,
 } from '@nestjs/common';
 import fs from 'fs';
+import { readFile } from 'fs/promises';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Paginated } from 'nestjs-paginate';
-import path from 'path';
+import path, { join } from 'path';
 
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
@@ -39,9 +40,9 @@ export class GamesLogicService {
         'application/zip',
         'application/zip-compressed',
         'application/x-zip-compressed',
-      ].includes(file?.mimetype.toLowerCase())
+      ].includes(file.mimetype.toLowerCase())
     ) {
-      throw new BadRequestException(`Invalid mimetype: ${file?.mimetype}`);
+      throw new BadRequestException(`Invalid mimetype: ${file.mimetype}`);
     }
   }
 
@@ -104,7 +105,7 @@ export class GamesLogicService {
     );
     this.checkFileMimeTypeAcceptable(file);
 
-    this.easyRpgGamesService.uploadGame(
+    await this.easyRpgGamesService.uploadGame(
       game.gameName,
       game.kind,
       file,
@@ -119,14 +120,12 @@ export class GamesLogicService {
     const gameEntityPartial = await this.convertTagsAndPricesFromDtoToEntities(
       game,
     );
-
     const gameProject = await this.gamesBaseService.save({
       ...gameEntityPartial,
       username: user.username,
       file: file.originalname,
     });
     this.saveUploadedFile(file, game.gameName);
-
     return gameProject;
   }
 
@@ -141,22 +140,33 @@ export class GamesLogicService {
     const { game } = body;
     const target = await this.gamesBaseService.findOne(id);
 
-    if (file) {
+    if (file || game?.charset) {
       this.logger.verbose(
-        `Update File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
+        `Update File: ${
+          file?.originalname ?? target.file
+        }, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
-      this.checkFileMimeTypeAcceptable(file);
+      if (file) {
+        this.checkFileMimeTypeAcceptable(file);
+      } else {
+        const fileBuffer = await readFile(
+          join('thirdparty', 'downloads', target.gameName, target.file),
+        );
+        file = {
+          buffer: fileBuffer,
+        } as Express.Multer.File;
+      }
 
-      this.easyRpgGamesService.uploadGame(
+      await this.easyRpgGamesService.uploadGame(
         target.gameName,
-        game.kind,
+        game?.kind ?? target.kind,
         file,
-        game.charset,
+        game?.charset,
       );
     } else {
       this.logger.verbose(
-        `Update game entity: ${JSON.stringify(game)} with no file uploaded`,
+        `Update game entity: ${JSON.stringify(game)} with no file update`,
         this.constructor.name,
       );
     }
@@ -168,6 +178,7 @@ export class GamesLogicService {
     if (file) {
       gameEntityPartial.file = file.originalname;
     }
+    console.log(gameEntityPartial);
     return await this.gamesBaseService.update(id, gameEntityPartial);
   }
 
