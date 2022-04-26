@@ -53,6 +53,11 @@ storage:
       folder: w3itch-test/attachment
     gateways:
       - https://ipfs.fleek.cob
+  aws:
+    accessKeyId:
+    secretAccessKey:
+    bucket:
+    folder: w3itch-test/attachment
 
 blockchain:
   infura:

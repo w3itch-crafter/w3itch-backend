@@ -45,6 +45,7 @@
     "@nestjs/typeorm": "^8.0.3",
     "@types/etag": "^1.8.1",
     "adm-zip-iconv": "^0.4.9",
+    "aws-sdk": "^2.1121.0",
     "bull": "^4.7.0",
     "cache-manager": "^3.6.0",
     "cache-manager-ioredis": "^2.1.0",

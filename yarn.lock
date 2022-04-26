@@ -3236,6 +3236,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"aws-sdk@npm:^2.1121.0":
+  version: 2.1121.0
+  resolution: "aws-sdk@npm:2.1121.0"
+  dependencies:
+    buffer: 4.9.2
+    events: 1.1.1
+    ieee754: 1.1.13
+    jmespath: 0.16.0
+    querystring: 0.2.0
+    sax: 1.2.1
+    url: 0.10.3
+    uuid: 3.3.2
+    xml2js: 0.4.19
+  checksum: ab85098e8dc3cfc5eb6486e9a04131d3fb411f472d5bd8a52c35021d4e871338cc2f4455983c6abdaefc18838381ef433d85fdcd7d2561c9c483a64bc1636229
+  languageName: node
+  linkType: hard
+
 "aws-sdk@npm:^2.814.0, aws-sdk@npm:^2.989.0":
   version: 2.1103.0
   resolution: "aws-sdk@npm:2.1103.0"
@@ -12824,6 +12841,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.14.0
     "@typescript-eslint/parser": ^5.14.0
     adm-zip-iconv: ^0.4.9
+    aws-sdk: ^2.1121.0
     bull: ^4.7.0
     cache-manager: ^3.6.0
     cache-manager-ioredis: ^2.1.0

@@ -56,4 +56,35 @@ export class StoragesController {
       file.buffer,
     );
   }
+
+  @ApiCookieAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload to AWS' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    type: String,
+  })
+  @Post('/upload-to-aws')
+  @UseGuards(JWTAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadToAWS(
+    @CurrentUser() user: UserJWTPayload,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<string> {
+    return await this.storagesService.uploadToAWS(
+      user.id,
+      file.originalname,
+      file.buffer,
+    );
+  }
 }
