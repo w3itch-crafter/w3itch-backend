@@ -18,7 +18,7 @@ import {
 import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { UserJWTPayload } from '../../types';
-import { UploadToIPFSResultDto } from './dto';
+import { UploadResultDto } from './dto';
 import { StoragesService } from './service';
 
 @ApiTags('Storage')
@@ -41,7 +41,7 @@ export class StoragesController {
     },
   })
   @ApiResponse({
-    type: UploadToIPFSResultDto,
+    type: UploadResultDto,
   })
   @Post('/upload-to-ipfs')
   @UseGuards(JWTAuthGuard)
@@ -49,7 +49,7 @@ export class StoragesController {
   async uploadToIPFS(
     @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<UploadToIPFSResultDto> {
+  ): Promise<UploadResultDto> {
     return await this.storagesService.uploadToIPFS(
       user.id,
       file.originalname,
@@ -72,7 +72,7 @@ export class StoragesController {
     },
   })
   @ApiResponse({
-    type: String,
+    type: UploadResultDto,
   })
   @Post('/upload-to-aws')
   @UseGuards(JWTAuthGuard)
@@ -80,7 +80,7 @@ export class StoragesController {
   async uploadToAWS(
     @CurrentUser() user: UserJWTPayload,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<string> {
+  ): Promise<UploadResultDto> {
     return await this.storagesService.uploadToAWS(
       user.id,
       file.originalname,

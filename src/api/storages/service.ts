@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
-import { UploadToIPFSResultDto } from './dto';
+import { UploadResultDto } from './dto';
 
 @Injectable()
 export class StoragesService {
@@ -28,23 +28,25 @@ export class StoragesService {
     userId: number,
     fileName: string,
     data: string | Buffer,
-  ): Promise<string> {
+  ): Promise<UploadResultDto> {
     try {
       const folder = this.configService.get<string>('storage.aws.folder');
-      const output = (
-        await this.s3
-          .upload({
-            Bucket: this.configService.get<string>('storage.aws.bucket'),
-            Key: `${folder}/${userId}/${fileName}`,
-            Body: data,
-          })
-          .promise()
-      ).Location;
+      const output = await this.s3
+        .upload({
+          Bucket: this.configService.get<string>('storage.aws.bucket'),
+          Key: `${folder}/${userId}/${fileName}`,
+          Body: data,
+        })
+        .promise();
       this.logger.verbose(
         `Upload to IPFS, output ${JSON.stringify(output)}`,
         this.constructor.name,
       );
-      return output;
+      return {
+        publicUrl: output.Location,
+        eTag: output.ETag.replace(/"/g, ''),
+        storageType: 's3',
+      };
     } catch (error) {
       this.logger.error(error, this.constructor.name);
       throw new InternalServerErrorException('Upload failed');
@@ -55,7 +57,7 @@ export class StoragesService {
     userId: number,
     fileName: string,
     data: string | Buffer,
-  ): Promise<UploadToIPFSResultDto> {
+  ): Promise<UploadResultDto> {
     try {
       //TODO Preprocessing / Compressing images
       const folder = this.configService.get<string>(
@@ -74,7 +76,10 @@ export class StoragesService {
         this.constructor.name,
       );
 
-      return output;
+      return {
+        ...output,
+        storageType: 'ipfs',
+      };
     } catch (error) {
       // Try to catch socket hang up error.
       this.logger.error(error, this.constructor.name);
