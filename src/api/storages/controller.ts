@@ -18,7 +18,7 @@ import {
 import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { UserJWTPayload } from '../../types';
-import { UploadToIPFSResultDto } from './dto';
+import { UploadToAWSResultDto, UploadToIPFSResultDto } from './dto';
 import { StoragesService } from './service';
 
 @ApiTags('Storage')
@@ -51,6 +51,37 @@ export class StoragesController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UploadToIPFSResultDto> {
     return await this.storagesService.uploadToIPFS(
+      user.id,
+      file.originalname,
+      file.buffer,
+    );
+  }
+
+  @ApiCookieAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload to AWS' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    type: UploadToAWSResultDto,
+  })
+  @Post('/upload-to-aws')
+  @UseGuards(JWTAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadToAWS(
+    @CurrentUser() user: UserJWTPayload,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UploadToAWSResultDto> {
+    return await this.storagesService.uploadToAWS(
       user.id,
       file.originalname,
       file.buffer,
