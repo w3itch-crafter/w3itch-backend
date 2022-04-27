@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
-import { UploadResultDto } from './dto';
+import { UploadToAWSResultDto, UploadToIPFSResultDto } from './dto';
 
 @Injectable()
 export class StoragesService {
@@ -28,7 +28,7 @@ export class StoragesService {
     userId: number,
     fileName: string,
     data: string | Buffer,
-  ): Promise<UploadResultDto> {
+  ): Promise<UploadToAWSResultDto> {
     try {
       const folder = this.configService.get<string>('storage.aws.folder');
       const output = await this.s3
@@ -57,7 +57,7 @@ export class StoragesService {
     userId: number,
     fileName: string,
     data: string | Buffer,
-  ): Promise<UploadResultDto> {
+  ): Promise<UploadToIPFSResultDto> {
     try {
       //TODO Preprocessing / Compressing images
       const folder = this.configService.get<string>(
