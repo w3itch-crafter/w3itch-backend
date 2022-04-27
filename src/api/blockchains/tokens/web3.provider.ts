@@ -4,7 +4,6 @@ import abi from 'human-standard-token-abi';
 import Web3 from 'web3';
 
 import { configBuilder } from '../../../configs';
-import { isDevelopment } from '../../../utils';
 
 const logger = new Logger('Web3Provider');
 
