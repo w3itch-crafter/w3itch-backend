@@ -4,7 +4,6 @@ import abi from 'human-standard-token-abi';
 import Web3 from 'web3';
 
 import { configBuilder } from '../../../configs';
-import { isDevelopment } from '../../../utils';
 
 const logger = new Logger('Web3Provider');
 
@@ -46,6 +45,11 @@ const providers: {
   {
     chainId: 56,
     url: 'https://rpc.ankr.com/bsc/',
+    token: '',
+  },
+  {
+    chainId: 97,
+    url: 'https://data-seed-prebsc-2-s2.binance.org:8545/',
     token: '',
   },
   {
@@ -95,9 +99,7 @@ export class Web3Provider {
 
 // initialize web3 providers
 const configs = new ConfigService(configBuilder());
-const supportedChainIds = configs.get<number[]>(
-  `blockchain.supportedChainIds.${isDevelopment() ? 'test' : 'prod'}`,
-);
+const supportedChainIds = configs.get<number[]>(`blockchain.supportedChainIds`);
 
 const currentProviders = providers.filter((provider) =>
   supportedChainIds.includes(provider.chainId),
