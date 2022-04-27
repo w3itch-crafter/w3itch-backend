@@ -49,6 +49,11 @@ const providers: {
     token: '',
   },
   {
+    chainId: 97,
+    url: 'https://data-seed-prebsc-2-s2.binance.org:8545/',
+    token: '',
+  },
+  {
     chainId: 137,
     url: 'https://rpc.ankr.com/polygon',
     token: '',
@@ -95,9 +100,7 @@ export class Web3Provider {
 
 // initialize web3 providers
 const configs = new ConfigService(configBuilder());
-const supportedChainIds = configs.get<number[]>(
-  `blockchain.supportedChainIds.${isDevelopment() ? 'test' : 'prod'}`,
-);
+const supportedChainIds = configs.get<number[]>(`blockchain.supportedChainIds`);
 
 const currentProviders = providers.filter((provider) =>
   supportedChainIds.includes(provider.chainId),
