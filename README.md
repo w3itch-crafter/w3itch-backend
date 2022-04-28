@@ -31,6 +31,18 @@ config
 Update db & redis & storage configuration in `config/config.development.yaml`. For example:
 
 ```yaml
+app:
+  name: w3itch-backend
+  port: 3002
+  bodyParser:
+    limit: 50mb
+  swagger:
+    enable: true
+  logger:
+    loki:
+      enable: true
+      url: 'http://127.0.0.1:3100'
+
 db:
   host: localhost
   port: 3306
@@ -38,13 +50,33 @@ db:
   password: w3itch-dev
   database: w3itch-dev
   charset: utf8mb4_general_ci
-  timzone: Z
+  timezone: Z
+
+auth:
+  jwt:
+    accessTokenName: 'w3itch_access_token'
+    refreshTokenName: 'w3itch_refresh_token'
+    accessTokenExpires: '20m'
+    refreshTokenExpires: '30d'
+    issuer: https://w3itch.io
+    algorithm: 'RS512'
+    audience: []
+
+  cookies:
+    accessTokenPath: '/'
+    refreshTokenPath: '/accounts/tokens'
+
+  cors:
+    origins:
+      - '*'
 
 cache:
   redis:
-    host: localhost
+    host: '127.0.0.1'
     port: 6379
     pass:
+  vcode:
+    ttl: 3000 # seconds
 
 storage:
   ipfs:
@@ -55,12 +87,42 @@ storage:
       folder: w3itch/attachment
     gateways:
       - https://ipfs.fleek.co
+  aws:
+    accessKeyId:
+    secretAccessKey:
+    bucket:
+    folder: w3itch-test/attachment
+    ## Leave this empty or commented to use the default host
+    ## If you want to use a custom host, you can set it here with the following format
+    ## It should resolve to aws with your bucket name
+    ## https://s3.amazonaws.com/{bucket}
+    # customBaseUrl: https://my-custom-host/
+    
+
+blockchain:
+  infura:
+    apiToken: foo
+  # Supported blockchain networks
+  # You must add a provider for each blockchain network in web3.providers.ts
+  # and enable it here in order to add a new blockchain network
+  supportedChainIds: [1, 3, 4, 5, 10, 42, 56, 97, 137, 42161]
+
+account:
+  github:
+    clientId: foo
+    clientSecret: bar
+
+user:
+  username:
+    reservedList:
+      - blog
+      - api
+    # - etc.
 ```
 
 ## Installation
 
 ```bash
-
 $ yarn install
 # migration
 $ yarn typeorm migration:run
