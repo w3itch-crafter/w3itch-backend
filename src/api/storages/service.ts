@@ -49,8 +49,8 @@ export class StoragesService {
 
       if (customBaseUrl) {
         imageUrl = imageUrl.replace(
-          new RegExp(`^https?://.+?${escapeRegExp(bucket)}/?`),
-          customBaseUrl,
+          new RegExp(`^https?://.+?${escapeRegExp(bucket)}/`),
+          customBaseUrl.endsWith('/') ? customBaseUrl : `${customBaseUrl}/`,
         );
       }
       return {
