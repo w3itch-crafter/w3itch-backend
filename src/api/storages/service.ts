@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
+import escapeRegExp from 'lodash.escaperegexp';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { UploadToAWSResultDto, UploadToIPFSResultDto } from './dto';
@@ -48,7 +49,7 @@ export class StoragesService {
 
       if (customBaseUrl) {
         imageUrl = imageUrl.replace(
-          new RegExp(`^https?://.+?${bucket}/?`),
+          new RegExp(`^https?://.+?${escapeRegExp(bucket)}/?`),
           customBaseUrl,
         );
       }
