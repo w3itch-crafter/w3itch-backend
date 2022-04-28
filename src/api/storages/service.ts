@@ -16,7 +16,7 @@ export class StoragesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   private readonly s3 = new AWS.S3({
@@ -31,9 +31,11 @@ export class StoragesService {
   ): Promise<UploadToAWSResultDto> {
     try {
       const folder = this.configService.get<string>('storage.aws.folder');
+      const bucket = this.configService.get<string>('storage.aws.bucket');
+      const customBaseUrl = this.configService.get('storage.aws.customBaseUrl');
       const output = await this.s3
         .upload({
-          Bucket: this.configService.get<string>('storage.aws.bucket'),
+          Bucket: bucket,
           Key: `${folder}/${userId}/${fileName}`,
           Body: data,
         })
@@ -42,8 +44,16 @@ export class StoragesService {
         `Upload to IPFS, output ${JSON.stringify(output)}`,
         this.constructor.name,
       );
+      let imageUrl = output.Location;
+
+      if (customBaseUrl) {
+        imageUrl = imageUrl.replace(
+          new RegExp(`^(?=https?://).+?${bucket}`),
+          customBaseUrl,
+        );
+      }
       return {
-        publicUrl: output.Location,
+        publicUrl: imageUrl,
         eTag: output.ETag.replace(/"/g, ''),
         storageType: 's3',
       };

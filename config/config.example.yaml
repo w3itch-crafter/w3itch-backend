@@ -58,6 +58,7 @@ storage:
     secretAccessKey:
     bucket:
     folder: w3itch-test/attachment
+    customBaseUrl:
 
 blockchain:
   infura:
