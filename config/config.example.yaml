@@ -58,7 +58,7 @@ storage:
     secretAccessKey:
     bucket:
     folder: w3itch-test/attachment
-    customBaseUrl:
+    # customBaseUrl: https://<your url resolves to aws>/
 
 blockchain:
   infura:
