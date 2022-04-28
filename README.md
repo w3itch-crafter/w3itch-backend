@@ -105,7 +105,7 @@ blockchain:
   # Supported blockchain networks
   # You must add a provider for each blockchain network in web3.providers.ts
   # and enable it here in order to add a new blockchain network
-  supportedChainIds: [1, 3, 4, 5, 10, 42, 56, 137, 42161]
+  supportedChainIds: [1, 3, 4, 5, 10, 42, 56, 97, 137, 42161]
 
 account:
   github:
