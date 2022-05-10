@@ -1,0 +1,50 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: build
+    image: node
+    commands:
+      - yarn
+      - yarn build
+      - yarn test:cov
+---
+kind: pipeline
+type: ssh
+name: ssh-deploy-w3itch-api-prod
+
+server:
+  host: api.w3itch.io
+  user: w3itch
+  ssh_key:
+    from_secret: SSH_ID_RSA
+
+steps:
+  - name: greeting
+    commands:
+      - echo hello world
+  - name: check-env
+    commands:
+      - ifconfig
+      - pwd
+  - name: list-easyrpg-games
+    commands:
+      - ls /var/easyrpg/games
+  - name: build
+    commands:
+      - yarn
+      - yarn build
+      - export PM2_HOME=/home/w3itch/.pm2
+      - pm2 status
+
+trigger:
+  branch:
+    - main
+  event:
+    # When a pull request is merged GitHub sends a push hook to drone
+    - push
+---
+kind: signature
+hmac: 8e0ec034cfbbcd45818d403edb8a7e53ae48dc3792a187c15829390394c165bc
