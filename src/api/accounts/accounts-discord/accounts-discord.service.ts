@@ -136,7 +136,7 @@ export class AccountsDiscordService {
             },
           }),
         ),
-        map((response) => response.data.username),
+        map(({ data }) => `${data.username}#${data.discriminator}`),
       );
 
       username = await firstValueFrom(observable);
