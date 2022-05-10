@@ -52,7 +52,7 @@ export class AccountsDiscordService {
       this.configService.get<string>('account.discord.clientId'),
     );
     result.searchParams.append('state', stateKeyRand);
-    result.searchParams.append('scope', 'identity');
+    result.searchParams.append('scope', 'identify');
     result.searchParams.append('response_type', 'code');
     return result.toString();
   }
