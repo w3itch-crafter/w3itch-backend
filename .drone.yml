@@ -35,8 +35,8 @@ steps:
   - name: build
     commands:
       - export HOME=/home/w3itch
-      - source /home/w3itch/.profile
-      - source /home/w3itch/.bashrc
+      - export NVM_DIR="$HOME/.nvm"
+      - . "$NVM_DIR/nvm.sh"
       - nvm use node
       - node -v
       - yarn
@@ -90,6 +90,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 6731c2f8a9fb2b933f856250156803d9f36c8bc898a1c87a97f49d7f52cb00dc
+hmac: ed7c530b288c1aec6ec509b7c295e2f68c258ec83711a00f5baab4bf1a6871e3
 
 ...
