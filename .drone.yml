@@ -22,18 +22,17 @@ server:
     from_secret: SSH_ID_RSA
 
 steps:
-  - name: prepare
-    commands:
-      - source /var/lib/jenkins/.bashrc
-      - nvm use v16.13.1
-
   - name: greeting
     commands:
       - echo hello world
+
   - name: check-env
     commands:
       - ifconfig
       - pwd
+  - name: nvm
+    commands:
+      - nvm use v16.13.1
       - nvm current
   - name: list-easyrpg-games
     commands:
@@ -90,4 +89,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 431102ccfdc92e0fd675ee3ac16993742085f64d01780fa292c32474b972c61b
+hmac: 867c9bfa06981ff08ea260a0e705d2678d5ab321221b0ddac3375ff003a85ec6
+
+...
