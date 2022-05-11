@@ -22,6 +22,11 @@ server:
     from_secret: SSH_ID_RSA
 
 steps:
+  - name: prepare
+    commands:
+      - source ～/.bashrc
+      - nvm use v16.13.1
+
   - name: greeting
     commands:
       - echo hello world
@@ -29,6 +34,7 @@ steps:
     commands:
       - ifconfig
       - pwd
+      - nvm current
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
@@ -84,6 +90,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 5ca35f41272d3e4a4c9bb5e1d4e5a52bdafaf9a2db19d5b4e6503a82f52c8745
+hmac: b7fbdbda511459a2a44029f6ae67df80a0789d9f29d56bcec59e0a7f26825f99
 
 ...
