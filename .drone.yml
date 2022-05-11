@@ -24,7 +24,7 @@ server:
 steps:
   - name: prepare
     commands:
-      - source ～/.bashrc
+      - source /var/lib/jenkins/.bashrc
       - nvm use v16.13.1
 
   - name: greeting
@@ -90,6 +90,4 @@ trigger:
     - push
 ---
 kind: signature
-hmac: b7fbdbda511459a2a44029f6ae67df80a0789d9f29d56bcec59e0a7f26825f99
-
-...
+hmac: 431102ccfdc92e0fd675ee3ac16993742085f64d01780fa292c32474b972c61b
