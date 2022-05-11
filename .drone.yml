@@ -25,20 +25,23 @@ steps:
   - name: greeting
     commands:
       - echo hello world
-
   - name: check-env
     commands:
       - ifconfig
       - pwd
-      - node -v
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
   - name: build
     commands:
+      - export HOME=/home/w3itch
+      - source /home/w3itch/.profile
+      - source /home/w3itch/.bashrc
+      - nvm use node
+      - node -v
       - yarn
       - yarn build
-      - export PM2_HOME=/var/lib/jenkins/.pm2
+      - export PM2_HOME=/home/w3itch/.pm2
       - pm2 status
 
 trigger:
@@ -87,6 +90,4 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 7aa999e9d1a0c7f22618cf9c058a91b4ccbe3b4f10977aaedc5f84f81d7577db
-
-...
+hmac: f35c82a7ac2e3cfc19c520e05d306ce004d48e9dd59bed5dff57c02f29bd00ef
