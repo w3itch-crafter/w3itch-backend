@@ -30,10 +30,7 @@ steps:
     commands:
       - ifconfig
       - pwd
-  - name: nvm
-    commands:
-      - nvm use v16.13.1
-      - nvm current
+      - node -v
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
@@ -71,6 +68,7 @@ steps:
     commands:
       - ifconfig
       - pwd
+      - node -v
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
@@ -90,5 +88,3 @@ trigger:
 ---
 kind: signature
 hmac: cef49841ab9002e38be9655e0f3d125448b957c20dff5131f6f3e06e3e1b5b63
-
-...
