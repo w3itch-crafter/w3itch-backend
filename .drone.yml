@@ -17,7 +17,7 @@ name: ssh-deploy-w3itch-api-test
 
 server:
   host: backend-api.testenv.w3itch.io
-  user: jenkins
+  user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
 
@@ -90,5 +90,3 @@ trigger:
 ---
 kind: signature
 hmac: 867c9bfa06981ff08ea260a0e705d2678d5ab321221b0ddac3375ff003a85ec6
-
-...
