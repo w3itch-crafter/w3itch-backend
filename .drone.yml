@@ -13,6 +13,43 @@ steps:
 ---
 kind: pipeline
 type: ssh
+name: ssh-deploy-w3itch-api-test
+
+server:
+  host: backend-api.testenv.w3itch.io
+  user: jenkins
+  ssh_key:
+    from_secret: SSH_ID_RSA
+
+steps:
+  - name: greeting
+    commands:
+      - echo hello world
+  - name: check-env
+    commands:
+      - ifconfig
+      - pwd
+  - name: list-easyrpg-games
+    commands:
+      - ls /var/easyrpg/games
+  - name: build
+    commands:
+      - yarn
+      - yarn build
+      - export PM2_HOME=/var/lib/jenkins/.pm2
+      - pm2 status
+
+trigger:
+  branch:
+    - dev/w3itch
+    - testing
+  event:
+    # When a pull request is merged GitHub sends a push hook to drone
+    - push
+
+---
+kind: pipeline
+type: ssh
 name: ssh-deploy-w3itch-api-prod
 
 server:
