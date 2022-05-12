@@ -1,8 +1,26 @@
-import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
+import { JWTAuthGuard } from '../../../auth/guard';
+import { CurrentUser } from '../../../decorators/user.decorator';
+import { UserJWTPayload } from '../../../types';
 import { AccountsGithubService } from './accounts-github.service';
+import { AccountsBindGithubDto } from './dto/accounts-bind-github.dto';
 import { AccountsLoginGithubDto } from './dto/accounts-login-github.dto';
 import { AccountsSignupGithubDto } from './dto/accounts-signup-github.dto';
 
@@ -15,24 +33,48 @@ export class AccountsGithubController {
   @ApiOperation({ summary: 'Login using GitHub' })
   async login(
     @Req() req: Request,
-    @Body() githubLoginDto: AccountsLoginGithubDto,
+    @Body() dto: AccountsLoginGithubDto,
   ): Promise<string> {
-    return await this.accountsGithubService.authorizeRequest(
-      req,
-      githubLoginDto,
-    );
+    return await this.accountsGithubService.authorizeRequest(req, {
+      type: 'login',
+      redirectUri: dto.redirectUri,
+    });
   }
 
   @Post('signup')
   @ApiOperation({ summary: 'Signup using GitHub' })
   async signup(
     @Req() req: Request,
-    @Body() githubSignupDto: AccountsSignupGithubDto,
+    @Body() dto: AccountsSignupGithubDto,
   ): Promise<string> {
-    return await this.accountsGithubService.authorizeRequest(
-      req,
-      githubSignupDto,
-    );
+    return await this.accountsGithubService.authorizeRequest(req, {
+      type: 'signup',
+      username: dto.username,
+      redirectUri: dto.redirectUri,
+    });
+  }
+
+  @Post('bind')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Bind GitHub' })
+  async bind(
+    @Req() req: Request,
+    @Body() dto: AccountsBindGithubDto,
+    @CurrentUser() user: UserJWTPayload,
+  ): Promise<string> {
+    return await this.accountsGithubService.authorizeRequest(req, {
+      type: 'bind',
+      userId: user.id,
+      redirectUri: dto.redirectUri,
+    });
+  }
+  @Post('unbind')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Unbind GitHub' })
+  async unbind(@CurrentUser() user: UserJWTPayload): Promise<void> {
+    await this.accountsGithubService.unbind(user.id);
   }
 
   @Get('authorize-callback')

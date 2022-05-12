@@ -9,9 +9,7 @@ import { AppCacheService } from '../../../cache/service';
 import { UsersService } from '../../users/users.service';
 import { AccountsService } from '../accounts.service';
 import { JwtCookieHelper } from '../jwt-cookie-helper.service';
-import { JwtTokens } from '../types';
-import { AccountsLoginGithubDto } from './dto/accounts-login-github.dto';
-import { AccountsSignupGithubDto } from './dto/accounts-signup-github.dto';
+import { AuthorizeRequestParam, JwtTokens } from '../types';
 
 @Injectable()
 export class AccountsGithubService {
@@ -38,20 +36,24 @@ export class AccountsGithubService {
 
   async authorizeRequest(
     request: Request,
-    dto: AccountsSignupGithubDto | AccountsLoginGithubDto,
+    param: AuthorizeRequestParam,
   ): Promise<string> {
     // GitHub uses a state token to prevent CSRF attacks
     // But here we use stateKey to store the user's username if they sign up
     const stateKeyRand = randomstring.generate();
-    const stateValue = (dto as AccountsSignupGithubDto).username ?? '_login';
+    const stateValue = (param: AuthorizeRequestParam) => {
+      if (param.type === 'login') return '_login';
+      if (param.type === 'bind') return `_bind:${param.userId}`;
+      return param.username;
+    };
     const ttl = this.configService.get<number>('cache.vcode.ttl');
     await this.cacheService.set(
       `github_authorize_request_state_${stateKeyRand}`,
-      stateValue,
+      stateValue(param),
       ttl,
     );
     const redirectUrl = new URL(request.headers.origin);
-    redirectUrl.pathname = dto.redirectUri;
+    redirectUrl.pathname = param.redirectUri;
 
     await this.cacheService.set(
       `github_authorize_request_state_${stateKeyRand}_redirect_url`,
@@ -96,10 +98,6 @@ export class AccountsGithubService {
         code: '400',
       });
     }
-    redirectUrl.searchParams.append(
-      'method',
-      state === '_login' ? 'login' : 'signup',
-    );
 
     // noinspection ES6MissingAwait
     this.cacheService.del(stateKey);
@@ -149,8 +147,29 @@ export class AccountsGithubService {
     }
 
     let loginTokens: JwtTokens;
-    if (state === '_login') {
+    if (state.startsWith('_bind:')) {
       try {
+        redirectUrl.searchParams.append('method', 'bind');
+        await this.accountsService.bind(
+          Number(state.substring(6)),
+          'github',
+          githubUsername,
+        );
+
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'true',
+          code: '200',
+        });
+      } catch (error) {
+        this.logger.verbose(`Failed to bind github: ${error.message}`);
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'false',
+          code: '401',
+        });
+      }
+    } else if (state === '_login') {
+      try {
+        redirectUrl.searchParams.append('method', 'login');
         loginTokens = (
           await this.accountsService.login(
             { account: githubUsername },
@@ -164,17 +183,15 @@ export class AccountsGithubService {
           code: '401',
         });
       }
-    } else
+    } else {
       try {
-        {
-          redirectUrl.searchParams.append('method', 'signup');
-          loginTokens = (
-            await this.accountsService.signup(
-              { account: githubUsername, username: state },
-              'github',
-            )
-          ).tokens;
-        }
+        redirectUrl.searchParams.append('method', 'signup');
+        loginTokens = (
+          await this.accountsService.signup(
+            { account: githubUsername, username: state },
+            'github',
+          )
+        ).tokens;
       } catch (error) {
         this.logger.verbose(`Failed to signup with github: ${error.message}`);
         return this.redirectWithParams(response, redirectUrl, {
@@ -182,11 +199,16 @@ export class AccountsGithubService {
           code: '400',
         });
       }
+    }
     await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
 
     return this.redirectWithParams(response, redirectUrl, {
       success: 'true',
       code: '200',
     });
+  }
+
+  async unbind(userId: number) {
+    await this.accountsService.unbind(userId, 'github');
   }
 }

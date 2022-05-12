@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindConditions, Repository } from 'typeorm';
 
@@ -124,5 +129,53 @@ export class AccountsService {
       tokens,
       account: userAccount,
     };
+  }
+
+  async bind(
+    userId: number,
+    platform: LoginPlatforms,
+    platformUsername: string,
+  ): Promise<void> {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new BadRequestException(
+        'User account does not exist',
+        'UserNotFound',
+      );
+    }
+
+    const account = await this.findOne({
+      userId,
+      platform,
+    });
+    if (account) {
+      throw new ConflictException('The binding exists', 'AccountBinded');
+    }
+
+    await this.save({
+      userId,
+      platform,
+      accountId: platformUsername,
+    });
+  }
+
+  async unbind(userId: number, platform: LoginPlatforms) {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new BadRequestException(
+        'User account does not exist',
+        'UserNotFound',
+      );
+    }
+
+    const bindingCount = await this.accountsRepository.count({ userId });
+    if (bindingCount <= 1) {
+      throw new BadRequestException('Failed to unbind', 'InvalidOperation');
+    }
+
+    await this.accountsRepository.delete({
+      userId,
+      platform,
+    });
   }
 }
