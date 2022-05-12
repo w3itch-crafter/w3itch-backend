@@ -8,6 +8,7 @@ import { UsersService } from '../../users/users.service';
 import { AccountsService } from '../accounts.service';
 import { JwtCookieHelper } from '../jwt-cookie-helper.service';
 import { LoginResult } from '../types';
+import { AccountsBindMetaMaskDto } from './dto/accounts-bind-metamask.dto';
 import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
 import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
@@ -28,7 +29,7 @@ export class AccountsMetamaskService {
   }
 
   async verify(
-    dto: AccountsLoginMetaMaskDto | AccountsSignupMetaMaskDto,
+    dto: AccountsLoginMetaMaskDto | AccountsSignupMetaMaskDto | AccountsBindMetaMaskDto,
   ): Promise<void> {
     const nonce = await this.cacheService.getVerificationCode(
       'metamask-login',
@@ -85,5 +86,13 @@ export class AccountsMetamaskService {
     signupDto: AccountsSignupMetaMaskDto,
   ): Promise<LoginResult> {
     return await this.loginOrSignup('signup', res, signupDto);
+  }
+
+  async bind(userId: number, dto: AccountsBindMetaMaskDto) {
+    await this.verify(dto);
+    await this.accountsService.bind(userId, 'metamask', dto.account);
+  }
+  async unbind(userId: number) {
+    await this.accountsService.unbind(userId, 'metamask');
   }
 }
