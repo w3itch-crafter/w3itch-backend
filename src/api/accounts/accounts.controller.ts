@@ -15,7 +15,7 @@ export class AccountsController {
   @Get('mine')
   @ApiCookieAuth()
   @UseGuards(JWTAuthGuard)
-  async getMyAccounts(@CurrentUser() user: UserJWTPayload): Promise<Account> {
-    return await this.accountsService.findOne({ userId: user.id });
+  async getMyAccounts(@CurrentUser() user: UserJWTPayload): Promise<Account[]> {
+    return await this.accountsService.find({ userId: user.id });
   }
 }

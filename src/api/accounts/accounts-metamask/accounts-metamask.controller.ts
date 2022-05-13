@@ -1,10 +1,14 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
+import { JWTAuthGuard } from '../../../auth/guard';
 import { VerificationCodeDto } from '../../../cache/dto/verification-code.dto';
+import { CurrentUser } from '../../../decorators/user.decorator';
+import { UserJWTPayload } from '../../../types';
 import { LoginResult } from '../types';
 import { AccountsMetamaskService } from './accounts-metamask.service';
+import { AccountsBindMetaMaskDto } from './dto/accounts-bind-metamask.dto';
 import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
 import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 
@@ -50,5 +54,23 @@ export class AccountsMetamaskController {
       res,
       accountsSignupMetaMaskDto,
     );
+  }
+
+  @Post('bind')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Bind Metamask' })
+  async bind(
+    @Body() dto: AccountsBindMetaMaskDto,
+    @CurrentUser() user: UserJWTPayload,
+  ): Promise<void> {
+    await this.accountsMetamaskService.bind(user.id, dto);
+  }
+  @Post('unbind')
+  @UseGuards(JWTAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Unbind Metamask' })
+  async unbind(@CurrentUser() user: UserJWTPayload): Promise<void> {
+    await this.accountsMetamaskService.unbind(user.id);
   }
 }
