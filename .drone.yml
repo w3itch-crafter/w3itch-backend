@@ -46,11 +46,50 @@ steps:
 
 trigger:
   branch:
-    - dev/w3itch
     - testing
   event:
     # When a pull request is merged GitHub sends a push hook to drone
     - push
+
+---
+kind: pipeline
+type: ssh
+name: promotion-testing
+
+server:
+  host: backend-api.testenv.w3itch.io
+  user: w3itch
+  ssh_key:
+    from_secret: SSH_ID_RSA
+
+steps:
+  - name: greeting
+    commands:
+      - echo promotion testing
+  - name: check-env
+    commands:
+      - ifconfig
+      - pwd
+  - name: list-easyrpg-games
+    commands:
+      - ls /var/easyrpg/games
+  - name: build
+    commands:
+      - export HOME=/home/w3itch
+      - export NVM_DIR="$HOME/.nvm"
+      - . "$NVM_DIR/nvm.sh"
+      - nvm use node
+      - node -v
+      - yarn
+      - yarn build
+      - export PM2_HOME=/home/w3itch/.pm2
+      - pm2 status
+
+trigger:
+  event:
+    - promote
+  target:
+    - testing
 
 ---
 kind: pipeline
@@ -90,6 +129,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: ed7c530b288c1aec6ec509b7c295e2f68c258ec83711a00f5baab4bf1a6871e3
+hmac: 310c1feb2d7eba550b903be3db9b13170c183dc2007b6799df7d2c428325dc49
 
 ...
