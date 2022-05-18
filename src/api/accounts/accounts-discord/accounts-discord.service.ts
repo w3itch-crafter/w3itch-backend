@@ -1,27 +1,63 @@
+import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import * as randomstring from 'randomstring';
+import { firstValueFrom, map, mergeMap } from 'rxjs';
 
 import { AppCacheService } from '../../../cache/service';
-import { UsersService } from '../../users/users.service';
 import { AccountsService } from '../accounts.service';
 import { JwtCookieHelper } from '../jwt-cookie-helper.service';
-import { AuthorizeRequestParam, JwtTokens } from '../types';
+import type { AuthorizeRequestParam, JwtTokens } from '../types';
 
 @Injectable()
-export class AccountsGithubService {
+export class AccountsDiscordService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private readonly usersService: UsersService,
     private readonly accountsService: AccountsService,
     private readonly cacheService: AppCacheService,
     private readonly jwtCookieHelper: JwtCookieHelper,
     private readonly configService: ConfigService,
+    private readonly httpClient: HttpService,
   ) {}
+
+  async authorizeRequest(
+    request: Request,
+    param: AuthorizeRequestParam,
+  ): Promise<string> {
+    // Discord uses a state token to prevent CSRF attacks
+    // But here we use stateKey to store the user's username if they sign up
+    const stateKeyRand = randomstring.generate();
+    const stateValue = (param: AuthorizeRequestParam) => {
+      if (param.type === 'login') return '_login';
+      if (param.type === 'bind') return `_bind:${param.userId}`;
+      return param.username;
+    };
+    const ttl = this.configService.get<number>('cache.vcode.ttl');
+    await this.cacheService.set(
+      `discord_authorize_request_state_${stateKeyRand}`,
+      stateValue(param),
+      ttl,
+    );
+
+    await this.cacheService.set(
+      `discord_authorize_request_state_${stateKeyRand}_redirect_url`,
+      new URL(param.redirectUri, request.headers.origin).toString(),
+      ttl,
+    );
+
+    const result = new URL('https://discord.com/api/oauth2/authorize');
+    result.searchParams.append(
+      'client_id',
+      this.configService.get<string>('account.discord.clientId'),
+    );
+    result.searchParams.append('state', stateKeyRand);
+    result.searchParams.append('scope', 'identify');
+    result.searchParams.append('response_type', 'code');
+    return result.toString();
+  }
 
   private redirectWithParams(
     response: Response,
@@ -34,48 +70,12 @@ export class AccountsGithubService {
     response.redirect(url.toString());
   }
 
-  async authorizeRequest(
-    request: Request,
-    param: AuthorizeRequestParam,
-  ): Promise<string> {
-    // GitHub uses a state token to prevent CSRF attacks
-    // But here we use stateKey to store the user's username if they sign up
-    const stateKeyRand = randomstring.generate();
-    const stateValue = (param: AuthorizeRequestParam) => {
-      if (param.type === 'login') return '_login';
-      if (param.type === 'bind') return `_bind:${param.userId}`;
-      return param.username;
-    };
-    const ttl = this.configService.get<number>('cache.vcode.ttl');
-    await this.cacheService.set(
-      `github_authorize_request_state_${stateKeyRand}`,
-      stateValue(param),
-      ttl,
-    );
-    const redirectUrl = new URL(request.headers.origin);
-    redirectUrl.pathname = param.redirectUri;
-
-    await this.cacheService.set(
-      `github_authorize_request_state_${stateKeyRand}_redirect_url`,
-      redirectUrl.toString(),
-      ttl,
-    );
-
-    const result = new URL('https://github.com/login/oauth/authorize');
-    result.searchParams.append(
-      'client_id',
-      this.configService.get<string>('account.github.clientId'),
-    );
-    result.searchParams.append('state', stateKeyRand);
-    return result.toString();
-  }
-
   async authorizeCallback(
     response: Response,
     authorizeCallbackDto: any,
   ): Promise<void> {
-    const stateKey = `github_authorize_request_state_${authorizeCallbackDto.state}`;
-    const redirectUrlKey = `github_authorize_request_state_${authorizeCallbackDto.state}_redirect_url`;
+    const stateKey = `discord_authorize_request_state_${authorizeCallbackDto.state}`;
+    const redirectUrlKey = `discord_authorize_request_state_${authorizeCallbackDto.state}_redirect_url`;
     const state = await this.cacheService.get<string>(stateKey);
 
     /**
@@ -84,12 +84,12 @@ export class AccountsGithubService {
      * - code: HTTP status code
      * - success: true if login or signup was successful
      * - method: 'login' or 'signup' - only if the state found
-     * - service: 'GitHub' here
+     * - service: 'Discord' here
      */
     const redirectUrl = new URL(
       await this.cacheService.get<string>(redirectUrlKey),
     );
-    redirectUrl.searchParams.append('service', 'GitHub');
+    redirectUrl.searchParams.append('service', 'Discord');
 
     if (!state) {
       // the method is unknown
@@ -104,40 +104,43 @@ export class AccountsGithubService {
     // noinspection ES6MissingAwait
     this.cacheService.del(redirectUrlKey);
 
-    const fetchTokenForm = {
-      client_id: this.configService.get<string>('account.github.clientId'),
-      client_secret: this.configService.get<string>(
-        'account.github.clientSecret',
-      ),
-      code: authorizeCallbackDto.code,
-    };
-
-    let githubUsername: string;
+    let username: string;
 
     try {
-      const fetchTokenResponse = (
-        await axios.post(
-          'https://github.com/login/oauth/access_token',
-          fetchTokenForm,
-          {
-            headers: { Accept: 'application/json' },
-          },
-        )
-      ).data;
-
-      const res = await axios.get<{ login: string }>(
-        'https://api.github.com/user',
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `token ${fetchTokenResponse.access_token}`,
-          },
-        },
+      const params = new URLSearchParams();
+      params.append(
+        'client_id',
+        this.configService.get<string>('account.discord.clientId'),
       );
-      githubUsername = res.data.login;
+      params.append(
+        'client_secret',
+        this.configService.get<string>('account.discord.clientSecret'),
+      );
+      params.append('grant_type', 'authorization_code');
+      params.append('code', authorizeCallbackDto.code);
+      params.append(
+        'redirect_uri',
+        new URL(
+          '/accounts/discord/authorize-callback',
+          `${response.req.protocol}://${response.req.hostname}`,
+        ).toString(),
+      );
+
+      const observable = this.httpClient.post('/oauth2/token', params).pipe(
+        mergeMap((response) =>
+          this.httpClient.get('/users/@me', {
+            headers: {
+              Authorization: `Bearer ${response.data.access_token}`,
+            },
+          }),
+        ),
+        map(({ data }) => `${data.username}#${data.discriminator}`),
+      );
+
+      username = await firstValueFrom(observable);
     } catch (error) {
       this.logger.verbose(
-        `Failed to fetch github username from github API: ${error.message}`,
+        `Failed to fetch discord username from discord API: ${error.message}`,
       );
 
       return this.redirectWithParams(response, redirectUrl, {
@@ -152,8 +155,8 @@ export class AccountsGithubService {
         redirectUrl.searchParams.append('method', 'bind');
         await this.accountsService.bind(
           Number(state.substring(6)),
-          'github',
-          githubUsername,
+          'discord',
+          username,
         );
 
         return this.redirectWithParams(response, redirectUrl, {
@@ -161,7 +164,7 @@ export class AccountsGithubService {
           code: '200',
         });
       } catch (error) {
-        this.logger.verbose(`Failed to bind github: ${error.message}`);
+        this.logger.verbose(`Failed to bind discord: ${error.message}`);
         return this.redirectWithParams(response, redirectUrl, {
           success: 'false',
           code: '401',
@@ -171,13 +174,10 @@ export class AccountsGithubService {
       try {
         redirectUrl.searchParams.append('method', 'login');
         loginTokens = (
-          await this.accountsService.login(
-            { account: githubUsername },
-            'github',
-          )
+          await this.accountsService.login({ account: username }, 'discord')
         ).tokens;
       } catch (error) {
-        this.logger.verbose(`Failed to login with github: ${error.message}`);
+        this.logger.verbose(`Failed to login with discord: ${error.message}`);
         return this.redirectWithParams(response, redirectUrl, {
           success: 'false',
           code: '401',
@@ -188,12 +188,12 @@ export class AccountsGithubService {
         redirectUrl.searchParams.append('method', 'signup');
         loginTokens = (
           await this.accountsService.signup(
-            { account: githubUsername, username: state },
-            'github',
+            { account: username, username: state },
+            'discord',
           )
         ).tokens;
       } catch (error) {
-        this.logger.verbose(`Failed to signup with github: ${error.message}`);
+        this.logger.verbose(`Failed to signup with discord: ${error.message}`);
         return this.redirectWithParams(response, redirectUrl, {
           success: 'false',
           code: '400',
@@ -209,6 +209,6 @@ export class AccountsGithubService {
   }
 
   async unbind(userId: number) {
-    await this.accountsService.unbind(userId, 'github');
+    await this.accountsService.unbind(userId, 'discord');
   }
 }

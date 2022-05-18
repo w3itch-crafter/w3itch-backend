@@ -69,6 +69,9 @@ account:
   github:
     clientId:
     clientSecret:
+  discord:
+    clientId:
+    clientSecret:
 
 user:
   username:
