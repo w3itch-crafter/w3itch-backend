@@ -73,6 +73,9 @@ config/arweave.json
 !/thirdparty/**/.gitkeep
 !thirdparty/player
 
+# Minetest
+!thirdparty/minetest
+
 
 # JWT keys
 /config/JWT_PRIVATE_KEY.pem
