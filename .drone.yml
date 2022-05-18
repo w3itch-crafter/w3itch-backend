@@ -81,10 +81,8 @@ steps:
 
     commands:
       - echo $VERSION
-      - export CONFIG_VERSION = $VERSION
       - export HOME=/home/w3itch
-      - echo $CONFIG_VERSION
-      - git clone -b $CONFIG_VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
+      - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
       - cp -r /home/w3itch/w3itch-backend-config /home/w3itch/w3itch-backend-config-for-rollback
       - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/
@@ -141,6 +139,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 507d195c6aab63f91bb736975bc34f0cb7e49c99c90485cf8b3f8094833cd970
+hmac: 96843a97a13842dccdd0fb6cea2efda34ee832e158cbb0cad20f8e95c10acf3f
 
 ...
