@@ -80,7 +80,7 @@ steps:
   - name: update-config
     commands:
       - export HOME=/home/w3itch
-      - git clone -b v0.3.0 --single-branch git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
+      - git clone -b v0.3.0 --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
       - cp -r /home/w3itch/w3itch-backend-config /home/w3itch/w3itch-backend-config-for-rollback
       - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/
@@ -135,6 +135,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: d102662128a56cfb759114eb4a3b88c7a6535c7315ff46c1a7e1a29dea0d34b9
+hmac: 68a014c861f6477b2ff02c823cba09d58bed8b49e04d8ff555283b74ddd193a0
 
 ...
