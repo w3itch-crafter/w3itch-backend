@@ -94,6 +94,7 @@ steps:
       - pm2 stop w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend-for-rollback
       - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
+      - mkdir /home/w3itch/w3itch-backend
       - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
       - cp -r * /home/w3itch/w3itch-backend/
       - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
@@ -107,6 +108,48 @@ steps:
       - rm -rf ./thirdparty/rtp
       - cp -r /var/easyrpg/rtp /home/w3itch/w3itch-backend/thirdparty/rtp
       - yarn typeorm:prod migration:run
+      - pm2 restart w3itch-backend
+trigger:
+  event:
+    - promote
+  target:
+    - production
+
+---
+kind: pipeline
+type: ssh
+name: rollback-prod
+
+server:
+  host: api.w3itch.io
+  user: w3itch
+  ssh_key:
+    from_secret: SSH_ID_RSA
+
+steps:
+  - name: greeting
+    commands:
+      - echo rollback production
+  - name: check-env
+    commands:
+      - ifconfig
+      - pwd
+  - name: list-easyrpg-games
+    commands:
+      - ls /var/easyrpg/games
+  - name: rollback-config
+
+    commands:
+      - echo $VERSION
+      - export HOME=/home/w3itch
+      - rm -rf /home/w3itch/w3itch-backend-config
+      - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
+  - name: rollback-project
+    commands:
+      - export PM2_HOME=/home/w3itch/.pm2
+      - pm2 stop w3itch-backend
+      - rm -rf /home/w3itch/w3itch-backend
+      - cp -r /home/w3itch/w3itch-backend-rollback /home/w3itch/w3itch-backend
       - pm2 restart w3itch-backend
 trigger:
   event:
@@ -152,6 +195,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: e982d9e8cd55f632de74589a046e79e9c78fbf004a5ee644a161d7429b1d129d
+hmac: 19ec70b126a31167718e0d1d0413b1c32c8fbf39758649c52fa506e2e11cc4ab
 
 ...
