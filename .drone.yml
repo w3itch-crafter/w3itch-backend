@@ -153,7 +153,7 @@ steps:
       - pm2 restart w3itch-backend
 trigger:
   event:
-    - promote
+    - rollback
   target:
     - production
 
@@ -195,6 +195,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 19ec70b126a31167718e0d1d0413b1c32c8fbf39758649c52fa506e2e11cc4ab
+hmac: f29e29631ecc1d86a607f802465b423b19375d096701a1f12ff0c1e651c254cd
 
 ...
