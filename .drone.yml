@@ -185,7 +185,24 @@ steps:
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
-      - pm2 status
+      - pm2 stop w3itch-backend
+      - rm -rf /home/w3itch/w3itch-backend-for-rollback
+      - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
+      - mkdir /home/w3itch/w3itch-backend
+      - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
+      - cp -r * /home/w3itch/w3itch-backend/
+      - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
+      - cd /home/w3itch/w3itch-backend
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/games
+      - ln -s /var/easyrpg/games /home/w3itch/w3itch-backend/thirdparty/games
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/gencache
+      - ln -s /var/easyrpg/gencache /home/w3itch/w3itch-backend/thirdparty/gencache
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/downloads
+      - ln -s /var/easyrpg/downloads /home/w3itch/w3itch-backend/thirdparty/downloads
+      - rm -rf ./thirdparty/rtp
+      - cp -r /var/easyrpg/rtp /home/w3itch/w3itch-backend/thirdparty/rtp
+      - yarn typeorm:prod migration:run
+      - pm2 restart w3itch-backend
 
 trigger:
   branch:
@@ -195,6 +212,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 5aeb7d6ce308548bd2fc6155fe8bf9ba488a65a8cd9955146f24d94e2fbe563c
+hmac: 768bdd452dcdba679a07e5d722b7e8e8d2f2c7b200b1739f44a2e4515ef020e8
 
 ...
