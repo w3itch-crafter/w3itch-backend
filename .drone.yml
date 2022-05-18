@@ -32,6 +32,7 @@ steps:
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
+
   - name: build
     commands:
       - export HOME=/home/w3itch
@@ -41,6 +42,9 @@ steps:
       - node -v
       - yarn
       - yarn build
+      - cp * /home/w3itch/w3itch-backend-build/
+      - cd /home/w3itch/w3itch-backend-build
+
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 status
 
@@ -73,6 +77,13 @@ steps:
   - name: list-easyrpg-games
     commands:
       - ls /var/easyrpg/games
+  - name: update-config
+    commands:
+      - export HOME=/home/w3itch
+      - git clone -b v0.3.0 --single-branch git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
+      - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
+      - cp -r /home/w3itch/w3itch-backend-config /home/w3itch/w3itch-backend-config-for-rollback
+      - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/
   - name: build
     commands:
       - yarn
@@ -124,6 +135,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: e60b183ccd5deacf375cbd4fc0d5938d585f135794f65b23d3b95e8dee8b26f7
+hmac: d102662128a56cfb759114eb4a3b88c7a6535c7315ff46c1a7e1a29dea0d34b9
 
 ...
