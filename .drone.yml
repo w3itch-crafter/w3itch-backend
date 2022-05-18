@@ -82,19 +82,32 @@ steps:
     commands:
       - echo $VERSION
       - export HOME=/home/w3itch
-      - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
+      - pm2 restart w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
       - cp -r /home/w3itch/w3itch-backend-config /home/w3itch/w3itch-backend-config-for-rollback
-      - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/
+      - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/config/
   - name: build
     commands:
       - yarn
       - yarn build
-      - rm -rf /home/w3itch/w3itch-backend-for-rollback
-      - cp -r /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
       - export PM2_HOME=/home/w3itch/.pm2
-      - pm2 status
-
+      - pm2 stop w3itch-backend
+      - rm -rf /home/w3itch/w3itch-backend-for-rollback
+      - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
+      - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
+      - cd .. & cp -r src /home/w3itch/w3itch-backend
+      - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
+      - cd /home/w3itch/w3itch-backend
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/games
+      - ln -s /var/easyrpg/games /home/w3itch/w3itch-backend/thirdparty/games
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/gencache
+      - ln -s /var/easyrpg/gencache /home/w3itch/w3itch-backend/thirdparty/gencache
+      - rm -rf /home/w3itch/w3itch-backend/thirdparty/downloads
+      - ln -s /var/easyrpg/downloads /home/w3itch/w3itch-backend/thirdparty/downloads
+      - rm -rf ./thirdparty/rtp
+      - cp -r /var/easyrpg/rtp /home/w3itch/w3itch-backend/thirdparty/rtp
+      - yarn typeorm:prod migration:run
+      - pm2 restart w3itch-backend
 trigger:
   event:
     - promote
@@ -139,6 +152,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 96843a97a13842dccdd0fb6cea2efda34ee832e158cbb0cad20f8e95c10acf3f
+hmac: d24c2f715f3926acefd13428fabab81fb9345a6cad921962a91a04a0f725817a
 
 ...
