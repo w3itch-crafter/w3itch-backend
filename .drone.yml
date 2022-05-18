@@ -82,7 +82,7 @@ steps:
     commands:
       - echo $VERSION
       - export HOME=/home/w3itch
-      - pm2 restart w3itch-backend
+      - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
       - cp -r /home/w3itch/w3itch-backend-config /home/w3itch/w3itch-backend-config-for-rollback
       - cp w3itch-backend-config/config/config.production.yaml /home/w3itch/w3itch-backend-config/config/
@@ -152,6 +152,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: d24c2f715f3926acefd13428fabab81fb9345a6cad921962a91a04a0f725817a
+hmac: 3f2088cb79772b9594d994f16704bf44e5164f5d3764864d8ceaf0881436e0d4
 
 ...
