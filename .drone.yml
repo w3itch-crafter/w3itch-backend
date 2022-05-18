@@ -95,7 +95,7 @@ steps:
       - rm -rf /home/w3itch/w3itch-backend-for-rollback
       - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
       - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
-      - cd .. & cp -r src /home/w3itch/w3itch-backend
+      - cp -r * /home/w3itch/w3itch-backend/
       - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
       - cd /home/w3itch/w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend/thirdparty/games
@@ -152,6 +152,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 3f2088cb79772b9594d994f16704bf44e5164f5d3764864d8ceaf0881436e0d4
+hmac: e982d9e8cd55f632de74589a046e79e9c78fbf004a5ee644a161d7429b1d129d
 
 ...
