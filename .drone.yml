@@ -54,10 +54,10 @@ trigger:
 ---
 kind: pipeline
 type: ssh
-name: promotion-testing
+name: promotion-prod
 
 server:
-  host: backend-api.testenv.w3itch.io
+  host: api.w3itch.io
   user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
@@ -65,7 +65,7 @@ server:
 steps:
   - name: greeting
     commands:
-      - echo promotion testing
+      - echo promotion production
   - name: check-env
     commands:
       - ifconfig
@@ -89,7 +89,7 @@ trigger:
   event:
     - promote
   target:
-    - testing
+    - production
 
 ---
 kind: pipeline
@@ -129,6 +129,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 310c1feb2d7eba550b903be3db9b13170c183dc2007b6799df7d2c428325dc49
+hmac: 2e2792ab04db185140e168ab2caa6e4ea9efc4a0f88bee11dc1bc14b3bbca98e
 
 ...
