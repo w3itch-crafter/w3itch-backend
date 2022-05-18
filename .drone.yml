@@ -75,11 +75,6 @@ steps:
       - ls /var/easyrpg/games
   - name: build
     commands:
-      - export HOME=/home/w3itch
-      - export NVM_DIR="$HOME/.nvm"
-      - . "$NVM_DIR/nvm.sh"
-      - nvm use node
-      - node -v
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -129,6 +124,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 2e2792ab04db185140e168ab2caa6e4ea9efc4a0f88bee11dc1bc14b3bbca98e
+hmac: e60b183ccd5deacf375cbd4fc0d5938d585f135794f65b23d3b95e8dee8b26f7
 
 ...
