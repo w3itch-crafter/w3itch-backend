@@ -149,7 +149,7 @@ steps:
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 stop w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend
-      - cp -r /home/w3itch/w3itch-backend-rollback /home/w3itch/w3itch-backend
+      - cp -r /home/w3itch/w3itch-backend-for-rollback /home/w3itch/w3itch-backend
       - pm2 restart w3itch-backend
 trigger:
   event:
@@ -195,6 +195,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: f29e29631ecc1d86a607f802465b423b19375d096701a1f12ff0c1e651c254cd
+hmac: 5aeb7d6ce308548bd2fc6155fe8bf9ba488a65a8cd9955146f24d94e2fbe563c
 
 ...
