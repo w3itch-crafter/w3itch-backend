@@ -96,8 +96,8 @@ steps:
     commands:
       - echo $VERSION
       - export HOME=/home/w3itch
-      - rm -rf /home/w3itch/w3itch-backend-config-testing
-      - cp -r /home/w3itch/w3itch-backend-config-testing-for-rollback /home/w3itch/w3itch-backend-config-testing
+      - rm -rf /home/w3itch/w3itch-backend-config
+      - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
   - name: rollback-project
     commands:
       - export PM2_HOME=/home/w3itch/.pm2
@@ -336,6 +336,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: df09658bcbd6b9b004112509f09dd1a72f3d760cf874c43d8290b2553f52f2ed
+hmac: 054d181cdf3a9df3ee11dc7364cf13d688c0a9805fa0f40260cca5ff7ab64b5e
 
 ...
