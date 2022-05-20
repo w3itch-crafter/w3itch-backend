@@ -9,9 +9,7 @@ import { firstValueFrom, map, mergeMap } from 'rxjs';
 import { AppCacheService } from '../../../cache/service';
 import { AccountsService } from '../accounts.service';
 import { JwtCookieHelper } from '../jwt-cookie-helper.service';
-import type { JwtTokens } from '../types';
-import type { AccountsLoginDiscordDto } from './dto/accounts-login-discord.dto';
-import type { AccountsSignupDiscordDto } from './dto/accounts-signup-discord.dto';
+import type { AuthorizeRequestParam, JwtTokens } from '../types';
 
 @Injectable()
 export class AccountsDiscordService {
@@ -27,22 +25,26 @@ export class AccountsDiscordService {
 
   async authorizeRequest(
     request: Request,
-    dto: AccountsSignupDiscordDto | AccountsLoginDiscordDto,
+    param: AuthorizeRequestParam,
   ): Promise<string> {
     // Discord uses a state token to prevent CSRF attacks
     // But here we use stateKey to store the user's username if they sign up
     const stateKeyRand = randomstring.generate();
-    const stateValue = (dto as AccountsSignupDiscordDto).username ?? '_login';
+    const stateValue = (param: AuthorizeRequestParam) => {
+      if (param.type === 'login') return '_login';
+      if (param.type === 'bind') return `_bind:${param.userId}`;
+      return param.username;
+    };
     const ttl = this.configService.get<number>('cache.vcode.ttl');
     await this.cacheService.set(
       `discord_authorize_request_state_${stateKeyRand}`,
-      stateValue,
+      stateValue(param),
       ttl,
     );
 
     await this.cacheService.set(
       `discord_authorize_request_state_${stateKeyRand}_redirect_url`,
-      new URL(dto.redirectUri, request.headers.origin).toString(),
+      new URL(param.redirectUri, request.headers.origin).toString(),
       ttl,
     );
 
@@ -96,10 +98,6 @@ export class AccountsDiscordService {
         code: '400',
       });
     }
-    redirectUrl.searchParams.append(
-      'method',
-      state === '_login' ? 'login' : 'signup',
-    );
 
     // noinspection ES6MissingAwait
     this.cacheService.del(stateKey);
@@ -152,8 +150,29 @@ export class AccountsDiscordService {
     }
 
     let loginTokens: JwtTokens;
-    if (state === '_login') {
+    if (state.startsWith('_bind:')) {
       try {
+        redirectUrl.searchParams.append('method', 'bind');
+        await this.accountsService.bind(
+          Number(state.substring(6)),
+          'discord',
+          username,
+        );
+
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'true',
+          code: '200',
+        });
+      } catch (error) {
+        this.logger.verbose(`Failed to bind discord: ${error.message}`);
+        return this.redirectWithParams(response, redirectUrl, {
+          success: 'false',
+          code: '401',
+        });
+      }
+    } else if (state === '_login') {
+      try {
+        redirectUrl.searchParams.append('method', 'login');
         loginTokens = (
           await this.accountsService.login({ account: username }, 'discord')
         ).tokens;
@@ -164,17 +183,15 @@ export class AccountsDiscordService {
           code: '401',
         });
       }
-    } else
+    } else {
       try {
-        {
-          redirectUrl.searchParams.append('method', 'signup');
-          loginTokens = (
-            await this.accountsService.signup(
-              { account: username, username: state },
-              'discord',
-            )
-          ).tokens;
-        }
+        redirectUrl.searchParams.append('method', 'signup');
+        loginTokens = (
+          await this.accountsService.signup(
+            { account: username, username: state },
+            'discord',
+          )
+        ).tokens;
       } catch (error) {
         this.logger.verbose(`Failed to signup with discord: ${error.message}`);
         return this.redirectWithParams(response, redirectUrl, {
@@ -182,11 +199,16 @@ export class AccountsDiscordService {
           code: '400',
         });
       }
+    }
     await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
 
     return this.redirectWithParams(response, redirectUrl, {
       success: 'true',
       code: '200',
     });
+  }
+
+  async unbind(userId: number) {
+    await this.accountsService.unbind(userId, 'discord');
   }
 }

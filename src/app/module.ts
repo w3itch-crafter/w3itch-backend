@@ -10,6 +10,7 @@ import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accoun
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
 import { TokensModule } from '../api/blockchains/tokens/tokens.module';
 import { GamesModule } from '../api/games/games.module';
+import { MineTestModule } from '../api/minetest/module';
 import { PlayerModule } from '../api/player/module';
 import { PricesModule } from '../api/prices/prices.module';
 import { RatingsModule } from '../api/ratings/ratings.module';
@@ -47,6 +48,7 @@ import { WinstonConfigService } from '../configs/winston';
     RatingsModule,
     TokensModule,
     PlayerModule,
+    MineTestModule,
   ],
 })
 export class AppModule {}

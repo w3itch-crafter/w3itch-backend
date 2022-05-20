@@ -12,3 +12,22 @@ export interface JwtTokens {
   accessToken: string;
   refreshToken: string;
 }
+
+type AuthorizeSignupRequest = {
+  type: 'signup';
+  username: string;
+  redirectUri: string;
+};
+type AuthorizeLoginRequest = {
+  type: 'login';
+  redirectUri: string;
+};
+type AuthorizeBindRequest = {
+  type: 'bind';
+  userId: number;
+  redirectUri: string;
+};
+export type AuthorizeRequestParam =
+  | AuthorizeSignupRequest
+  | AuthorizeLoginRequest
+  | AuthorizeBindRequest;
