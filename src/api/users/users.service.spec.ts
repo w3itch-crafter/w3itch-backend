@@ -1,13 +1,25 @@
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Repository } from 'typeorm';
-import { User } from '../../entities/User.entity';
+
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;
 
+  const configuration = () => ({
+    user: {
+      username: {
+        reservedList: ['api', 'background'],
+      },
+    },
+  });
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          load: [configuration],
+        }),
+      ],
       providers: [
         UsersService,
         {
@@ -22,5 +34,6 @@ describe('UsersService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(service.usernameReserved).toBeDefined();
   });
 });
