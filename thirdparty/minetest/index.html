@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Minetest 5.6.0</title>
     <style>
       body {
@@ -38,7 +38,7 @@
       #controls {
         display: inline-block;
         vertical-align: top;
-	height: 25px;
+        height: 25px;
       }
 
       #output {
@@ -58,68 +58,80 @@
       }
 
       .launchbutton {
-          position: absolute;
-          width: 300px;
-          height: 120px;
-          z-index: 10;
-          font-size: 20pt;
+        position: absolute;
+        width: 300px;
+        height: 120px;
+        z-index: 10;
+        font-size: 20pt;
       }
     </style>
   </head>
   <body>
+    <div id="header">
+      <div class="emscripten">
+        <span id="controls">
+          <span>
+            <select id="resolution" onchange="fixGeometry()">
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </span>
+          <span>
+            <select id="aspectRatio" onchange="fixGeometry()">
+              <option value="any">Fit Screen</option>
+              <option value="4:3">4:3</option>
+              <option value="16:9">16:9</option>
+              <option value="5:4">5:4</option>
+              <option value="21:9">21:9</option>
+              <option value="32:9">32:9</option>
+              <option value="1:1">1:1</option>
+            </select>
+          </span>
+          <span
+            ><input
+              type="button"
+              value="Toggle Fullscreen"
+              onclick="fullscreen_button()"
+          /></span>
+          <span
+            ><input
+              type="button"
+              value="Toggle Console"
+              onclick="toggle_console()"
+          /></span>
+        </span>
+      </div>
 
-  <div id="header">
+      <div class="emscripten">
+        <progress value="0" max="100" id="progress" hidden="1"></progress>
+      </div>
+    </div>
 
-  <div class="emscripten">
-    <span id='controls'>
-      <span>
-        <select id="resolution" onchange="fixGeometry()">
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </span>
-      <span>
-        <select id="aspectRatio" onchange="fixGeometry()">
-          <option value="any">Fit Screen</option>
-          <option value="4:3">4:3</option>
-          <option value="16:9">16:9</option>
-          <option value="5:4">5:4</option>
-          <option value="21:9">21:9</option>
-          <option value="32:9">32:9</option>
-          <option value="1:1">1:1</option>
-        </select>
-      </span>
-      <span><input type="button" value="Toggle Fullscreen" onclick="fullscreen_button()"></span>
-      <span><input type="button" value="Toggle Console" onclick="toggle_console()"></span>
-    </span>
-  </div>
+    <div class="emscripten">
+      <canvas
+        class="emscripten"
+        id="canvas"
+        oncontextmenu="event.preventDefault()"
+        onclick="doLaunch()"
+        tabindex="-1"
+        width="1024"
+        height="600"
+      >
+      </canvas>
+    </div>
 
-  <div class="emscripten">
-    <progress value="0" max="100" id="progress" hidden=1></progress>
-  </div>
+    <div id="footer">
+      <textarea id="output" rows="8" style="display: none"></textarea>
+    </div>
 
-  </div>
-
-  <div class="emscripten">
-    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" onclick="doLaunch()" tabindex=-1 width="1024" height="600">
-    </canvas>
-  </div>
-
-  <div id="footer">
-    <textarea id="output" rows="8" style="display: none;"></textarea>
-  </div>
-
-
-
-
-
-    <script type='text/javascript'>
+    <script type="text/javascript">
       var progressElement = document.getElementById('progress');
 
       function toggle_console() {
         var element = document.getElementById('output');
-        element.style.display = (element.style.display == 'block') ? 'none' : 'block';
+        element.style.display =
+          element.style.display == 'block' ? 'none' : 'block';
         fixGeometry();
       }
 
@@ -134,88 +146,120 @@
 
       // Called by the MainLoop when main() is ready to be called
       function emloop_ready() {
-          wasmReady = true;
-          emloop_invoke_main = cwrap("emloop_invoke_main", null, ["number", "number"]);
-	  irrlicht_want_pointerlock = cwrap("irrlicht_want_pointerlock", "number");
-          irrlicht_resize = cwrap("irrlicht_resize", null, ["number", "number"]);
-          showLaunchButton();
+        wasmReady = true;
+        emloop_invoke_main = cwrap('emloop_invoke_main', null, [
+          'number',
+          'number',
+        ]);
+        irrlicht_want_pointerlock = cwrap(
+          'irrlicht_want_pointerlock',
+          'number',
+        );
+        irrlicht_resize = cwrap('irrlicht_resize', null, ['number', 'number']);
+        showLaunchButton();
       }
 
       var launchButton;
       function showLaunchButton() {
-          if (launchButton) return;
-          launchButton = document.createElement('button');
-          launchButton.className = 'launchbutton';
-          launchButton.innerText = 'Click to Launch';
-          launchButton.addEventListener('click', doLaunch);
-          document.body.appendChild(launchButton);
-          fixGeometry();
+        if (launchButton) return;
+        launchButton = document.createElement('button');
+        launchButton.className = 'launchbutton';
+        launchButton.innerText = 'Click to Launch';
+        launchButton.addEventListener('click', doLaunch);
+        document.body.appendChild(launchButton);
+        fixGeometry();
       }
 
       function makeArgv(args) {
-          // Assuming 4-byte pointers
-          const argv = _malloc((args.length + 1) * 4);
-          let i;
-          for (i = 0; i < args.length; i++) {
-              HEAPU32[(argv >> 2) + i] = allocateUTF8(args[i]);
-          }
-          HEAPU32[(argv >> 2) + i] = 0; // argv[argc] == NULL
-          return [i, argv];
+        // Assuming 4-byte pointers
+        const argv = _malloc((args.length + 1) * 4);
+        let i;
+        for (i = 0; i < args.length; i++) {
+          HEAPU32[(argv >> 2) + i] = allocateUTF8(args[i]);
+        }
+        HEAPU32[(argv >> 2) + i] = 0; // argv[argc] == NULL
+        return [i, argv];
       }
 
       function doLaunch() {
         if (launchButton) {
-            launchButton.remove();
-            launchButton = null;
+          launchButton.remove();
+          launchButton = null;
         }
 
         if (!invokedMain && wasmReady) {
-            invokedMain = true;
-            const args = ['./minetest'];
-            const [argc, argv] = makeArgv(args);
-            emloop_invoke_main(argc, argv);
-            // irrlicht initialization resets the width/height
-            fixGeometry();
+          const queryString = window.location.search;
+          const urlParams = new URLSearchParams(queryString);
+          const address = urlParams.get('address');
+          const name = urlParams.get('name');
+          const pwd = urlParams.get('pwd');
+
+          invokedMain = true;
+          const args =
+            address && name
+              ? [
+                  './minetest',
+                  '--go',
+                  '--address',
+                  address,
+                  '--name',
+                  name,
+                  '--password',
+                  '',
+                ]
+              : ['./minetest'];
+          const [argc, argv] = makeArgv(args);
+          emloop_invoke_main(argc, argv);
+          // irrlicht initialization resets the width/height
+          fixGeometry();
         }
       }
 
       function consoleUpdate() {
-          if (consoleDirty) {
-            if (consoleText.length > consoleLengthMax) {
-                consoleText = consoleText.slice(-consoleLengthMax);
-            }
-            consoleElement.value = consoleText.join('');
-            consoleElement.scrollTop = consoleElement.scrollHeight; // focus on bottom
-            consoleDirty = false;
+        if (consoleDirty) {
+          if (consoleText.length > consoleLengthMax) {
+            consoleText = consoleText.slice(-consoleLengthMax);
           }
-          window.requestAnimationFrame(consoleUpdate);
+          consoleElement.value = consoleText.join('');
+          consoleElement.scrollTop = consoleElement.scrollHeight; // focus on bottom
+          consoleDirty = false;
+        }
+        window.requestAnimationFrame(consoleUpdate);
       }
       consoleUpdate();
 
       var Module = {
         preRun: [],
         postRun: [],
-        print: (function() {
-          return function(text) {
+        print: (function () {
+          return function (text) {
             if (enableTracing) {
               console.trace(text);
             }
-            consoleText.push(text + "\n");
+            consoleText.push(text + '\n');
             consoleDirty = true;
           };
         })(),
-        canvas: (function() {
+        canvas: (function () {
           var canvas = document.getElementById('canvas');
 
           // As a default initial behavior, pop up an alert when webgl context is lost. To make your
           // application robust, you may want to override this behavior before shipping!
           // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+          canvas.addEventListener(
+            'webglcontextlost',
+            function (e) {
+              alert('WebGL context lost. You will need to reload the page.');
+              e.preventDefault();
+            },
+            false,
+          );
 
           return canvas;
         })(),
-        setStatus: function(text) {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+        setStatus: function (text) {
+          if (!Module.setStatus.last)
+            Module.setStatus.last = { time: Date.now(), text: '' };
           if (text === Module.setStatus.last.text) return;
           if (text) Module.print('[status] ' + text);
 
@@ -226,8 +270,8 @@
           Module.setStatus.last.text = text;
           if (m) {
             text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
+            progressElement.value = parseInt(m[2]) * 100;
+            progressElement.max = parseInt(m[4]) * 100;
             progressElement.hidden = false;
           } else {
             progressElement.value = null;
@@ -236,18 +280,28 @@
           }
         },
         totalDependencies: 0,
-        monitorRunDependencies: function(left) {
+        monitorRunDependencies: function (left) {
           this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-        }
+          Module.setStatus(
+            left
+              ? 'Preparing... (' +
+                  (this.totalDependencies - left) +
+                  '/' +
+                  this.totalDependencies +
+                  ')'
+              : 'All downloads complete.',
+          );
+        },
       };
       Module['printErr'] = Module['print'];
-      Module['onFullScreen'] = () => { fixGeometry(); };
+      Module['onFullScreen'] = () => {
+        fixGeometry();
+      };
       Module.setStatus('Downloading...');
-      window.onerror = function(event) {
+      window.onerror = function (event) {
         // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
         Module.print('Exception thrown, see JavaScript console');
-        Module.setStatus = function(text) {
+        Module.setStatus = function (text) {
           if (text) Module.print('[status] ' + text);
         };
       };
@@ -266,18 +320,18 @@
       }
 
       function resizeCanvas(width, height) {
-          var canvas = document.getElementById('canvas');
-          if (canvas.width != width || canvas.height != height) {
-            canvas.width = width;
-            canvas.height = height;
-            canvas.widthNative = width;
-            canvas.heightNative = height;
-          }
-          // Trigger SDL window resize.
-          // This should happen automatically, it's disappointing that it doesn't.
-          if (wasmReady) {
-              irrlicht_resize(width, height);
-          }
+        var canvas = document.getElementById('canvas');
+        if (canvas.width != width || canvas.height != height) {
+          canvas.width = width;
+          canvas.height = height;
+          canvas.widthNative = width;
+          canvas.heightNative = height;
+        }
+        // Trigger SDL window resize.
+        // This should happen automatically, it's disappointing that it doesn't.
+        if (wasmReady) {
+          irrlicht_resize(width, height);
+        }
       }
 
       var resolutionSelect = document.getElementById('resolution');
@@ -292,32 +346,36 @@
 
         var isFullScreen = document.fullscreenElement ? true : false;
         if (isFullScreen) {
-            screenX = screen.width;
-            screenY = screen.height;
+          screenX = screen.width;
+          screenY = screen.height;
         } else {
-            var headerHeight = document.getElementById('header').offsetHeight;
-            var footerHeight = document.getElementById('footer').offsetHeight;
-            screenX = document.documentElement.clientWidth - 6;
-            screenY = document.documentElement.clientHeight - headerHeight - footerHeight - 6;
+          var headerHeight = document.getElementById('header').offsetHeight;
+          var footerHeight = document.getElementById('footer').offsetHeight;
+          screenX = document.documentElement.clientWidth - 6;
+          screenY =
+            document.documentElement.clientHeight -
+            headerHeight -
+            footerHeight -
+            6;
         }
 
         // Size of the viewport (after scaling)
         var realX;
         var realY;
         if (aspectRatio == 'any') {
-            realX = screenX;
-            realY = screenY;
+          realX = screenX;
+          realY = screenY;
         } else {
-            var ar = aspectRatio.split(':');
-            var innerRatio = parseInt(ar[0]) / parseInt(ar[1]);
-            var outerRatio = screenX / screenY;
-            if (innerRatio <= outerRatio) {
-                realX = Math.floor(innerRatio * screenY);
-                realY = screenY;
-            } else {
-                realX = screenX;
-                realY = Math.floor(screenX / innerRatio);
-            }
+          var ar = aspectRatio.split(':');
+          var innerRatio = parseInt(ar[0]) / parseInt(ar[1]);
+          var outerRatio = screenX / screenY;
+          if (innerRatio <= outerRatio) {
+            realX = Math.floor(innerRatio * screenY);
+            realY = screenY;
+          } else {
+            realX = screenX;
+            realY = Math.floor(screenX / innerRatio);
+          }
         }
 
         // Native canvas resolution
@@ -325,35 +383,35 @@
         var resY;
         var scale = false;
         if (resolution == 'high') {
-            resX = realX;
-            resY = realY;
+          resX = realX;
+          resY = realY;
         } else if (resolution == 'medium') {
-            resX = Math.floor(realX / 1.5);
-            resY = Math.floor(realY / 1.5);
-            scale = true;
+          resX = Math.floor(realX / 1.5);
+          resY = Math.floor(realY / 1.5);
+          scale = true;
         } else {
-            resX = Math.floor(realX / 2.0);
-            resY = Math.floor(realY / 2.0);
-            scale = true;
+          resX = Math.floor(realX / 2.0);
+          resY = Math.floor(realY / 2.0);
+          scale = true;
         }
         resizeCanvas(resX, resY);
 
         if (scale) {
-            var styleWidth = realX + "px";
-            var styleHeight = realY + "px";
-            canvas.style.setProperty("width", styleWidth, "important");
-            canvas.style.setProperty("height", styleHeight, "important");
+          var styleWidth = realX + 'px';
+          var styleHeight = realY + 'px';
+          canvas.style.setProperty('width', styleWidth, 'important');
+          canvas.style.setProperty('height', styleHeight, 'important');
         } else {
-            canvas.style.removeProperty("width");
-            canvas.style.removeProperty("height");
+          canvas.style.removeProperty('width');
+          canvas.style.removeProperty('height');
         }
 
         if (launchButton) {
-            var canvasRect = canvas.getBoundingClientRect();
-            var midX = Math.floor((canvasRect.top + canvasRect.bottom) / 2);
-            var midY = Math.floor((canvasRect.left + canvasRect.right) / 2);
-            launchButton.style.left = (midY - 300/2) + 'px';
-            launchButton.style.top = (midX - 120/2) + 'px';
+          var canvasRect = canvas.getBoundingClientRect();
+          var midX = Math.floor((canvasRect.top + canvasRect.bottom) / 2);
+          var midY = Math.floor((canvasRect.left + canvasRect.right) / 2);
+          launchButton.style.left = midY - 300 / 2 + 'px';
+          launchButton.style.top = midX - 120 / 2 + 'px';
         }
       }
       window.addEventListener('load', fixGeometry);
@@ -361,7 +419,9 @@
 
       // Needed to prevent special keys from triggering browser actions, like
       // F5 causing page reload.
-      document.addEventListener('keydown', (e) => { e.preventDefault(); });
+      document.addEventListener('keydown', (e) => {
+        e.preventDefault();
+      });
     </script>
     <script async type="text/javascript" src="minetest.js"></script>
   </body>
