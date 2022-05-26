@@ -192,7 +192,8 @@
           const urlParams = new URLSearchParams(queryString);
           const address = urlParams.get('address');
           const name = urlParams.get('name');
-          const pwd = urlParams.get('pwd');
+          const pwd = urlParams.get('pwd') ?? '';
+          const port = urlParams.get('port') ?? 30000;
 
           invokedMain = true;
           const args =
@@ -205,7 +206,9 @@
                   '--name',
                   name,
                   '--password',
-                  '',
+                  pwd,
+                  '--port',
+                  port,
                 ]
               : ['./minetest'];
           const [argc, argv] = makeArgv(args);
@@ -423,6 +426,6 @@
         e.preventDefault();
       });
     </script>
-    <script async type="text/javascript" src="minetest.js"></script>
+    <script async type="text/javascript" src="/minetest/minetest.js"></script>
   </body>
 </html>
