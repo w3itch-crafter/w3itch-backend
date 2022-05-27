@@ -1,6 +1,10 @@
 import {
+  CacheKey,
+  CacheTTL,
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Inject,
   LoggerService,
   StreamableFile,
@@ -9,37 +13,35 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import { constants } from 'http2';
+import * as ICAL from 'ical.js';
 import { JSDOM } from 'jsdom';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-
-import { AppCacheService } from '../../cache/service';
-
-type Event = {
-  title: string;
-  start: Date;
-  end: Date;
-  link: string;
-};
 
 @ApiTags('Calendar')
 @Controller('calendar')
 export class CalendarController {
   static cacheTTL = 60 * 60;
   static cacheKey = 'events';
-  static cacheKeyICal = 'events.ics';
 
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private readonly cacheService: AppCacheService,
   ) {}
 
   async getHackathons() {
-    const response = await axios.get<string>('https://gitcoin.co/hackathons', {
+    const url = 'https://gitcoin.co/hackathons';
+    const response = await axios.get<string>(url, {
       responseType: 'text',
     });
     if (response.status !== constants.HTTP_STATUS_OK) {
       this.logger.error(`Get calendar error: ${response.statusText}`);
+      return undefined;
+    }
+    if (/recaptcha/.exec(response.data)) {
+      this.logger.warn(
+        `Need to enter verification code: ${url}`,
+        CalendarController.name,
+      );
       return undefined;
     }
 
@@ -50,78 +52,48 @@ export class CalendarController {
     const upcoming = dom.window.document.querySelectorAll(
       '.hackathon-list.upcoming .card-body',
     );
+    const events = Array.from(current).concat(Array.from(upcoming));
 
-    const hackathons: (Event | null)[] = Array.from(current)
-      .concat(Array.from(upcoming))
-      .map((x: Element) => {
-        const times = x.querySelectorAll(':scope .title-and-dates time');
-        const titleAndDate = x.querySelector(':scope .title-and-dates h4 a');
-        const title = titleAndDate?.textContent?.trim();
-        const href = (titleAndDate as HTMLLinkElement)?.href?.trim();
-        if (times.length !== 2 || !title || !href) {
-          return null;
-        }
-        const start = (times[0] as HTMLTimeElement).dateTime;
-        const end = (times[1] as HTMLTimeElement).dateTime;
-        const link = 'https://gitcoin.co' + new URL(href).pathname;
-        return {
-          title,
-          link,
-          start: new Date(start),
-          end: new Date(end),
-        };
-      });
-    return hackathons.filter((x) => x !== null) as Event[];
-  }
-
-  @Get()
-  @ApiOperation({
-    summary: 'Get calendar',
-  })
-  async getCalendar(): Promise<Event[] | undefined> {
-    let events;
-    try {
-      const x = await this.cacheService.get<string>(
-        CalendarController.cacheKey,
-      );
-      events = JSON.parse(x);
-    } catch (_) {
-      const events = this.getHackathons();
-      if (!events) {
-        return undefined;
+    const comp = new ICAL.Component(['vcalendar', [], []]);
+    comp.updatePropertyWithValue('prodid', '-//iCal.js w3itch');
+    events.forEach((x: Element) => {
+      const times = x.querySelectorAll(':scope .title-and-dates time');
+      const titleAndDate = x.querySelector(':scope .title-and-dates h4 a');
+      const title = titleAndDate?.textContent?.trim();
+      const href = (titleAndDate as HTMLLinkElement)?.href?.trim();
+      if (times.length !== 2 || !title || !href) {
+        return;
       }
-      await this.cacheService.set(
-        CalendarController.cacheKey,
-        JSON.stringify(events),
-        CalendarController.cacheTTL,
-      );
-    }
-    return events;
+      const start = (times[0] as HTMLTimeElement).dateTime;
+      const end = (times[1] as HTMLTimeElement).dateTime;
+      const link =
+        'https://gitcoin.co' +
+        (href.startsWith('http') ? new URL(href).pathname : href);
+
+      const vevent = new ICAL.Component('vevent');
+      const event = new ICAL.Event(vevent);
+      // event.uid = ``;
+      event.summary = title;
+      event.startDate = ICAL.Time.fromJSDate(new Date(start));
+      event.endDate = ICAL.Time.fromJSDate(new Date(end));
+      vevent.addPropertyWithValue('x-link', link);
+      comp.addSubcomponent(vevent);
+    });
+    return comp;
   }
 
   @Get('/cal.ics')
+  @CacheKey(CalendarController.cacheKey)
+  @CacheTTL(60 * 3)
   @ApiOperation({
     summary: 'Get calendar in icalendar format',
   })
   async getICal(): Promise<StreamableFile | undefined> {
-    let ics;
-    try {
-      ics = await this.cacheService.get<string>(
-        CalendarController.cacheKeyICal,
-      );
-    } catch (_) {}
-    if (!ics) {
-      const events = await this.getHackathons();
-      if (!events) {
-        return undefined;
-      }
-      ics = JSON.stringify(events);
-      await this.cacheService.set(
-        CalendarController.cacheKey,
-        ics,
-        CalendarController.cacheTTL,
-      );
+    const comp = await this.getHackathons();
+    if (!comp) {
+      throw new HttpException('', HttpStatus.NOT_FOUND);
     }
+    const ics = comp.toString();
     return new StreamableFile(Buffer.from(ics));
   }
 }
