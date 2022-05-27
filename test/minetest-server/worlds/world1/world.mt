@@ -1,0 +1,6 @@
+name=worldadmin
+gameid=minetest
+backend=sqlite3
+player_backend=sqlite3
+readonly_backend=sqlite3
+auth_backend=sqlite3

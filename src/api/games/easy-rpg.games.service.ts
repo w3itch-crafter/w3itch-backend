@@ -14,11 +14,12 @@ import process from 'process';
 
 import { GameEngine } from '../../types/enum';
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
+import { ISpecificGamesService } from './specific.games.service';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini'];
 
 @Injectable()
-export class EasyRpgGamesService {
+export class EasyRpgGamesService implements ISpecificGamesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,

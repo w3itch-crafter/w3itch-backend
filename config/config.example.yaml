@@ -79,3 +79,10 @@ user:
       - blog
       - api
     # - etc.
+
+game:
+  minetest:
+    # parent path of mods & worlds https://wiki.minetest.net/Installing_Mods Installation directory
+    basePath:
+    # minetest commnd.for example: /user/share/minetest/bin/mintest
+    binPath:

@@ -13,8 +13,10 @@ import path, { join } from 'path';
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
 import { UserJWTPayload } from '../../types';
+import { GameEngine } from '../../types/enum';
 import { PricesService } from '../prices/prices.service';
 import { TagsService } from '../tags/tags.service';
+import { DefaultGamesService } from './default.games.service';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectDto } from './dto/update-game-proejct.dto';
@@ -22,6 +24,7 @@ import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-fil
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
+import { MinetestGamesService } from './minetest.games.service';
 
 @Injectable()
 export class GamesLogicService {
@@ -31,6 +34,8 @@ export class GamesLogicService {
     private readonly gamesBaseService: GamesBaseService,
     private readonly tagsService: TagsService,
     private readonly easyRpgGamesService: EasyRpgGamesService,
+    private readonly minetestGamesService: MinetestGamesService,
+    private readonly defaultGamesService: DefaultGamesService,
     private readonly pricesService: PricesService,
   ) {}
 
@@ -105,7 +110,7 @@ export class GamesLogicService {
     );
     this.checkFileMimeTypeAcceptable(file);
 
-    await this.easyRpgGamesService.uploadGame(
+    await this.getSpecificGamesService(game.kind).uploadGame(
       game.gameName,
       game.kind,
       file,
@@ -127,6 +132,15 @@ export class GamesLogicService {
     });
     this.saveUploadedFile(file, game.gameName);
     return gameProject;
+  }
+  getSpecificGamesService(kind: GameEngine) {
+    if (GameEngine.RM2K3E === kind) {
+      return this.easyRpgGamesService;
+    } else if (GameEngine.MINETEST === kind) {
+      return this.minetestGamesService;
+    } else {
+      return this.defaultGamesService;
+    }
   }
 
   public async updateGameProject(
@@ -158,7 +172,7 @@ export class GamesLogicService {
         } as Express.Multer.File;
       }
 
-      await this.easyRpgGamesService.uploadGame(
+      await this.getSpecificGamesService(target.kind).uploadGame(
         target.gameName,
         game?.kind ?? target.kind,
         file,
