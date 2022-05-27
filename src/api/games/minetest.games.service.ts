@@ -15,6 +15,7 @@ import PropertiesReader from 'properties-reader';
 
 import { GameEngine } from '../../types/enum';
 import { ISpecificGamesService } from './specific.games.service';
+import { GameWorldPortItem } from './type';
 
 const worldFilesRequired = ['world.mt'];
 
@@ -286,11 +287,11 @@ export class MinetestGamesService implements ISpecificGamesService {
       }),
     );
     subprocess.stdout.on('data', function (data) {
-      this.logger.log(data.toString());
+      console.log(data.toString());
     });
 
     subprocess.stderr.on('data', function (data) {
-      this.logger.error(data.toString());
+      console.error(data.toString());
     });
     subprocess.on('close', (code, signal) => {
       this.logger.log(
@@ -309,5 +310,34 @@ export class MinetestGamesService implements ISpecificGamesService {
   }
   getMinetestConfigPathByPort(port: number): string {
     return this.getMinetestResourcePath(`minetest.${port}.conf`);
+  }
+
+  getRunningGameWorldPorts(): GameWorldPortItem[] {
+    const items = [];
+    this.worldPortMap.forEach((value, key) => {
+      items.push({
+        gameWorldName: key,
+        port: value,
+      });
+    });
+    return items;
+  }
+
+  getPortByGameWorldName(gameWorldName: string): number {
+    return this.worldPortMap.get(gameWorldName);
+  }
+
+  async restartByGameWorldName(
+    gameWorldName: string,
+  ): Promise<{ gameWorldName: string; port: number }> {
+    let port = this.getPortByGameWorldName(gameWorldName);
+    if (!port) {
+      port = await this.saveMinetestConfigForGameWorld(gameWorldName);
+    }
+    await this.execMinetest(this.getMinetestBin(), gameWorldName, port);
+    return {
+      gameWorldName,
+      port,
+    };
   }
 }
