@@ -86,3 +86,7 @@ game:
     basePath:
     # minetest commnd.for example: /user/share/minetest/bin/mintest
     binPath:
+    # whether to execute minetest. Can be set to false for debugging purposes, must be true for production environments
+    execMinetestEnabled: true
+    ports:
+      begin: 30030

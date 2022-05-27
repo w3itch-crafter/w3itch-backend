@@ -12,7 +12,7 @@ describe('MinetestGamesService', () => {
   const configuration = () => ({
     game: {
       minetest: {
-        binPath: '/usr/share/minetest/bin/mintest',
+        binPath: '/usr/bin/mintest',
         basePath: join(process.cwd(), 'test', 'minetest-server'),
       },
     },
@@ -60,7 +60,6 @@ describe('MinetestGamesService', () => {
     it('base path should read from configuration & config file name should be `minetest.${port}.conf`', async () => {
       const port = 30001;
       const path = service.getMinetestConfigPathByPort(port);
-      console.log(path);
       expect(path).toEqual(
         join(configuration().game.minetest.basePath, `minetest.${port}.conf`),
       );
@@ -72,6 +71,7 @@ describe('MinetestGamesService', () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
         gameid: 'minetest',
+        world: 'world1',
         backend: 'sqlite3',
         player_backend: 'sqlite3',
         readonly_backend: 'sqlite3',
@@ -86,6 +86,7 @@ describe('MinetestGamesService', () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
         gameid: 'minetest',
+        world: 'world1',
         backend: 'sqlite3',
         player_backend: 'sqlite3',
         readonly_backend: 'sqlite3',

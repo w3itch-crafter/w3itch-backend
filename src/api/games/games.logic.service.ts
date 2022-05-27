@@ -33,10 +33,10 @@ export class GamesLogicService {
     private readonly logger: LoggerService,
     private readonly gamesBaseService: GamesBaseService,
     private readonly tagsService: TagsService,
+    private readonly pricesService: PricesService,
     private readonly easyRpgGamesService: EasyRpgGamesService,
     private readonly minetestGamesService: MinetestGamesService,
     private readonly defaultGamesService: DefaultGamesService,
-    private readonly pricesService: PricesService,
   ) {}
 
   public checkFileMimeTypeAcceptable(file: Express.Multer.File): void {
@@ -161,6 +161,7 @@ export class GamesLogicService {
         }, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
+      const fileUploaded = file;
       if (file) {
         this.checkFileMimeTypeAcceptable(file);
       } else {
@@ -171,13 +172,16 @@ export class GamesLogicService {
           buffer: fileBuffer,
         } as Express.Multer.File;
       }
-
-      await this.getSpecificGamesService(target.kind).uploadGame(
-        target.gameName,
-        game?.kind ?? target.kind,
-        file,
-        game?.charset,
-      );
+      // minetest world database files should not be overwritten when updating game world info
+      // easyprg theoretically does not need to do so either, currently this is for scenarios where the game encoding is not chosen correctly so that it does not need to be re-uploaded, but rather re-decompressed
+      if (fileUploaded || target.kind === GameEngine.RM2K3E) {
+        await this.getSpecificGamesService(target.kind).uploadGame(
+          target.gameName,
+          game?.kind ?? target.kind,
+          file,
+          game?.charset,
+        );
+      }
     } else {
       this.logger.verbose(
         `Update game entity: ${JSON.stringify(game)} with no file update`,
