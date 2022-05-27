@@ -234,7 +234,7 @@ steps:
       - ls /var/easyrpg/testing/games
   - name: update-config
     commands:
-      - export VERSION=v0.3.0-2
+      - export VERSION=v0.4.0
       - echo $VERSION
       - export HOME=/home/w3itch
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
@@ -297,7 +297,7 @@ steps:
       - ls /var/easyrpg/games
   - name: update-config
     commands:
-      - export VERSION=v0.3.0-2
+      - export VERSION=v0.4.0
       - echo $VERSION
       - export HOME=/home/w3itch
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
@@ -336,4 +336,4 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 054d181cdf3a9df3ee11dc7364cf13d688c0a9805fa0f40260cca5ff7ab64b5e
+hmac: e3e9128539ed142cf8ee99de4c19246390204bbdb31bf4d2b35fba5d53a2c6a5
