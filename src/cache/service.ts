@@ -55,8 +55,25 @@ export class AppCacheService {
     }
   }
 
-  async set<T>(key: string, value: T, options?: CachingConfig): Promise<T>;
-  async set<T>(key: string, value: T, ttl: number): Promise<T>;
+  async lazyGet<T>(
+    key: string,
+    fn: () => Promise<T>,
+    options?: CachingConfig,
+  ): Promise<T>;
+  async lazyGet<T>(key: string, fn: () => Promise<T>, ttl: number): Promise<T>;
+  async lazyGet<T>(
+    key: string,
+    fn: () => Promise<T>,
+    arg: CachingConfig | number,
+  ) {
+    let value = await this.get<T>(key);
+    if (!value) {
+      value = await fn();
+      await this.set(key, value, arg);
+    }
+    return value;
+  }
+
   async set<T>(
     key: string,
     value: T,
