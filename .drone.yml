@@ -9,6 +9,7 @@ steps:
     commands:
       - yarn
       - yarn build
+      - yarn keygen
       - yarn test:cov
 ---
 kind: pipeline
@@ -336,4 +337,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: e3e9128539ed142cf8ee99de4c19246390204bbdb31bf4d2b35fba5d53a2c6a5
+hmac: 354d1dbcc24868b5db4fdf3dcd7b727aafd4765269cc98c54a7f091312cd2224
+
+...
