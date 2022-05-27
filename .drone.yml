@@ -45,6 +45,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -102,6 +103,7 @@ steps:
       - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
   - name: rollback-project
     commands:
+      - export HOME=/home/w3itch
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 stop w3itch-backend-testing
       - rm -rf /home/w3itch/w3itch-backend-testing
@@ -144,6 +146,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -201,6 +204,7 @@ steps:
       - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
   - name: rollback-project
     commands:
+      - export HOME=/home/w3itch
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 stop w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend
@@ -245,6 +249,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -308,6 +313,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -338,6 +344,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 7b7581237f12c8e01b640f03f7f5ad801094c3cde6b0f5dec9437205560b1c32
+hmac: c62393a4acd6b6b40f766b97ad1bf37307843e8fffd0ef2e77053778194142ea
 
 ...
