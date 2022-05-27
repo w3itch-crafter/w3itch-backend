@@ -10,6 +10,7 @@ steps:
       - yarn
       - yarn build
       - yarn keygen
+      - cp config/config.example.yaml config/config.development.yaml
       - yarn test:cov
 ---
 kind: pipeline
@@ -337,6 +338,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 354d1dbcc24868b5db4fdf3dcd7b727aafd4765269cc98c54a7f091312cd2224
+hmac: 7b7581237f12c8e01b640f03f7f5ad801094c3cde6b0f5dec9437205560b1c32
 
 ...
