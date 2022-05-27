@@ -6854,6 +6854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ical.js@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "ical.js@npm:1.5.0"
+  checksum: 51df7a01f462dc8a02b3c3c28acb288756071044c4a8b56ff5179995bb219e569e72cfedac6f4ab03dc643be34f5d88c09a7d79c4be6ba8a7623b7336eecb110
+  languageName: node
+  linkType: hard
+
 "iconv-lite@npm:0.4.24, iconv-lite@npm:^0.4.18, iconv-lite@npm:^0.4.24":
   version: 0.4.24
   resolution: "iconv-lite@npm:0.4.24"
@@ -12655,6 +12662,7 @@ __metadata:
     han: ^0.0.7
     human-standard-token-abi: ^2.0.0
     husky: ^7.0.4
+    ical.js: ^1.5.0
     jest: ^27.5.1
     js-yaml: ^4.1.0
     lint-staged: ^12.3.5

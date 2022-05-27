@@ -1,10 +1,18 @@
-import { Module } from '@nestjs/common';
+import { CacheInterceptor, CacheModule, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
-import { AppCacheModule } from '../../cache/module';
+import { CacheConfigService } from '../../configs/cache';
 import { CalendarController } from './calendar.controller';
 
 @Module({
-  imports: [AppCacheModule],
+  imports: [
+    CacheModule.registerAsync({
+      inject: [ConfigService],
+      useClass: CacheConfigService,
+    }),
+  ],
   controllers: [CalendarController],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: CacheInterceptor }],
 })
 export class CalendarModule {}
