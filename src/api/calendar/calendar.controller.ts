@@ -1,6 +1,4 @@
 import {
-  CacheKey,
-  CacheTTL,
   Controller,
   Get,
   HttpException,
@@ -17,15 +15,18 @@ import * as ICAL from 'ical.js';
 import { JSDOM } from 'jsdom';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
+import { AppCacheService } from '../../cache/service';
+
 @ApiTags('Calendar')
 @Controller('calendar')
 export class CalendarController {
-  static cacheTTL = 60 * 60;
+  static cacheTTL = 60 * 3;
   static cacheKey = 'events';
 
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    private readonly cacheService: AppCacheService,
   ) {}
 
   async getHackathons() {
@@ -83,17 +84,21 @@ export class CalendarController {
   }
 
   @Get('/cal.ics')
-  @CacheKey(CalendarController.cacheKey)
-  @CacheTTL(60 * 3)
   @ApiOperation({
     summary: 'Get calendar in icalendar format',
   })
   async getICal(): Promise<StreamableFile | undefined> {
-    const comp = await this.getHackathons();
-    if (!comp) {
-      throw new HttpException('', HttpStatus.NOT_FOUND);
-    }
-    const ics = comp.toString();
+    const ics = await this.cacheService.lazyGet(
+      CalendarController.cacheKey,
+      async () => {
+        const comp = await this.getHackathons();
+        if (!comp) {
+          throw new HttpException('', HttpStatus.NOT_FOUND);
+        }
+        return comp.toString();
+      },
+      CalendarController.cacheTTL,
+    );
     return new StreamableFile(Buffer.from(ics));
   }
 }
