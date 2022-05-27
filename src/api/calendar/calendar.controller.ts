@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Inject,
   LoggerService,
+  Query,
   StreamableFile,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -29,7 +30,7 @@ export class CalendarController {
     private readonly cacheService: AppCacheService,
   ) {}
 
-  async getHackathons() {
+  async getGitcoin() {
     const url = 'https://gitcoin.co/hackathons';
     const response = await axios.get<string>(url, {
       responseType: 'text',
@@ -83,22 +84,42 @@ export class CalendarController {
     return comp;
   }
 
+  async getICalendar(url: string) {
+    const response = await axios.get(url, { responseType: 'text' });
+    if (response.status !== HttpStatus.OK) {
+      this.logger.error(`Get calendar error: ${response.statusText}`);
+      throw new HttpException('', response.status);
+    }
+    return response.data;
+  }
+
   @Get('/cal.ics')
   @ApiOperation({
     summary: 'Get calendar in icalendar format',
   })
-  async getICal(): Promise<StreamableFile | undefined> {
-    const ics = await this.cacheService.lazyGet(
-      CalendarController.cacheKey,
-      async () => {
-        const comp = await this.getHackathons();
-        if (!comp) {
-          throw new HttpException('', HttpStatus.NOT_FOUND);
-        }
-        return comp.toString();
-      },
-      CalendarController.cacheTTL,
-    );
+  async getICal(
+    @Query('url') url: string,
+  ): Promise<StreamableFile | undefined> {
+    let ics;
+    if (!url) {
+      ics = await this.cacheService.lazyGet(
+        CalendarController.cacheKey,
+        async () => {
+          const comp = await this.getGitcoin();
+          if (!comp) {
+            throw new HttpException('', HttpStatus.NOT_FOUND);
+          }
+          return comp.toString();
+        },
+        CalendarController.cacheTTL,
+      );
+    } else {
+      ics = await this.cacheService.lazyGet(
+        url,
+        async () => this.getICalendar(url),
+        CalendarController.cacheTTL,
+      );
+    }
     return new StreamableFile(Buffer.from(ics));
   }
 }
