@@ -77,7 +77,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     );
     await this.handleWorldMtFile(tempGameWorldPath, {
       gameid: 'minetest',
-      world: gameWorld,
+      world_name: gameWorld,
       backend: 'sqlite3',
       player_backend: 'sqlite3',
       readonly_backend: 'sqlite3',
@@ -112,6 +112,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     const properties = new PropertiesReader(configFilePath);
     properties.set('port', port);
     properties.set('remote_port', port);
+    properties.set('name', 'w3itch');
     await properties.save(configFilePath);
     return port;
   }
@@ -139,7 +140,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     tempGameWorldPath: string,
     options: {
       gameid: string;
-      world: string;
+      world_name: string;
       backend: string;
       player_backend: string;
       readonly_backend: string;

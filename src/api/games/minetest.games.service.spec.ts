@@ -71,7 +71,7 @@ describe('MinetestGamesService', () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
         gameid: 'minetest',
-        world: 'world1',
+        world_name: 'world1',
         backend: 'sqlite3',
         player_backend: 'sqlite3',
         readonly_backend: 'sqlite3',
@@ -86,7 +86,7 @@ describe('MinetestGamesService', () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
         gameid: 'minetest',
-        world: 'world1',
+        world_name: 'world1',
         backend: 'sqlite3',
         player_backend: 'sqlite3',
         readonly_backend: 'sqlite3',
