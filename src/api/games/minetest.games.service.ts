@@ -267,14 +267,14 @@ export class MinetestGamesService implements ISpecificGamesService {
     //execa(
     const subprocess = spawn(this.getMinetestBin(), [
       '--server',
-      '--terminal',
+      // '--terminal',
       '--worldname',
       worldName,
       '--config',
       minetestConfigPath,
     ]);
     this.logger.log(
-      `minetest --server --terminal --worldname ${worldName} --config ${minetestConfigPath}  process: ${subprocess.pid}`,
+      `minetest --server --worldname ${worldName} --config ${minetestConfigPath}  process: ${subprocess.pid}`,
       this.constructor.name,
     );
     this.subProcesses.set(port, subprocess);
@@ -285,7 +285,13 @@ export class MinetestGamesService implements ISpecificGamesService {
         this.subProcessCloseRejects[port] = reject;
       }),
     );
+    subprocess.stdout.on('data', function (data) {
+      this.logger.log(data.toString());
+    });
 
+    subprocess.stderr.on('data', function (data) {
+      this.logger.error(data.toString());
+    });
     subprocess.on('close', (code, signal) => {
       this.logger.log(
         `child process terminated due to receipt of signal ${signal}: code ${code}`,
