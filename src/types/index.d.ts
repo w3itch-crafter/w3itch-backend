@@ -13,3 +13,11 @@ export interface UserJWTPayload extends JwtPayload, User {
 }
 
 export type UpdateGameEntity = Omit<Game, keyof BaseEntity | 'rating'>;
+
+/**----------**/
+/* Minetest
+/**----------**/
+export type MinetestWorldPortItem = {
+  gameWorldName: string;
+  port: number;
+};

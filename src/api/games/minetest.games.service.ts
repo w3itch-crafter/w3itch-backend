@@ -3,35 +3,43 @@ import {
   Inject,
   Injectable,
   LoggerService,
+  OnApplicationBootstrap,
+  OnApplicationShutdown,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import AdmZip from 'adm-zip-iconv';
 import { spawn } from 'child_process';
-import execa from 'execa';
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import PropertiesReader from 'properties-reader';
 
-import { GameEngine } from '../../types/enum';
+import { MinetestWorldPortItem } from '../../types';
+import { GameEngine, GamesListSortBy, ReleaseStatus } from '../../types/enum';
+import { GamesBaseService } from './games.base.service';
 import { ISpecificGamesService } from './specific.games.service';
-import { GameWorldPortItem } from './type';
 
 const worldFilesRequired = ['world.mt'];
 
 @Injectable()
-export class MinetestGamesService implements ISpecificGamesService {
+export class MinetestGamesService
+  implements
+    ISpecificGamesService,
+    OnApplicationBootstrap,
+    OnApplicationShutdown
+{
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
+    private readonly gamesBaseService: GamesBaseService,
   ) {}
 
-  private subProcesses = new Map<number, any>();
-  private subProcessPromises = new Map<number, Promise<number>>();
+  private childProcesses = new Map<number, any>();
+  private childProcessPromises = new Map<number, Promise<number>>();
 
-  private subProcessCloseResolves = {};
-  private subProcessCloseRejects = {};
+  private childProcessCloseResolves = {};
+  private childProcessCloseRejects = {};
 
   private worldPortMap = new Map<string, number>();
   private portOffset = 0;
@@ -69,7 +77,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     );
     zip.extractAllTo(tempPath, true);
     //clean up the target directory,current world will be overwritten
-    await this.deleteGameWorldDirectory(gameWorld);
+    await this.deleteGameDirectory(gameWorld);
 
     const tempGameWorldPath = join(tempPath, entryPath);
     this.logger.debug(
@@ -167,13 +175,18 @@ export class MinetestGamesService implements ISpecificGamesService {
     return join(minetestBasePath, subPath);
   }
 
-  public async deleteGameWorldDirectory(gameWorld: string) {
+  public async deleteGameDirectory(gameWorld: string) {
+    await this.stopMinetestServerByGameWorldName(gameWorld);
     const targetPath = join(this.getMinetestResourcePath('games'), gameWorld);
     try {
       await fsPromises.rm(targetPath, { recursive: true });
       this.logger.log(`Deleted ${targetPath}`, this.constructor.name);
     } catch (error) {
       // target directory doesn't exist, nothing to delete
+      this.logger.warn(
+        'Try to delete an directory which is not existed',
+        this.constructor.name,
+      );
     }
   }
 
@@ -229,8 +242,8 @@ export class MinetestGamesService implements ISpecificGamesService {
     return entryPath;
   }
 
-  async getMinetestSubProcesses() {
-    return this.subProcesses;
+  async getMinetestChildProcesses() {
+    return this.childProcesses;
   }
 
   async execMinetest(
@@ -244,29 +257,11 @@ export class MinetestGamesService implements ISpecificGamesService {
       this.constructor.name,
     );
 
-    const subProcessExisted = this.subProcesses.get(port);
-    if (subProcessExisted) {
-      this.logger.verbose(
-        `Kill minetest server on port ${port}`,
-        this.constructor.name,
-      );
-      const promise = this.subProcessPromises.get(port);
+    await this.stopMinetestChildProcessByPort(port);
 
-      subProcessExisted.kill('SIGINT');
-      if (promise) {
-        this.logger.log(
-          `Waiting for sub process to close, port ${port} `,
-          this.constructor.name,
-        );
-        await promise;
-      }
-    }
-    // const env = Object.assign({}, process.env);
-    // const options: execa.Options = { cwd: path, env, reject };
-    // const options: execa.Options = { reject };
     const minetestConfigPath = this.getMinetestConfigPathByPort(port);
     //execa(
-    const subprocess = spawn(this.getMinetestBin(), [
+    const childProcess = spawn(this.getMinetestBin(), [
       '--server',
       // '--terminal',
       '--worldname',
@@ -275,34 +270,54 @@ export class MinetestGamesService implements ISpecificGamesService {
       minetestConfigPath,
     ]);
     this.logger.log(
-      `minetest --server --worldname ${worldName} --config ${minetestConfigPath}  process: ${subprocess.pid}`,
+      `minetest --server --worldname ${worldName} --config ${minetestConfigPath}  process: ${childProcess.pid}`,
       this.constructor.name,
     );
-    this.subProcesses.set(port, subprocess);
-    this.subProcessPromises.set(
+    this.childProcesses.set(port, childProcess);
+    this.childProcessPromises.set(
       port,
       new Promise<number>((resolve, reject) => {
-        this.subProcessCloseResolves[port] = resolve;
-        this.subProcessCloseRejects[port] = reject;
+        this.childProcessCloseResolves[port] = resolve;
+        this.childProcessCloseRejects[port] = reject;
       }),
     );
-    subprocess.stdout.on('data', function (data) {
+    childProcess.stdout.on('data', function (data) {
       console.log(data.toString());
     });
 
-    subprocess.stderr.on('data', function (data) {
+    childProcess.stderr.on('data', function (data) {
       console.error(data.toString());
     });
-    subprocess.on('close', (code, signal) => {
+    childProcess.on('close', (code, signal) => {
       this.logger.log(
         `child process terminated due to receipt of signal ${signal}: code ${code}`,
         this.constructor.name,
       );
 
-      this.subProcessCloseResolves[port](port);
+      this.childProcessCloseResolves[port](port);
     });
 
-    return subprocess;
+    return childProcess;
+  }
+
+  private async stopMinetestChildProcessByPort(port: number) {
+    const childProcessExisted = this.childProcesses.get(port);
+    if (childProcessExisted) {
+      this.logger.verbose(
+        `Kill minetest server on port ${port}`,
+        this.constructor.name,
+      );
+      const promise = this.childProcessPromises.get(port);
+
+      childProcessExisted.kill('SIGINT');
+      if (promise) {
+        this.logger.log(
+          `Waiting for sub process to close, port ${port} `,
+          this.constructor.name,
+        );
+        await promise;
+      }
+    }
   }
 
   getMinetestBin() {
@@ -312,7 +327,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     return this.getMinetestResourcePath(`minetest.${port}.conf`);
   }
 
-  getRunningGameWorldPorts(): GameWorldPortItem[] {
+  getRunningGameWorldPorts(): MinetestWorldPortItem[] {
     const items = [];
     this.worldPortMap.forEach((value, key) => {
       items.push({
@@ -327,7 +342,7 @@ export class MinetestGamesService implements ISpecificGamesService {
     return this.worldPortMap.get(gameWorldName);
   }
 
-  async restartByGameWorldName(
+  async restartMinetestServerByGameWorldName(
     gameWorldName: string,
   ): Promise<{ gameWorldName: string; port: number }> {
     let port = this.getPortByGameWorldName(gameWorldName);
@@ -339,5 +354,70 @@ export class MinetestGamesService implements ISpecificGamesService {
       gameWorldName,
       port,
     };
+  }
+
+  async stopMinetestServerByGameWorldName(
+    gameWorldName: string,
+  ): Promise<MinetestWorldPortItem> {
+    const port = this.getPortByGameWorldName(gameWorldName);
+
+    const childProcessExisted = this.childProcesses.get(port);
+    if (childProcessExisted) {
+      this.logger.verbose(
+        `Kill minetest server on port ${port}`,
+        this.constructor.name,
+      );
+      const promise = this.childProcessPromises.get(port);
+
+      childProcessExisted.kill('SIGINT');
+      if (promise) {
+        this.logger.log(
+          `Waiting for child process to close, port ${port} `,
+          this.constructor.name,
+        );
+        await promise;
+      }
+    }
+    return {
+      gameWorldName,
+      port,
+    };
+  }
+
+  async listMintestWorlds(orderBy: string) {
+    // More than this number can not rely on a single server, or at least a cluster or other distributed scheme.
+    return (
+      await this.gamesBaseService.paginateGameProjects(
+        {
+          // Avoid invalid URL errors.
+          path: 'http://127.0.0.1/game-projects',
+          limit: 1000,
+          page: 1,
+        },
+        {
+          kind: GameEngine.MINETEST,
+          releaseStatus: ReleaseStatus.RELEASED,
+          sortBy: GamesListSortBy.TIME,
+          orderBy,
+        },
+      )
+    ).data;
+  }
+
+  async onApplicationBootstrap() {
+    this.logger.log(`Bootstrap application`, this.constructor.name);
+    (await this.listMintestWorlds('ASC')).forEach(async (world) => {
+      await this.restartMinetestServerByGameWorldName(world.gameName);
+    });
+  }
+
+  async onApplicationShutdown(signal?: string) {
+    this.logger.log(
+      `Shutting down application, signal: ${signal}`,
+      this.constructor.name,
+    );
+    (await this.listMintestWorlds('DESC')).forEach(async (world) => {
+      await this.stopMinetestServerByGameWorldName(world.gameName);
+    });
   }
 }

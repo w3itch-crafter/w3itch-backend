@@ -30,6 +30,7 @@ export class GamesBaseService {
 
   private static appendParams(target, options) {
     if (!target) return target;
+    console.log(target);
     const url = new URL(target);
     delete options.page;
     Object.entries(options).forEach(([key, value]: [string, string]) => {
@@ -59,6 +60,7 @@ export class GamesBaseService {
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
+    console.log(query);
     query.sortBy = [[options.sortBy, options.order]];
     query.tags = options.tags;
 
@@ -136,12 +138,16 @@ export class GamesBaseService {
     };
 
     const result = await paginate<Game>(query, queryBuilder, config);
-    Object.keys(result.links).map(function (key) {
-      result.links[key] = GamesBaseService.appendParams(
-        result.links[key],
-        options,
-      );
-    });
+    if (result.links) {
+      Object.keys(result.links).map(function (key) {
+        if (result.links[key]) {
+          result.links[key] = GamesBaseService.appendParams(
+            result.links[key],
+            options,
+          );
+        }
+      });
+    }
     return result;
   }
 
