@@ -11,7 +11,12 @@ export class DefaultGamesService implements ISpecificGamesService {
     file: Express.Multer.File,
     charset?: string,
   ): Promise<void> {
-    // do nothing now. `saveUploadedFile` method is in `games.logic.service.ts`
+    // The generic business logic is in `games.logic.service.
+    return;
+  }
+
+  deleteGameResourceDirectory(game: string) {
+    // The generic business logic is in `games.logic.service.
     return;
   }
 }

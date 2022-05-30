@@ -203,7 +203,9 @@ export class GamesLogicService {
     await this.gamesBaseService.verifyOwner(id, user);
 
     const target = await this.gamesBaseService.findOne(id);
-    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
+    this.getSpecificGamesService(target.kind).deleteGameResourceDirectory(
+      target.gameName,
+    );
     await this.gamesBaseService.delete(id);
   }
 
@@ -212,7 +214,9 @@ export class GamesLogicService {
 
     const target = await this.gamesBaseService.findOne(id);
     await this.gamesBaseService.update(id, { file: null });
-    this.easyRpgGamesService.deleteGameDirectory(target.gameName);
+    this.getSpecificGamesService(target.kind).deleteGameResourceDirectory(
+      target.gameName,
+    );
   }
 
   public async validateGameName(game: ValidateGameProjectDto): Promise<void> {

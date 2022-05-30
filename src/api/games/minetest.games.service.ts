@@ -77,7 +77,7 @@ export class MinetestGamesService
     );
     zip.extractAllTo(tempPath, true);
     //clean up the target directory,current world will be overwritten
-    await this.deleteGameDirectory(gameWorld);
+    await this.deleteGameResourceDirectory(gameWorld);
 
     const tempGameWorldPath = join(tempPath, entryPath);
     this.logger.debug(
@@ -175,7 +175,7 @@ export class MinetestGamesService
     return join(minetestBasePath, subPath);
   }
 
-  public async deleteGameDirectory(gameWorld: string) {
+  public async deleteGameResourceDirectory(gameWorld: string) {
     await this.stopMinetestServerByGameWorldName(gameWorld);
     const targetPath = join(this.getMinetestResourcePath('games'), gameWorld);
     try {

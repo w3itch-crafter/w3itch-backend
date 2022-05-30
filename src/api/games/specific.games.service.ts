@@ -7,4 +7,6 @@ export interface ISpecificGamesService {
     file: Express.Multer.File,
     charset?: string,
   ): Promise<void>;
+
+  deleteGameResourceDirectory(game: string);
 }

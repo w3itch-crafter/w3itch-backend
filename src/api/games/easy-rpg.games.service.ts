@@ -76,7 +76,7 @@ export class EasyRpgGamesService implements ISpecificGamesService {
     }
   }
 
-  public deleteGameDirectory(game: string) {
+  public deleteGameResourceDirectory(game: string) {
     const targetPath = join(
       EasyRpgGamesService.getThirdpartyDir('games'),
       game,
@@ -160,7 +160,7 @@ export class EasyRpgGamesService implements ISpecificGamesService {
     zip.extractAllTo(tempPath, true);
 
     //clean up the target directory
-    this.deleteGameDirectory(game);
+    this.deleteGameResourceDirectory(game);
 
     const gamePath = join(tempPath, entryPath);
     this.logger.debug(
