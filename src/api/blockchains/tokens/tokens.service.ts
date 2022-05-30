@@ -1,14 +1,19 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  LoggerService,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 
 import { Token } from '../../../entities/Token.entity';
-import { Web3Provider, web3Providers } from './web3.provider';
+import { supportedChainIds, web3Providers } from './web3.provider';
 
 @Injectable()
-export class TokensService {
+export class TokensService implements OnApplicationBootstrap {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -16,6 +21,13 @@ export class TokensService {
     private readonly tokenRepository: Repository<Token>,
     private readonly configService: ConfigService,
   ) {}
+
+  onApplicationBootstrap() {
+    this.logger.verbose(
+      `Supported chainIds are: ${supportedChainIds}`,
+      'Web3Provider',
+    );
+  }
 
   public async getTokensByChainId(chainId: number): Promise<Token[]> {
     return await this.tokenRepository.find({

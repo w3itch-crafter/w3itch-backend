@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 
+import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
 
 describe('MinetestGamesService', () => {
@@ -29,6 +30,11 @@ describe('MinetestGamesService', () => {
         {
           provide: WINSTON_MODULE_NEST_PROVIDER,
           useValue: new Logger(),
+        },
+        GamesBaseService,
+        {
+          provide: 'GameRepository',
+          useValue: {},
         },
       ],
     }).compile();
