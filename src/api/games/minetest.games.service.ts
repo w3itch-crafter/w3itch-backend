@@ -377,6 +377,14 @@ export class MinetestGamesService
         );
         await promise;
       }
+      //recheck
+      if (childProcessExisted === this.childProcesses.get(port)) {
+        this.childProcesses.delete(port);
+      }
+      //recheck
+      if (promise === this.childProcessPromises.get(port)) {
+        this.childProcessPromises.delete(port);
+      }
     }
     return {
       gameWorldName,
