@@ -10298,6 +10298,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"properties-reader@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "properties-reader@npm:2.2.0"
+  dependencies:
+    mkdirp: ^1.0.4
+  checksum: a5c5684b1e16633cb695f4fef5476a63f43298619381e8f7f609448f3bda32b26d7c9042b57a427a6dedd1c7fdca1a01ccbe8771b4311ed534079b676c64eec7
+  languageName: node
+  linkType: hard
+
 "protobufjs@npm:^6.8.8":
   version: 6.11.2
   resolution: "protobufjs@npm:6.11.2"
@@ -12864,6 +12873,7 @@ __metadata:
     passport: ^0.5.2
     passport-jwt: ^4.0.0
     prettier: ^2.5.1
+    properties-reader: ^2.2.0
     randomstring: ^1.2.2
     rimraf: ^3.0.2
     rxjs: ^7.5.5

@@ -99,16 +99,12 @@ export class Web3Provider {
 
 // initialize web3 providers
 const configs = new ConfigService(configBuilder());
-const supportedChainIds = configs.get<number[]>(`blockchain.supportedChainIds`);
+export const supportedChainIds = configs.get<number[]>(
+  `blockchain.supportedChainIds`,
+);
 
 const currentProviders = providers.filter((provider) =>
   supportedChainIds.includes(provider.chainId),
-);
-
-// delay the logger to make it later than the other logs
-setTimeout(
-  () => logger.verbose(`Supported chainIds are: ${supportedChainIds}`),
-  2000,
 );
 
 class ChainMap<K, V> extends Map<K, V> {

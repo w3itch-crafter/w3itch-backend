@@ -9,6 +9,8 @@ steps:
     commands:
       - yarn
       - yarn build
+      - yarn keygen
+      - cp config/config.example.yaml config/config.development.yaml
       - yarn test:cov
 ---
 kind: pipeline
@@ -43,6 +45,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -100,6 +103,7 @@ steps:
       - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
   - name: rollback-project
     commands:
+      - export HOME=/home/w3itch
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 stop w3itch-backend-testing
       - rm -rf /home/w3itch/w3itch-backend-testing
@@ -142,6 +146,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -199,6 +204,7 @@ steps:
       - cp -r /home/w3itch/w3itch-backend-config-for-rollback /home/w3itch/w3itch-backend-config
   - name: rollback-project
     commands:
+      - export HOME=/home/w3itch
       - export PM2_HOME=/home/w3itch/.pm2
       - pm2 stop w3itch-backend
       - rm -rf /home/w3itch/w3itch-backend
@@ -234,7 +240,7 @@ steps:
       - ls /var/easyrpg/testing/games
   - name: update-config
     commands:
-      - export VERSION=v0.3.0-2
+      - export VERSION=v0.4.0
       - echo $VERSION
       - export HOME=/home/w3itch
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
@@ -243,6 +249,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -297,7 +304,7 @@ steps:
       - ls /var/easyrpg/games
   - name: update-config
     commands:
-      - export VERSION=v0.3.0-2
+      - export VERSION=v0.4.0
       - echo $VERSION
       - export HOME=/home/w3itch
       - rm -rf /home/w3itch/w3itch-backend-config-for-rollback
@@ -306,6 +313,7 @@ steps:
       - git clone -b $VERSION --single-branch ssh://git@gitea.w3itch.io:10022/w3itch-crafter/w3itch-backend-config.git
   - name: build
     commands:
+      - export HOME=/home/w3itch
       - yarn
       - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
@@ -336,4 +344,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 054d181cdf3a9df3ee11dc7364cf13d688c0a9805fa0f40260cca5ff7ab64b5e
+hmac: c62393a4acd6b6b40f766b97ad1bf37307843e8fffd0ef2e77053778194142ea
+
+...

@@ -67,6 +67,7 @@
     "nestjs-paginate": "^2.5.4",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
+    "properties-reader": "^2.2.0",
     "randomstring": "^1.2.2",
     "rxjs": "^7.5.5",
     "swagger-ui-express": "^4.3.0",
