@@ -117,11 +117,6 @@ export class GamesLogicService {
       game.charset,
     );
 
-    if (!game.donationAddress) {
-      // default donation address is user's login wallet
-      game.donationAddress = user.account.accountId;
-    }
-
     const gameEntityPartial = await this.convertTagsAndPricesFromDtoToEntities(
       game,
     );
