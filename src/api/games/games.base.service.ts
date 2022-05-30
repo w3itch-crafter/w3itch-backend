@@ -76,9 +76,51 @@ export class GamesBaseService {
       .leftJoinAndSelect('game.prices', 'prices')
       .leftJoinAndSelect('prices.token', 'token');
 
-    if (options.username) {
+    const {
+      username,
+      paymentMode,
+      classification,
+      kind,
+      genre,
+      releaseStatus,
+      donationAddress,
+    } = options;
+    if (isNotEmpty(username)) {
       queryBuilder.andWhere('game.username = :username', {
-        username: options.username,
+        username,
+      });
+    }
+    if (isNotEmpty(paymentMode)) {
+      queryBuilder.andWhere('game.paymentMode = :paymentMode', {
+        paymentMode,
+      });
+    }
+    if (isNotEmpty(classification)) {
+      queryBuilder.andWhere('game.classification = :classification', {
+        classification,
+      });
+    }
+    if (isNotEmpty(kind)) {
+      queryBuilder.andWhere('game.kind = :kind', {
+        kind,
+      });
+    }
+
+    if (isNotEmpty(genre)) {
+      queryBuilder.andWhere('game.genre = :genre', {
+        genre,
+      });
+    }
+
+    if (isNotEmpty(releaseStatus)) {
+      queryBuilder.andWhere('game.releaseStatus = :releaseStatus', {
+        releaseStatus,
+      });
+    }
+
+    if (isNotEmpty(donationAddress)) {
+      queryBuilder.andWhere('game.donationAddress = :donationAddress', {
+        donationAddress,
       });
     }
 
