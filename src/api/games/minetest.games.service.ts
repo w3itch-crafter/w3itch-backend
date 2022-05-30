@@ -11,7 +11,7 @@ import AdmZip from 'adm-zip-iconv';
 import { spawn } from 'child_process';
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import PropertiesReader from 'properties-reader';
 
 import { MinetestWorldPortItem } from '../../types';
@@ -274,13 +274,29 @@ export class MinetestGamesService
       this.constructor.name,
     );
     this.childProcesses.set(port, childProcess);
-    this.childProcessPromises.set(
-      port,
-      new Promise<number>((resolve, reject) => {
-        this.childProcessCloseResolves[port] = resolve;
-        this.childProcessCloseRejects[port] = reject;
-      }),
-    );
+    const promise = new Promise<number>((resolve, reject) => {
+      this.childProcessCloseResolves[port] = () => {
+        this.logger.verbose(
+          `Removing process & pormise in map, port ${port}`,
+          this.constructor.name,
+        );
+        //recheck
+        if (childProcess === this.childProcesses.get(port)) {
+          this.childProcesses.delete(port);
+        }
+        if (promise === this.childProcessPromises.get(port)) {
+          this.childProcessPromises.delete(port);
+        }
+        if (port === this.worldPortMap.get(worldName)) {
+          this.worldPortMap.delete(worldName);
+        }
+
+        resolve(port);
+      };
+
+      this.childProcessCloseRejects[port] = reject;
+    });
+    this.childProcessPromises.set(port, promise);
     childProcess.stdout.on('data', function (data) {
       console.log(data.toString());
     });
@@ -294,7 +310,14 @@ export class MinetestGamesService
         this.constructor.name,
       );
 
-      this.childProcessCloseResolves[port](port);
+      if (this.childProcessCloseResolves[port]) {
+        console.log(this.childProcessCloseResolves[port]);
+        this.logger.verbose(
+          'resolve child process promise',
+          this.constructor.name,
+        );
+        this.childProcessCloseResolves[port](port);
+      }
     });
 
     return childProcess;
@@ -312,7 +335,7 @@ export class MinetestGamesService
       childProcessExisted.kill('SIGINT');
       if (promise) {
         this.logger.log(
-          `Waiting for sub process to close, port ${port} `,
+          `Waiting for child process to close, port ${port} `,
           this.constructor.name,
         );
         await promise;
@@ -361,31 +384,8 @@ export class MinetestGamesService
   ): Promise<MinetestWorldPortItem> {
     const port = this.getPortByGameWorldName(gameWorldName);
 
-    const childProcessExisted = this.childProcesses.get(port);
-    if (childProcessExisted) {
-      this.logger.verbose(
-        `Kill minetest server on port ${port}`,
-        this.constructor.name,
-      );
-      const promise = this.childProcessPromises.get(port);
+    await this.stopMinetestChildProcessByPort(port);
 
-      childProcessExisted.kill('SIGINT');
-      if (promise) {
-        this.logger.log(
-          `Waiting for child process to close, port ${port} `,
-          this.constructor.name,
-        );
-        await promise;
-      }
-      //recheck
-      if (childProcessExisted === this.childProcesses.get(port)) {
-        this.childProcesses.delete(port);
-      }
-      //recheck
-      if (promise === this.childProcessPromises.get(port)) {
-        this.childProcessPromises.delete(port);
-      }
-    }
     return {
       gameWorldName,
       port,
