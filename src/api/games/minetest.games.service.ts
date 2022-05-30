@@ -177,7 +177,7 @@ export class MinetestGamesService
 
   public async deleteGameResourceDirectory(gameWorld: string) {
     await this.stopMinetestServerByGameWorldName(gameWorld);
-    const targetPath = join(this.getMinetestResourcePath('games'), gameWorld);
+    const targetPath = join(this.getMinetestResourcePath('worlds'), gameWorld);
     try {
       await fsPromises.rm(targetPath, { recursive: true });
       this.logger.log(`Deleted ${targetPath}`, this.constructor.name);
