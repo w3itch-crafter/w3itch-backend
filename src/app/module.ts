@@ -9,6 +9,7 @@ import { AccountsGithubModule } from '../api/accounts/accounts-github/accounts-g
 import { AccountsMetamaskModule } from '../api/accounts/accounts-metamask/accounts-metamask.module';
 import { AccountsTokenModule } from '../api/accounts/accounts-token/accounts-token.module';
 import { TokensModule } from '../api/blockchains/tokens/tokens.module';
+import { CalendarModule } from '../api/calendar/calendar.module';
 import { GamesModule } from '../api/games/games.module';
 import { MineTestModule } from '../api/minetest/module';
 import { PlayerModule } from '../api/player/module';
@@ -40,6 +41,7 @@ import { WinstonConfigService } from '../configs/winston';
     AccountsMetamaskModule,
     AccountsTokenModule,
     AccountsDiscordModule,
+    CalendarModule,
     UsersModule,
     AppCacheModule,
     StoragesModule,
