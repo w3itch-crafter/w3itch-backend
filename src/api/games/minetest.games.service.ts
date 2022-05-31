@@ -123,7 +123,7 @@ export class MinetestGamesService
     // create file if is not existed
     const file = await fsPromises.open(configFilePath, 'w+');
     await file.close();
-    const properties = new PropertiesReader(configFilePath);
+    const properties = PropertiesReader(configFilePath);
     properties.set('port', port);
     properties.set('remote_port', port);
     properties.set('name', 'w3itch');
@@ -164,7 +164,7 @@ export class MinetestGamesService
   ) {
     const worldMtPath = join(tempGameWorldPath, 'world.mt');
     this.logger.debug(`Handle ${worldMtPath}`, this.constructor.name);
-    const properties = new PropertiesReader(worldMtPath, {
+    const properties = PropertiesReader(worldMtPath, null, {
       writer: { saveSections: true },
     });
     Object.keys(options).forEach((key) => {
