@@ -173,11 +173,13 @@ export class GamesBaseService {
 
   public async validateGameName(game: ValidateGameProjectDto): Promise<void> {
     if (game.gameName) {
-      const exists = await this.gameRepository.findOne({
+      const gameExisted = await this.gameRepository.findOne({
         where: { gameName: ILike(game.gameName) },
       });
-      if (exists) {
-        throw new ConflictException('Game name already exists');
+      if (gameExisted) {
+        throw new ConflictException(
+          `One game with this name already exists. ID: ${gameExisted.id} Submitter: ${gameExisted.username}`,
+        );
       }
     }
   }
