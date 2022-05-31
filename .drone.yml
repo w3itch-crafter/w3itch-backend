@@ -53,7 +53,7 @@ steps:
       - rm -rf /home/w3itch-testing/w3itch-backend-testing-for-rollback
       - mv /home/w3itch-testing/w3itch-backend-testing /home/w3itch-testing/w3itch-backend-testing-for-rollback
       - mkdir /home/w3itch-testing/w3itch-backend-testing
-      - cp /home/w3itch/w3itch-backend-config/config/config.development.yaml /home/w3itch-testing/config-testing/
+      - cp /home/w3itch-testing/w3itch-backend-config/config/config.development.yaml /home/w3itch-testing/config-testing/
       - cp -r * /home/w3itch-testing/w3itch-backend-testing/
       - cp /home/w3itch-testing/config-testing/* /home/w3itch-testing/w3itch-backend-testing/config/
       - cd /home/w3itch-testing/w3itch-backend-testing
@@ -344,6 +344,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: dcb41ec64f763a3956880c3b63d4d3808dc27d7db8d7e8a940e7bef99a7a46be
+hmac: 1edaf5e41d24e50366cbd467b84fc6a4dbae48110229afb86921fc34c4f954c5
 
 ...
