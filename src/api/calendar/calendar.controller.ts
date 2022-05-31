@@ -5,9 +5,9 @@ import {
   HttpStatus,
   Inject,
   LoggerService,
-  Query,
   StreamableFile,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import axios from 'axios';
 import { Buffer } from 'buffer';
@@ -21,13 +21,13 @@ import { AppCacheService } from '../../cache/service';
 @ApiTags('Calendar')
 @Controller('calendar')
 export class CalendarController {
-  static cacheTTL = 60 * 3;
-  static cacheKey = 'events';
+  static cacheKeyGitcoin = 'events.gitcoin';
 
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly cacheService: AppCacheService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getGitcoin() {
@@ -57,7 +57,6 @@ export class CalendarController {
     const events = Array.from(current).concat(Array.from(upcoming));
 
     const comp = new ICAL.Component(['vcalendar', [], []]);
-    comp.updatePropertyWithValue('prodid', '-//iCal.js w3itch');
     events.forEach((x: Element) => {
       const times = x.querySelectorAll(':scope .title-and-dates time');
       const titleAndDate = x.querySelector(':scope .title-and-dates h4 a');
@@ -84,42 +83,56 @@ export class CalendarController {
     return comp;
   }
 
-  async getICalendar(url: string) {
+  async getICalendarFromURL(url: string) {
     const response = await axios.get(url, { responseType: 'text' });
     if (response.status !== HttpStatus.OK) {
       this.logger.error(`Get calendar error: ${response.statusText}`);
       throw new HttpException('', response.status);
     }
-    return response.data;
+    return ICAL.Component.fromString(response.data);
+  }
+
+  mergeICalendar(components: ICAL.Component[]) {
+    const comp = new ICAL.Component(['vcalendar', [], []]);
+    for (const x of components) {
+      const vevents = x.getAllSubcomponents('vevent');
+      for (const e of vevents) {
+        comp.addSubcomponent(e);
+      }
+    }
+    return comp;
   }
 
   @Get('/cal.ics')
   @ApiOperation({
     summary: 'Get calendar in icalendar format',
   })
-  async getICal(
-    @Query('url') url: string,
-  ): Promise<StreamableFile | undefined> {
-    let ics;
-    if (!url) {
-      ics = await this.cacheService.lazyGet(
-        CalendarController.cacheKey,
-        async () => {
-          const comp = await this.getGitcoin();
-          if (!comp) {
-            throw new HttpException('', HttpStatus.NOT_FOUND);
-          }
-          return comp.toString();
-        },
-        CalendarController.cacheTTL,
-      );
-    } else {
-      ics = await this.cacheService.lazyGet(
-        url,
-        async () => this.getICalendar(url),
-        CalendarController.cacheTTL,
-      );
-    }
-    return new StreamableFile(Buffer.from(ics));
+  async getICal(): Promise<StreamableFile | undefined> {
+    const ttl = this.configService.get<number>('cache.vcode.ttl');
+    const gitcoin = await this.cacheService.lazyGet(
+      CalendarController.cacheKeyGitcoin,
+      async () => {
+        const x = await this.getGitcoin();
+        if (!x) {
+          throw new HttpException('', HttpStatus.NOT_FOUND);
+        }
+        return x.toString();
+      },
+      ttl,
+    );
+    const urls = await Promise.all(
+      ['https://sesh.fyi/api/calendar/v2/kC5eioJDBoWaweGPoBVKqj.ics'].map(
+        async (url) =>
+          await this.cacheService.lazyGet(
+            url,
+            async () => (await this.getICalendarFromURL(url)).toString(),
+            ttl,
+          ),
+      ),
+    );
+    const ics = this.mergeICalendar(
+      [gitcoin, ...urls].map((x) => ICAL.Component.fromString(x)),
+    );
+    return new StreamableFile(Buffer.from(ics.toString()));
   }
 }
