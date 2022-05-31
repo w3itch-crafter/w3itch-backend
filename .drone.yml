@@ -19,7 +19,7 @@ name: promotion-testing
 
 server:
   host: api.w3itch.io
-  user: w3itch
+  user: w3itch-testing
   ssh_key:
     from_secret: SSH_ID_RSA
 
@@ -344,6 +344,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 41ba022e5e5a9d912930beeaf6811a3ae7eda48a690fb1850068880fb33d1614
+hmac: dcb41ec64f763a3956880c3b63d4d3808dc27d7db8d7e8a940e7bef99a7a46be
 
 ...
