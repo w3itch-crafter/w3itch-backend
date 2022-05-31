@@ -2364,6 +2364,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/properties-reader@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@types/properties-reader@npm:2.1.1"
+  checksum: dbe2cde46c948ebfa96925a3e35ab792af4fe222b2cb0aa9bb793fd79667eae9506d5d1b43061ea75a84478a055aada8e1fbd58fd6d557915e7a19407654d6e5
+  languageName: node
+  linkType: hard
+
 "@types/qs@npm:*":
   version: 6.9.7
   resolution: "@types/qs@npm:6.9.7"
@@ -12636,6 +12643,7 @@ __metadata:
     "@types/multer": ^1.4.7
     "@types/node": ^16.11.26
     "@types/passport-jwt": ^3.0.6
+    "@types/properties-reader": ^2.1.1
     "@types/supertest": ^2.0.11
     "@typescript-eslint/eslint-plugin": ^5.14.0
     "@typescript-eslint/parser": ^5.14.0
