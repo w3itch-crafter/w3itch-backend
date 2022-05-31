@@ -85,7 +85,7 @@ export class MinetestGamesService
       this.constructor.name,
     );
     await this.handleWorldMtFile(tempGameWorldPath, {
-      gameid: 'minetest',
+      // gameid: 'minetest',
       world_name: gameWorld,
       backend: 'sqlite3',
       player_backend: 'sqlite3',
@@ -148,7 +148,7 @@ export class MinetestGamesService
   async handleWorldMtFile(
     tempGameWorldPath: string,
     options: {
-      gameid: string;
+      gameid?: string;
       world_name: string;
       backend: string;
       player_backend: string;
