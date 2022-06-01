@@ -23,6 +23,9 @@ server:
   ssh_key:
     from_secret: SSH_ID_RSA
 
+clone:
+  disable: true
+
 steps:
   - name: greeting
     commands:
@@ -46,27 +49,9 @@ steps:
   - name: build
     commands:
       - export HOME=/home/w3itch-testing
-      - yarn
-      - yarn build
       - export PM2_HOME=/home/w3itch-testing/.pm2
-      - pm2 stop w3itch-backend-testing
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing-for-rollback
-      - mv /home/w3itch-testing/w3itch-backend-testing /home/w3itch-testing/w3itch-backend-testing-for-rollback
-      - mkdir /home/w3itch-testing/w3itch-backend-testing
-      - cp /home/w3itch-testing/w3itch-backend-config/config/config.development.yaml /home/w3itch-testing/config-testing/
-      - cp -r * /home/w3itch-testing/w3itch-backend-testing/
-      - cp /home/w3itch-testing/config-testing/* /home/w3itch-testing/w3itch-backend-testing/config/
-      - cd /home/w3itch-testing/w3itch-backend-testing
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/games
-      - ln -s /var/easyrpg/testing/games /home/w3itch-testing/w3itch-backend-testing/thirdparty/games
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/gencache
-      - ln -s /var/easyrpg/testing/gencache /home/w3itch-testing/w3itch-backend-testing/thirdparty/gencache
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/downloads
-      - ln -s /var/easyrpg/testing/downloads /home/w3itch-testing/w3itch-backend-testing/thirdparty/downloads
-      - rm -rf /home/w3itch-backend-testing/thirdparty/rtp
-      - cp -r /var/easyrpg/testing/rtp /home/w3itch-testing/w3itch-backend-testing/thirdparty/rtp
-      - yarn typeorm migration:run
-      - pm2 restart w3itch-backend-testing --update-env
+      - cd ~
+      - ./redeploy.sh
 
 trigger:
   event:
@@ -83,6 +68,9 @@ server:
   user: w3itch-testing
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -105,10 +93,9 @@ steps:
     commands:
       - export HOME=/home/w3itch-testing
       - export PM2_HOME=/home/w3itch-testing/.pm2
-      - pm2 stop w3itch-backend-testing
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing
-      - cp -r /home/w3itch-testing/w3itch-backend-testing-for-rollback /home/w3itch-testing/w3itch-backend-testing
-      - pm2 restart w3itch-backend-testing --update-env
+      - cd ~
+      - ./rollback.sh
+
 trigger:
   event:
     - rollback
@@ -124,6 +111,9 @@ server:
   user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -147,27 +137,9 @@ steps:
   - name: build
     commands:
       - export HOME=/home/w3itch
-      - yarn
-      - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
-      - pm2 stop w3itch-backend
-      - rm -rf /home/w3itch/w3itch-backend-for-rollback
-      - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
-      - mkdir /home/w3itch/w3itch-backend
-      - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
-      - cp -r * /home/w3itch/w3itch-backend/
-      - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
-      - cd /home/w3itch/w3itch-backend
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/games
-      - ln -s /var/easyrpg/games /home/w3itch/w3itch-backend/thirdparty/games
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/gencache
-      - ln -s /var/easyrpg/gencache /home/w3itch/w3itch-backend/thirdparty/gencache
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/downloads
-      - ln -s /var/easyrpg/downloads /home/w3itch/w3itch-backend/thirdparty/downloads
-      - rm -rf ./thirdparty/rtp
-      - cp -r /var/easyrpg/rtp /home/w3itch/w3itch-backend/thirdparty/rtp
-      - yarn typeorm:prod migration:run
-      - pm2 restart w3itch-backend --update-env
+      - cd ~
+      - ./redeploy.sh
 trigger:
   event:
     - promote
@@ -184,6 +156,9 @@ server:
   user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -206,10 +181,8 @@ steps:
     commands:
       - export HOME=/home/w3itch
       - export PM2_HOME=/home/w3itch/.pm2
-      - pm2 stop w3itch-backend
-      - rm -rf /home/w3itch/w3itch-backend
-      - cp -r /home/w3itch/w3itch-backend-for-rollback /home/w3itch/w3itch-backend
-      - pm2 restart w3itch-backend --update-env
+      - cd ~
+      - ./rollback.sh
 trigger:
   event:
     - rollback
@@ -225,6 +198,9 @@ server:
   user: w3itch-testing
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -250,27 +226,9 @@ steps:
   - name: build
     commands:
       - export HOME=/home/w3itch-testing
-      - yarn
-      - yarn build
       - export PM2_HOME=/home/w3itch-testing/.pm2
-      - pm2 stop w3itch-backend-testing
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing-for-rollback
-      - mv /home/w3itch-testing/w3itch-backend-testing /home/w3itch-testing/w3itch-backend-testing-for-rollback
-      - mkdir /home/w3itch-testing/w3itch-backend-testing
-      - cp /home/w3itch-testing/w3itch-backend-config/config/config.development.yaml /home/w3itch-testing/config-testing/
-      - cp -r * /home/w3itch-testing/w3itch-backend-testing/
-      - cp /home/w3itch-testing/config-testing/* /home/w3itch-testing/w3itch-backend-testing/config/
-      - cd /home/w3itch-testing/w3itch-backend-testing
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/games
-      - ln -s /var/easyrpg/testing/games /home/w3itch-testing/w3itch-backend-testing/thirdparty/games
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/gencache
-      - ln -s /var/easyrpg/testing/gencache /home/w3itch-testing/w3itch-backend-testing/thirdparty/gencache
-      - rm -rf /home/w3itch-testing/w3itch-backend-testing/thirdparty/downloads
-      - ln -s /var/easyrpg/testing/downloads /home/w3itch-testing/w3itch-backend-testing/thirdparty/downloads
-      - rm -rf /home/w3itch-backend-testing/thirdparty/rtp
-      - cp -r /var/easyrpg/testing/rtp /home/w3itch-testing/w3itch-backend-testing/thirdparty/rtp
-      - yarn typeorm migration:run
-      - pm2 restart w3itch-backend-testing --update-env
+      - cd ~
+      - ./redeploy.sh
 
 trigger:
   branch:
@@ -289,6 +247,9 @@ server:
   user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -314,27 +275,9 @@ steps:
   - name: build
     commands:
       - export HOME=/home/w3itch
-      - yarn
-      - yarn build
       - export PM2_HOME=/home/w3itch/.pm2
-      - pm2 stop w3itch-backend
-      - rm -rf /home/w3itch/w3itch-backend-for-rollback
-      - mv /home/w3itch/w3itch-backend /home/w3itch/w3itch-backend-for-rollback
-      - mkdir /home/w3itch/w3itch-backend
-      - cp /home/w3itch/w3itch-backend-config/config/config.production.yaml /home/w3itch/config/
-      - cp -r * /home/w3itch/w3itch-backend/
-      - cp /home/w3itch/config/* /home/w3itch/w3itch-backend/config/
-      - cd /home/w3itch/w3itch-backend
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/games
-      - ln -s /var/easyrpg/games /home/w3itch/w3itch-backend/thirdparty/games
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/gencache
-      - ln -s /var/easyrpg/gencache /home/w3itch/w3itch-backend/thirdparty/gencache
-      - rm -rf /home/w3itch/w3itch-backend/thirdparty/downloads
-      - ln -s /var/easyrpg/downloads /home/w3itch/w3itch-backend/thirdparty/downloads
-      - rm -rf /home/w3itch-backend-testing/thirdparty/rtp
-      - cp -r /var/easyrpg/rtp /home/w3itch/w3itch-backend/thirdparty/rtp
-      - yarn typeorm:prod migration:run
-      - pm2 restart w3itch-backend --update-env
+      - cd ~
+      - ./redeploy.sh
 
 trigger:
   branch:
@@ -344,6 +287,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 1edaf5e41d24e50366cbd467b84fc6a4dbae48110229afb86921fc34c4f954c5
+hmac: 841baa1d82daf2da5d3bf59d5ecdc672acb773beba4fc137fb4d19e1ff8e0516
 
 ...
