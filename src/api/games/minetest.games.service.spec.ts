@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
@@ -76,6 +76,7 @@ describe('MinetestGamesService', () => {
     it('options shoule be saved to config`', async () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
+        name: 'worldadmin',
         gameid: 'minetest',
         world_name: 'world1',
         backend: 'sqlite3',
@@ -88,9 +89,10 @@ describe('MinetestGamesService', () => {
         expect(props.get(key)).toEqual(options[key]);
       });
     });
-    it('name shoule not be updated`', async () => {
+    it('non-empty name should override the original configuration`', async () => {
       const path = service.getMinetestResourcePath(join('worlds', 'world1'));
       const options = {
+        name: 'worldadmin',
         gameid: 'minetest',
         world_name: 'world1',
         backend: 'sqlite3',
@@ -101,6 +103,22 @@ describe('MinetestGamesService', () => {
       const props = await service.handleWorldMtFile(path, options);
 
       expect(props.get('name')).toEqual('worldadmin');
+    });
+
+    it('empty name should not override the original configurationd', async () => {
+      const path = service.getMinetestResourcePath(join('worlds', 'world1'));
+      const options = {
+        name: '',
+        gameid: 'minetest',
+        world_name: 'world1',
+        backend: 'sqlite3',
+        player_backend: 'sqlite3',
+        readonly_backend: 'sqlite3',
+        auth_backend: 'sqlite3',
+      };
+      const props = await service.handleWorldMtFile(path, options);
+
+      expect(props.get('name')).not.toBe('');
     });
   });
 });
