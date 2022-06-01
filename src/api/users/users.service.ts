@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Account } from 'aws-sdk';
 import { Like, Repository } from 'typeorm';
 
 import { User } from '../../entities/User.entity';
@@ -54,7 +55,10 @@ export class UsersService {
   }
 
   async getUserInfo(conditions: Partial<User>): Promise<User> {
-    return await this.usersRepository.findOne({ where: conditions });
+    return await this.usersRepository.findOne({
+      where: conditions,
+      relations: ['accounts'],
+    });
   }
 
   async update(uid: number, updateUserDto: UpdateUserDto): Promise<User> {

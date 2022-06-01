@@ -47,7 +47,7 @@ export class AccountsService {
     });
     const userAccount = await this.save({
       ...userAccountData,
-      userId: user.id,
+      user,
     });
 
     return { user, userAccount };
@@ -57,11 +57,12 @@ export class AccountsService {
     accountId: string;
     platform: string;
   }): Promise<{ user: User; userAccount: Account }> {
-    const userAccount: Account = await this.findOne(userAccountData);
+    const userAccount: Account = await this.findOne({
+      where: userAccountData,
+      relations: ['user'],
+    });
 
-    const user = userAccount
-      ? await this.usersService.findOne(userAccount.userId)
-      : null;
+    const user = userAccount.user;
 
     return { user, userAccount };
   }
@@ -145,7 +146,7 @@ export class AccountsService {
     }
 
     const account = await this.findOne({
-      userId,
+      user: { id: userId },
       platform,
     });
     if (account) {
@@ -153,7 +154,7 @@ export class AccountsService {
     }
 
     await this.save({
-      userId,
+      user,
       platform,
       accountId: platformUsername,
     });
@@ -168,13 +169,15 @@ export class AccountsService {
       );
     }
 
-    const bindingCount = await this.accountsRepository.count({ userId });
+    const bindingCount = await this.accountsRepository.count({
+      user: { id: userId },
+    });
     if (bindingCount <= 1) {
       throw new BadRequestException('Failed to unbind', 'InvalidOperation');
     }
 
     await this.accountsRepository.delete({
-      userId,
+      user: { id: userId },
       platform,
     });
   }
