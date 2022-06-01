@@ -22,6 +22,7 @@ server:
   user: w3itch-testing
   ssh_key:
     from_secret: SSH_ID_RSA
+
 clone:
   disable: true
 
@@ -68,6 +69,9 @@ server:
   ssh_key:
     from_secret: SSH_ID_RSA
 
+clone:
+  disable: true
+
 steps:
   - name: greeting
     commands:
@@ -107,6 +111,9 @@ server:
   user: w3itch
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -150,6 +157,9 @@ server:
   ssh_key:
     from_secret: SSH_ID_RSA
 
+clone:
+  disable: true
+
 steps:
   - name: greeting
     commands:
@@ -188,6 +198,9 @@ server:
   user: w3itch-testing
   ssh_key:
     from_secret: SSH_ID_RSA
+
+clone:
+  disable: true
 
 steps:
   - name: greeting
@@ -235,6 +248,9 @@ server:
   ssh_key:
     from_secret: SSH_ID_RSA
 
+clone:
+  disable: true
+
 steps:
   - name: greeting
     commands:
@@ -271,4 +287,6 @@ trigger:
     - push
 ---
 kind: signature
-hmac: 384f5d7ea3923be273be5b008ca9c3a463f3582e5b40573b7f3432120f48e540
+hmac: 841baa1d82daf2da5d3bf59d5ecdc672acb773beba4fc137fb4d19e1ff8e0516
+
+...
