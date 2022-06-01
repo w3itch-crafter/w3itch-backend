@@ -1,0 +1,3 @@
+name=mcadmin
+gameid=mineclone2
+world_name=mineclone2_world1

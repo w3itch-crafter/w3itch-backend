@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
-import { GameEngine } from '../../types/enum';
+import { Game } from '../../entities/Game.entity';
+import { UserJWTPayload } from '../../types';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { ISpecificGamesService } from './specific.games.service';
 
 @Injectable()
 export class DefaultGamesService implements ISpecificGamesService {
   uploadGame(
-    game: string,
-    engine: GameEngine,
+    user: UserJWTPayload,
     file: Express.Multer.File,
-    charset?: string,
+    game: Game | CreateGameProjectDto,
   ): Promise<void> {
     // The generic business logic is in `games.logic.service.
     return;

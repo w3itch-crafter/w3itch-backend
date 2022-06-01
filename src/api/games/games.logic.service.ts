@@ -26,6 +26,8 @@ import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
 
+const fsPromises = fs.promises;
+
 @Injectable()
 export class GamesLogicService {
   constructor(
@@ -76,9 +78,12 @@ export class GamesLogicService {
     };
   }
 
-  public saveUploadedFile(file: Express.Multer.File, gameName: string): void {
+  public async saveUploadedFile(
+    file: Express.Multer.File,
+    gameName: string,
+  ): Promise<void> {
     const downloadPath = path.join('thirdparty', 'downloads', gameName);
-    fs.mkdirSync(downloadPath, { recursive: true });
+    await fsPromises.mkdir(downloadPath, { recursive: true });
     fs.createWriteStream(path.join(downloadPath, file.originalname)).write(
       file.buffer,
     );
@@ -110,17 +115,7 @@ export class GamesLogicService {
     );
     this.checkFileMimeTypeAcceptable(file);
 
-    await this.getSpecificGamesService(game.kind).uploadGame(
-      game.gameName,
-      game.kind,
-      file,
-      game.charset,
-    );
-
-    if (!game.donationAddress) {
-      // default donation address is user's login wallet
-      game.donationAddress = user.account.accountId;
-    }
+    await this.getSpecificGamesService(game.kind).uploadGame(user, file, game);
 
     const gameEntityPartial = await this.convertTagsAndPricesFromDtoToEntities(
       game,
@@ -130,7 +125,7 @@ export class GamesLogicService {
       username: user.username,
       file: file.originalname,
     });
-    this.saveUploadedFile(file, game.gameName);
+    await this.saveUploadedFile(file, game.gameName);
     return gameProject;
   }
   getSpecificGamesService(kind: GameEngine) {
@@ -175,11 +170,13 @@ export class GamesLogicService {
       // minetest world database files should not be overwritten when updating game world info
       // easyprg theoretically does not need to do so either, currently this is for scenarios where the game encoding is not chosen correctly so that it does not need to be re-uploaded, but rather re-decompressed
       if (fileUploaded || target.kind === GameEngine.RM2K3E) {
+        if (game.charset) {
+          target.charset = game.charset;
+        }
         await this.getSpecificGamesService(target.kind).uploadGame(
-          target.gameName,
-          game?.kind ?? target.kind,
+          user,
           file,
-          game?.charset,
+          target,
         );
       }
     } else {

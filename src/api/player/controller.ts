@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 
 import { PlayerService } from './service';
 
-@ApiTags('Games')
+@ApiTags('Games / EasyRPG')
 @Controller('player')
 export class PlayerController {
   constructor(private readonly service: PlayerService) {}

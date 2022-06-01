@@ -1,7 +1,7 @@
 name=worldadmin
 gameid=minetest
+world_name=world1
 backend=sqlite3
 player_backend=sqlite3
 readonly_backend=sqlite3
 auth_backend=sqlite3
-world_name=world1

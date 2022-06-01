@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { MinetestWorldPortItem } from '../../types';
 import { MinetestGamesService } from './minetest.games.service';
 
-@ApiTags('games')
+@ApiTags('Games / Minetest')
 @Controller('minetest-games')
 export class MinetestGamesController {
   constructor(private readonly minetestGamesService: MinetestGamesService) {}
