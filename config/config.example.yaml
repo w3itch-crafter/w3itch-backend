@@ -90,3 +90,7 @@ game:
     execMinetestEnabled: true
     ports:
       begin: 30030
+    mapper:
+      enabled: false
+      binPath:
+      colorsFilePath:

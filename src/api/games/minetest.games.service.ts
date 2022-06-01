@@ -96,6 +96,7 @@ export class MinetestGamesService
       readonly_backend: 'sqlite3',
       auth_backend: 'sqlite3',
     });
+    await this.generateOverviewImage(tempGameWorldPath);
     await fsPromises.cp(tempGameWorldPath, targetPath, { recursive: true });
 
     this.logger.log(`Delete ${tempPath}`, this.constructor.name);
@@ -184,6 +185,44 @@ export class MinetestGamesService
       'game.minetest.basePath',
     );
     return join(minetestBasePath, subPath);
+  }
+
+  public generateOverviewImage(worldPath: string) {
+    if (!this.configService.get<boolean>('game.minetest.mapper.enabled'))
+      return Promise.resolve();
+
+    const binPath = this.configService.get<string>(
+      'game.minetest.mapper.binPath',
+    );
+    const colorsFile = this.configService.get<string>(
+      'game.minetest.mapper.colorsFilePath',
+    );
+
+    const outputImagePath = join(worldPath, 'overview.png');
+
+    const childProcess = spawn(binPath, [
+      '-i',
+      worldPath,
+      '-o',
+      outputImagePath,
+      '--colors',
+      colorsFile,
+    ]);
+    this.logger.log(
+      `${binPath} -i ${worldPath} -o ${outputImagePath} --colors ${colorsFile} process: ${childProcess.pid}`,
+      this.constructor.name,
+    );
+
+    return new Promise<void>((resolve) => {
+      childProcess.on('close', (code, signal) => {
+        this.logger.log(
+          `child process terminated due to receipt of signal ${signal}: code ${code}`,
+          this.constructor.name,
+        );
+
+        resolve();
+      });
+    });
   }
 
   public async deleteGameResourceDirectory(gameWorld: string) {
