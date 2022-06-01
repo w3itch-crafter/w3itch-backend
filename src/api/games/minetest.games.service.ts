@@ -9,7 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import AdmZip from 'adm-zip-iconv';
 import { spawn } from 'child_process';
-import { isNotEmpty } from 'class-validator';
+import { isEmpty, isNotEmpty } from 'class-validator';
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join, resolve } from 'path';
@@ -90,7 +90,6 @@ export class MinetestGamesService
     );
     await this.handleWorldMtFile(tempGameWorldPath, {
       name: user.username,
-      // gameid: 'minetest',
       world_name: gameWorld,
       backend: 'sqlite3',
       player_backend: 'sqlite3',
@@ -154,7 +153,6 @@ export class MinetestGamesService
     tempGameWorldPath: string,
     options: {
       name: string;
-      gameid?: string;
       world_name: string;
       backend: string;
       player_backend: string;
@@ -167,12 +165,16 @@ export class MinetestGamesService
     const properties = PropertiesReader(worldMtPath, null, {
       writer: { saveSections: true },
     });
+    if (isEmpty(properties.get('gameid'))) {
+      properties.set('gameid', 'minetest');
+    }
     Object.keys(options).forEach((key) => {
       const value = options[key];
-      if (isNotEmpty(value)) {
+      if (key !== 'gameid' && isNotEmpty(value)) {
         properties.set(key, value);
       }
     });
+
     await properties.save(worldMtPath);
     return properties;
   }
