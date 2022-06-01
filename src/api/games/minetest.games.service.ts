@@ -9,13 +9,16 @@ import {
 import { ConfigService } from '@nestjs/config';
 import AdmZip from 'adm-zip-iconv';
 import { spawn } from 'child_process';
+import { isNotEmpty } from 'class-validator';
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join, resolve } from 'path';
 import PropertiesReader from 'properties-reader';
 
-import { MinetestWorldPortItem } from '../../types';
+import { Game } from '../../entities/Game.entity';
+import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
 import { GameEngine, GamesListSortBy, ReleaseStatus } from '../../types/enum';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { GamesBaseService } from './games.base.service';
 import { ISpecificGamesService } from './specific.games.service';
 
@@ -45,25 +48,26 @@ export class MinetestGamesService
   private portOffset = 0;
 
   public async uploadGame(
-    game: string,
-    engine: GameEngine,
+    user: UserJWTPayload,
     file: Express.Multer.File,
-    charset?: string,
+    game: Game | CreateGameProjectDto,
   ): Promise<void> {
+    const { charset } = game;
     this.logger.verbose(
       `Upload game world using charset ${charset}`,
       this.constructor.name,
     );
     const zip = new AdmZip(file.buffer, charset);
     const entryPath = this.checkGameWorldFilesExist(zip);
-    await this.extractGameWorld(zip, game, entryPath);
-    const port = await this.saveMinetestConfigForGameWorld(game);
+    await this.extractGameWorld(user, zip, game.gameName, entryPath);
+    const port = await this.saveMinetestConfigForGameWorld(game.gameName);
     if (this.configService.get<boolean>('game.minetest.execMinetestEnabled')) {
-      await this.execMinetest(this.getMinetestBin(), game, port);
+      await this.execMinetest(this.getMinetestBin(), game.gameName, port);
     }
   }
 
   public async extractGameWorld(
+    user: UserJWTPayload,
     zip: AdmZip,
     gameWorld: string,
     entryPath: string,
@@ -85,6 +89,7 @@ export class MinetestGamesService
       this.constructor.name,
     );
     await this.handleWorldMtFile(tempGameWorldPath, {
+      name: user.username,
       // gameid: 'minetest',
       world_name: gameWorld,
       backend: 'sqlite3',
@@ -148,6 +153,7 @@ export class MinetestGamesService
   async handleWorldMtFile(
     tempGameWorldPath: string,
     options: {
+      name: string;
       gameid?: string;
       world_name: string;
       backend: string;
@@ -162,7 +168,10 @@ export class MinetestGamesService
       writer: { saveSections: true },
     });
     Object.keys(options).forEach((key) => {
-      properties.set(key, options[key]);
+      const value = options[key];
+      if (isNotEmpty(value)) {
+        properties.set(key, value);
+      }
     });
     await properties.save(worldMtPath);
     return properties;

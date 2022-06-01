@@ -1,11 +1,12 @@
-import { GameEngine } from '../../types/enum';
+import { Game } from '../../entities/Game.entity';
+import { UserJWTPayload } from '../../types';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 
 export interface ISpecificGamesService {
   uploadGame(
-    game: string,
-    engine: GameEngine,
+    user: UserJWTPayload,
     file: Express.Multer.File,
-    charset?: string,
+    game: Game | CreateGameProjectDto,
   ): Promise<void>;
 
   deleteGameResourceDirectory(game: string);
