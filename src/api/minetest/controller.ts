@@ -1,12 +1,11 @@
 import { Controller, Get, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-
 import { join } from 'path';
 
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
 
-@ApiTags('Games')
+@ApiTags('Games / Minetest')
 @Controller('minetest')
 export class MineTestController {
   constructor() {}

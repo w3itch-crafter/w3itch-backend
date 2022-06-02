@@ -72,7 +72,7 @@ export class Game extends BaseEntity {
   @Column({ unique: true })
   @Length(1, 50)
   @IsString()
-  @Matches(/^[^-_].*[^-_]$/, {
+  @Matches(/(^[^-_].*[^-_]$)|(^[^-_]$)/, {
     message:
       'Game name must not start or end with - or _, and length must be between 1 and 50',
   })
@@ -141,7 +141,7 @@ export class Game extends BaseEntity {
   @ApiProperty({ description: 'Cover URL' })
   @Column()
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   cover: string;
 
   @ManyToMany(() => Tag, (tag) => tag.game, {

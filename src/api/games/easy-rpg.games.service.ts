@@ -7,18 +7,21 @@ import {
 import AdmZip from 'adm-zip-iconv';
 import execa from 'execa';
 import { Request, Response } from 'express';
-import { cpSync, existsSync, rmSync, statSync } from 'fs';
+import { existsSync, promises as fsPromises, statSync } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import process from 'process';
 
-import { GameEngine } from '../../types/enum';
+import { Game } from '../../entities/Game.entity';
+import { UserJWTPayload } from '../../types';
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
+import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
+import { ISpecificGamesService } from './specific.games.service';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini'];
 
 @Injectable()
-export class EasyRpgGamesService {
+export class EasyRpgGamesService implements ISpecificGamesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -58,7 +61,7 @@ export class EasyRpgGamesService {
       decodeURIComponent(path),
     );
     try {
-      statSync(filePath);
+      await fsPromises.stat(filePath);
       await serveFileWithETag(req, res, filePath);
     } catch (error) {
       // if the file doesn't exist, fallback to the rtp directory
@@ -75,13 +78,13 @@ export class EasyRpgGamesService {
     }
   }
 
-  public deleteGameDirectory(game: string) {
+  public async deleteGameResourceDirectory(game: string) {
     const targetPath = join(
       EasyRpgGamesService.getThirdpartyDir('games'),
       game,
     );
     try {
-      rmSync(targetPath, { recursive: true });
+      await fsPromises.rm(targetPath, { recursive: true });
       this.logger.log(`Deleted ${targetPath}`, this.constructor.name);
     } catch (error) {
       // target directory doesn't exist, nothing to delete
@@ -159,31 +162,38 @@ export class EasyRpgGamesService {
     zip.extractAllTo(tempPath, true);
 
     //clean up the target directory
-    this.deleteGameDirectory(game);
+    await this.deleteGameResourceDirectory(game);
 
     const gamePath = join(tempPath, entryPath);
     this.logger.debug(
       `Move Game from ${gamePath} to ${targetPath}`,
       this.constructor.name,
     );
-    cpSync(gamePath, targetPath, { recursive: true });
+    await fsPromises.cp(gamePath, targetPath, { recursive: true });
 
     if (!existsSync(join(targetPath, 'index.json'))) {
       // copy files from the rtp folder
       // use a filter to skip the exist files (don't overwrite)
-      cpSync(EasyRpgGamesService.getThirdpartyDir('rtp'), gamePath, {
-        recursive: true,
-        filter: (_, dest) => {
-          try {
-            return !statSync(join(tempPath, dest));
-          } catch (error) {
-            return true;
-          }
+      await fsPromises.cp(
+        EasyRpgGamesService.getThirdpartyDir('rtp'),
+        gamePath,
+        {
+          recursive: true,
+          filter: (_, dest) => {
+            try {
+              return !statSync(join(tempPath, dest));
+            } catch (error) {
+              return true;
+            }
+          },
         },
-      });
+      );
       // generate index.json in gamePath, move it to targetPath
       await this.execGenCache(gamePath);
-      cpSync(join(gamePath, 'index.json'), join(targetPath, 'index.json'));
+      await fsPromises.cp(
+        join(gamePath, 'index.json'),
+        join(targetPath, 'index.json'),
+      );
     } else {
       this.logger.debug(
         `index.json exists, skipping generateGameCache`,
@@ -192,18 +202,18 @@ export class EasyRpgGamesService {
     }
 
     this.logger.log(`Delete ${tempPath}`, this.constructor.name);
-    rmSync(tempPath, { recursive: true });
+    await fsPromises.rm(tempPath, { recursive: true });
   }
 
-  public uploadGame(
-    game: string,
-    engine: GameEngine,
+  public async uploadGame(
+    user: UserJWTPayload,
     file: Express.Multer.File,
-    charset?: string,
+    game: Game | CreateGameProjectDto,
   ): Promise<void> {
+    const { charset } = game;
     this.logger.verbose(`Using charset ${charset}`, this.constructor.name);
     const zip = new AdmZip(file.buffer, charset);
     const entryPath = this.checkGameRpgRtFilesExist(zip);
-    return this.extractGame(zip, game, entryPath);
+    return await this.extractGame(zip, game.gameName, entryPath);
   }
 }

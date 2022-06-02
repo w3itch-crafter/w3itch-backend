@@ -79,3 +79,18 @@ user:
       - blog
       - api
     # - etc.
+
+game:
+  minetest:
+    # parent path of mods & worlds https://wiki.minetest.net/Installing_Mods Installation directory
+    basePath:
+    # minetest commnd.for example: /user/share/minetest/bin/mintest
+    binPath:
+    # whether to execute minetest. Can be set to false for debugging purposes, must be true for production environments
+    execMinetestEnabled: true
+    ports:
+      begin: 30030
+    mapper:
+      enabled: false
+      binPath:
+      colorsFilePath:

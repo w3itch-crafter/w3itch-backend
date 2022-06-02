@@ -6,5 +6,6 @@ import { StoragesService } from './service';
 @Module({
   controllers: [StoragesController],
   providers: [StoragesService],
+  exports: [StoragesService],
 })
 export class StoragesModule {}

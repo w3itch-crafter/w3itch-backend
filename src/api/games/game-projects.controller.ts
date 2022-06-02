@@ -34,7 +34,14 @@ import { ApiGeneralPaginationResponse } from '../../decorators/api-general-pagin
 import { CurrentUser } from '../../decorators/user.decorator';
 import { Game } from '../../entities/Game.entity';
 import { UserJWTPayload } from '../../types';
-import { GamesListSortBy } from '../../types/enum';
+import {
+  GameEngine,
+  GamesListSortBy,
+  Genre,
+  PaymentMode,
+  ProjectClassification,
+  ReleaseStatus,
+} from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
@@ -55,6 +62,35 @@ export class GameProjectsController {
   @ApiOperation({ summary: 'paignate game projects' })
   @ApiQuery({
     name: 'username',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'paymentMode',
+    enum: PaymentMode,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'classification',
+    enum: ProjectClassification,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'kind',
+    enum: GameEngine,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'genre',
+    enum: Genre,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'releaseStatus',
+    enum: ReleaseStatus,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'donationAddress',
     required: false,
   })
   @ApiQuery({
@@ -84,6 +120,12 @@ export class GameProjectsController {
   @ApiGeneralPaginationResponse(Game)
   async paginateGameProjects(
     @Query('username') username: string,
+    @Query('paymentMode') paymentMode: PaymentMode,
+    @Query('classification') classification: ProjectClassification,
+    @Query('kind') kind: GameEngine,
+    @Query('genre') genre: Genre,
+    @Query('releaseStatus') releaseStatus: ReleaseStatus,
+    @Query('donationAddress') donationAddress: string,
     @Query('tags') tags: string[],
     @Query('sortBy')
     sortBy: GamesListSortBy = GamesListSortBy.TIME,
@@ -93,6 +135,12 @@ export class GameProjectsController {
   ): Promise<Paginated<Game>> {
     const options = {
       username,
+      paymentMode,
+      classification,
+      kind,
+      genre,
+      releaseStatus,
+      donationAddress,
       tags,
       sortBy,
       order,
