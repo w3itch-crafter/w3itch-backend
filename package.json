@@ -1,6 +1,6 @@
 {
   "name": "w3itch-backend",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "",
   "author": "",
   "license": "MIT",
@@ -72,6 +72,7 @@
     "rxjs": "^7.5.5",
     "swagger-ui-express": "^4.3.0",
     "typeorm": "^0.2.45",
+    "uuid": "^8.3.2",
     "web3": "^1.7.3",
     "winston": "^3.6.0",
     "winston-loki": "^6.0.5"
@@ -100,6 +101,7 @@
     "@types/passport-jwt": "^3.0.6",
     "@types/properties-reader": "^2.1.1",
     "@types/supertest": "^2.0.11",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",
     "eslint": "^8.11.0",
