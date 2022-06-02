@@ -61,8 +61,7 @@ export class AccountsService {
       where: userAccountData,
       relations: ['user'],
     });
-
-    const user = userAccount.user;
+    const user = userAccount?.user;
 
     return { user, userAccount };
   }
