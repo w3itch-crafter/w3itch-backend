@@ -6,6 +6,7 @@ import { join } from 'path';
 import PropertiesReader from 'properties-reader';
 
 import { GamesBaseService } from './games.base.service';
+import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { MinetestGamesService } from './minetest.games.service';
 
 describe('MinetestGamesService', () => {
@@ -33,8 +34,13 @@ describe('MinetestGamesService', () => {
           useValue: new Logger(),
         },
         GamesBaseService,
+        MinetestWorldsService,
         {
           provide: 'GameRepository',
+          useValue: {},
+        },
+        {
+          provide: 'MinetestWorldRepository',
           useValue: {},
         },
       ],

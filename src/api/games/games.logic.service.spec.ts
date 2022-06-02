@@ -12,6 +12,7 @@ import { DefaultGamesService } from './default.games.service';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { GamesLogicService } from './games.logic.service';
+import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { MinetestGamesService } from './minetest.games.service';
 
 describe('GamesLogicService', () => {
@@ -46,6 +47,7 @@ describe('GamesLogicService', () => {
         PricesService,
         EasyRpgGamesService,
         MinetestGamesService,
+        MinetestWorldsService,
         DefaultGamesService,
         TokensService,
         {
@@ -62,6 +64,10 @@ describe('GamesLogicService', () => {
         },
         {
           provide: 'TokenRepository',
+          useValue: {},
+        },
+        {
+          provide: 'MinetestWorldRepository',
           useValue: {},
         },
       ],

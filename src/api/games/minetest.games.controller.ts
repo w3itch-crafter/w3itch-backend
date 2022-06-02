@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { JWTAuthGuard } from '../../auth/guard';
 
+import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
 import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
 import { MinetestGamesService } from './minetest.games.service';
@@ -12,16 +12,18 @@ export class MinetestGamesController {
   constructor(private readonly minetestGamesService: MinetestGamesService) {}
 
   @Get('/runnings')
-  getRunningGameWorldPorts(): MinetestWorldPortItem[] {
-    return this.minetestGamesService.getRunningGameWorldPorts();
+  async getRunningGameWorldPorts(): Promise<MinetestWorldPortItem[]> {
+    return await this.minetestGamesService.getRunningGameWorldPorts();
   }
   @Get('/runnings/:gameWorldName')
-  getPortByGameWorldName(
+  async getPortByGameWorldName(
     @Param('gameWorldName') gameWorldName: string,
-  ): MinetestWorldPortItem {
+  ): Promise<MinetestWorldPortItem> {
     return {
       gameWorldName,
-      port: this.minetestGamesService.getPortByGameWorldName(gameWorldName),
+      port: await this.minetestGamesService.getPortByGameWorldName(
+        gameWorldName,
+      ),
     };
   }
   @UseGuards(JWTAuthGuard)

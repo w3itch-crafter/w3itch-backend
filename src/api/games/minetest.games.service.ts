@@ -14,18 +14,19 @@ import { spawn } from 'child_process';
 import { isEmpty, isNotEmpty } from 'class-validator';
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import PropertiesReader from 'properties-reader';
 
 import { Game } from '../../entities/Game.entity';
 import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
-import { GameEngine, GamesListSortBy, ReleaseStatus } from '../../types/enum';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { GamesBaseService } from './games.base.service';
+import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { ISpecificGamesService } from './specific.games.service';
 
 const worldFilesRequired = ['world.mt'];
 
+const ADMIN_USERNAME = '__ADMIN__';
 @Injectable()
 export class MinetestGamesService
   implements
@@ -38,6 +39,7 @@ export class MinetestGamesService
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
     private readonly gamesBaseService: GamesBaseService,
+    private readonly minetestWorldService: MinetestWorldsService,
   ) {}
 
   private childProcesses = new Map<number, any>();
@@ -45,9 +47,6 @@ export class MinetestGamesService
 
   private childProcessCloseResolves = {};
   private childProcessCloseRejects = {};
-
-  private worldPortMap = new Map<string, number>();
-  private portOffset = 0;
 
   public async uploadGame(
     user: UserJWTPayload,
@@ -111,15 +110,15 @@ export class MinetestGamesService
     worldAmdinUsername: string,
     world: string,
   ): Promise<number> {
-    // TODO find available port
-    const gameIndex = this.portOffset;
-    let port = this.worldPortMap.get(world);
+    let port = await this.getPortByGameWorldName(world);
     if (!port) {
-      port =
+      const minetestWorld = await this.minetestWorldService.save({
+        gameWorldName: world,
+      });
+      port = minetestWorld.port =
         this.configService.get<number>('game.minetest.ports.begin', 30000) +
-        gameIndex;
-      this.portOffset += 1;
-      this.worldPortMap.set(world, port);
+        minetestWorld.id;
+      await this.minetestWorldService.save(minetestWorld);
     }
     const configFileName = `minetest.${port}.conf`;
     const configFilePath = this.getMinetestResourcePath(configFileName);
@@ -130,7 +129,11 @@ export class MinetestGamesService
     // create file if is not existed
     const file = await fsPromises.open(configFilePath, 'w+');
     await file.close();
-    const properties = PropertiesReader(configFilePath);
+    const templateConfigFilePath = this.getMinetestConfigTempatePath();
+    const templateFile = await fsPromises.open(templateConfigFilePath, 'w+');
+    await file.close();
+    const templateProperties = PropertiesReader(templateConfigFilePath);
+    const properties = templateProperties.clone();
     properties.set('port', port);
     properties.set('remote_port', port);
     properties.set('name', worldAmdinUsername ?? 'w3itch');
@@ -306,9 +309,6 @@ export class MinetestGamesService
         if (promise === this.childProcessPromises.get(port)) {
           this.childProcessPromises.delete(port);
         }
-        if (port === this.worldPortMap.get(worldName)) {
-          this.worldPortMap.delete(worldName);
-        }
 
         resolve(port);
       };
@@ -365,41 +365,47 @@ export class MinetestGamesService
   getMinetestBin() {
     return this.configService.get('game.minetest.binPath');
   }
+
+  getMinetestConfigTempatePath(): string {
+    return this.getMinetestResourcePath(`minetest.conf.template`);
+  }
+
   getMinetestConfigPathByPort(port: number): string {
     return this.getMinetestResourcePath(`minetest.${port}.conf`);
   }
 
-  getRunningGameWorldPorts(): MinetestWorldPortItem[] {
-    const items = [];
-    this.worldPortMap.forEach((value, key) => {
-      items.push({
-        gameWorldName: key,
-        port: value,
-      });
-    });
-    return items;
+  async getRunningGameWorldPorts(): Promise<MinetestWorldPortItem[]> {
+    return (await this.minetestWorldService.list({ id: 'ASC' })).filter(
+      (minetestWorld) => this.childProcesses.has(minetestWorld.port),
+    );
   }
 
-  getPortByGameWorldName(gameWorldName: string): number {
-    return this.worldPortMap.get(gameWorldName);
+  async getPortByGameWorldName(gameWorldName: string): Promise<number> {
+    const gameWorld = await this.minetestWorldService.findOneByGameWorldName(
+      gameWorldName,
+    );
+    return gameWorld?.port;
   }
 
   async restartMinetestServerByGameWorldName(
     currentUsername: string,
     gameWorldName: string,
   ): Promise<{ gameWorldName: string; port: number }> {
-    const gameWorld = await this.gamesBaseService.findOneByGameName(
+    const minetestGame = await this.gamesBaseService.findOneByGameName(
       gameWorldName,
     );
-    if (!gameWorld) {
+    if (!minetestGame) {
       throw new NotFoundException(`Game world "${gameWorldName}" is not found`);
     }
-    if (gameWorld.username !== currentUsername) {
+    if (
+      ADMIN_USERNAME !== currentUsername &&
+      minetestGame.username !== currentUsername
+    ) {
       throw new ForbiddenException(
         'You have no permission to restart this game',
       );
     }
-    let port = this.getPortByGameWorldName(gameWorldName);
+    let port = await this.getPortByGameWorldName(gameWorldName);
     if (!port) {
       port = await this.saveMinetestConfigForGameWorld(
         currentUsername,
@@ -416,7 +422,7 @@ export class MinetestGamesService
   async stopMinetestServerByGameWorldName(
     gameWorldName: string,
   ): Promise<MinetestWorldPortItem> {
-    const port = this.getPortByGameWorldName(gameWorldName);
+    const port = await this.getPortByGameWorldName(gameWorldName);
 
     await this.stopMinetestChildProcessByPort(port);
 
@@ -426,33 +432,17 @@ export class MinetestGamesService
     };
   }
 
-  async listMintestWorlds(orderBy: string) {
+  async listMintestWorlds(order) {
     // More than this number can not rely on a single server, or at least a cluster or other distributed scheme.
-    return (
-      await this.gamesBaseService.paginateGameProjects(
-        {
-          // Avoid invalid URL errors.
-          path: 'http://127.0.0.1/game-projects',
-          limit: 1000,
-          page: 1,
-        },
-        {
-          kind: GameEngine.MINETEST,
-          releaseStatus: ReleaseStatus.RELEASED,
-          // stable
-          sortBy: 'id',
-          orderBy,
-        },
-      )
-    ).data;
+    return await this.minetestWorldService.list(order);
   }
 
   async onApplicationBootstrap() {
     this.logger.log(`Bootstrap application`, this.constructor.name);
-    (await this.listMintestWorlds('ASC')).forEach(async (world) => {
+    (await this.listMintestWorlds({ id: 'ASC' })).forEach(async (world) => {
       await this.restartMinetestServerByGameWorldName(
-        world.username,
-        world.gameName,
+        ADMIN_USERNAME,
+        world.gameWorldName,
       );
     });
   }
@@ -462,8 +452,8 @@ export class MinetestGamesService
       `Shutting down application, signal: ${signal}`,
       this.constructor.name,
     );
-    (await this.listMintestWorlds('DESC')).forEach(async (world) => {
-      await this.stopMinetestServerByGameWorldName(world.gameName);
+    (await this.listMintestWorlds({ id: 'DESC' })).forEach(async (world) => {
+      await this.stopMinetestServerByGameWorldName(world.gameWorldName);
     });
   }
 }

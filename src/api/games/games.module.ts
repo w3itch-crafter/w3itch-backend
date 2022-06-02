@@ -10,11 +10,17 @@ import { GameProjectsController } from './game-projects.controller';
 import { GamesBaseService } from './games.base.service';
 import { GamesController } from './games.controller';
 import { GamesLogicService } from './games.logic.service';
+import { MinetestWorldsModule } from './minetest-worlds/minetest-worlds.module';
 import { MinetestGamesController } from './minetest.games.controller';
 import { MinetestGamesService } from './minetest.games.service';
 
 @Module({
-  imports: [TagsModule, PricesModule, TypeOrmModule.forFeature([Game])],
+  imports: [
+    TagsModule,
+    PricesModule,
+    MinetestWorldsModule,
+    TypeOrmModule.forFeature([Game]),
+  ],
   controllers: [
     GamesController,
     GameProjectsController,
