@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   LoggerService,
+  NotFoundException,
   OnApplicationBootstrap,
   OnApplicationShutdown,
 } from '@nestjs/common';
@@ -60,7 +62,10 @@ export class MinetestGamesService
     const zip = new AdmZip(file.buffer, charset);
     const entryPath = this.checkGameWorldFilesExist(zip);
     await this.extractGameWorld(user, zip, game.gameName, entryPath);
-    const port = await this.saveMinetestConfigForGameWorld(game.gameName);
+    const port = await this.saveMinetestConfigForGameWorld(
+      user.username,
+      game.gameName,
+    );
     if (this.configService.get<boolean>('game.minetest.execMinetestEnabled')) {
       await this.execMinetest(this.getMinetestBin(), game.gameName, port);
     }
@@ -102,7 +107,10 @@ export class MinetestGamesService
     await fsPromises.rm(tempPath, { recursive: true });
   }
 
-  public async saveMinetestConfigForGameWorld(world: string): Promise<number> {
+  public async saveMinetestConfigForGameWorld(
+    worldAmdinUsername: string,
+    world: string,
+  ): Promise<number> {
     // TODO find available port
     const gameIndex = this.portOffset;
     let port = this.worldPortMap.get(world);
@@ -125,7 +133,7 @@ export class MinetestGamesService
     const properties = PropertiesReader(configFilePath);
     properties.set('port', port);
     properties.set('remote_port', port);
-    properties.set('name', 'w3itch');
+    properties.set('name', worldAmdinUsername ?? 'w3itch');
     await properties.save(configFilePath);
     return port;
   }
@@ -377,11 +385,26 @@ export class MinetestGamesService
   }
 
   async restartMinetestServerByGameWorldName(
+    currentUsername: string,
     gameWorldName: string,
   ): Promise<{ gameWorldName: string; port: number }> {
+    const gameWorld = await this.gamesBaseService.findOneByGameName(
+      gameWorldName,
+    );
+    if (!gameWorld) {
+      throw new NotFoundException(`Game world "${gameWorldName}" is not found`);
+    }
+    if (gameWorld.username !== currentUsername) {
+      throw new ForbiddenException(
+        'You have no permission to restart this game',
+      );
+    }
     let port = this.getPortByGameWorldName(gameWorldName);
     if (!port) {
-      port = await this.saveMinetestConfigForGameWorld(gameWorldName);
+      port = await this.saveMinetestConfigForGameWorld(
+        currentUsername,
+        gameWorldName,
+      );
     }
     await this.execMinetest(this.getMinetestBin(), gameWorldName, port);
     return {
@@ -416,7 +439,8 @@ export class MinetestGamesService
         {
           kind: GameEngine.MINETEST,
           releaseStatus: ReleaseStatus.RELEASED,
-          sortBy: GamesListSortBy.TIME,
+          // stable
+          sortBy: 'id',
           orderBy,
         },
       )
@@ -426,7 +450,10 @@ export class MinetestGamesService
   async onApplicationBootstrap() {
     this.logger.log(`Bootstrap application`, this.constructor.name);
     (await this.listMintestWorlds('ASC')).forEach(async (world) => {
-      await this.restartMinetestServerByGameWorldName(world.gameName);
+      await this.restartMinetestServerByGameWorldName(
+        world.username,
+        world.gameName,
+      );
     });
   }
 
