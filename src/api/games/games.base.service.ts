@@ -159,6 +159,10 @@ export class GamesBaseService {
     return game;
   }
 
+  public async findOneByGameName(gameName: string): Promise<Game> {
+    return await this.gameRepository.findOne({ gameName });
+  }
+
   public async save(game: Partial<Game>): Promise<Game> {
     return await this.gameRepository.save(game);
   }
