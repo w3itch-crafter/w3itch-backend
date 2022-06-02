@@ -1,6 +1,7 @@
 import { IsUrl, Length, Matches } from 'class-validator';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinTable, OneToMany } from 'typeorm';
 
+import { Account } from './Account.entity';
 import { BaseEntity } from './base.entity';
 
 @Entity()
@@ -24,4 +25,7 @@ export class User extends BaseEntity {
   @Column({ default: 'https://i.loli.net/2021/05/13/CiEFPgWJzuk5prZ.png' })
   @IsUrl()
   avatar: string;
+
+  @OneToMany(() => Account, (account) => account.user, {})
+  accounts: Account[];
 }

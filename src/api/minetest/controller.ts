@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
 
-@ApiTags('Games')
+@ApiTags('Games / Minetest')
 @Controller('minetest')
 export class MineTestController {
   constructor() {}

@@ -1,7 +1,9 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { JWTAuthGuard } from '../../auth/guard';
 
-import { MinetestWorldPortItem } from '../../types';
+import { CurrentUser } from '../../decorators/user.decorator';
+import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
 import { MinetestGamesService } from './minetest.games.service';
 
 @ApiTags('Games / Minetest')
@@ -22,12 +24,15 @@ export class MinetestGamesController {
       port: this.minetestGamesService.getPortByGameWorldName(gameWorldName),
     };
   }
-
+  @UseGuards(JWTAuthGuard)
   @Post('/restart/:gameWorldName')
   async restartByGameWorldName(
+    @CurrentUser() user: UserJWTPayload,
+
     @Param('gameWorldName') gameWorldName: string,
   ): Promise<MinetestWorldPortItem> {
     return await this.minetestGamesService.restartMinetestServerByGameWorldName(
+      user.username,
       gameWorldName,
     );
   }
