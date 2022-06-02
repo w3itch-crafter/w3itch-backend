@@ -102,6 +102,7 @@ export class MinetestGamesService
     });
     const coverUrl = await this.generateAndUploadOverviewImage(
       user,
+      gameWorld,
       tempGameWorldPath,
     );
     if (coverUrl) {
@@ -200,6 +201,7 @@ export class MinetestGamesService
 
   public async generateAndUploadOverviewImage(
     user: UserJWTPayload,
+    worldName: string,
     worldPath: string,
   ) {
     if (!this.configService.get<boolean>('game.minetest.mapper.enabled'))
@@ -242,7 +244,7 @@ export class MinetestGamesService
       const outputImageStream = createReadStream(outputImagePath);
       const s3Result = await this.storageService.uploadToAWS(
         user.id,
-        `world-overview.${uuidv1()}.png`,
+        `world-overview.${worldName}.${uuidv1()}.png`,
         outputImageStream,
       );
 
