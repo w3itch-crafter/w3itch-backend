@@ -141,7 +141,7 @@ export class Game extends BaseEntity {
   @ApiProperty({ description: 'Cover URL' })
   @Column()
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   cover: string;
 
   @ManyToMany(() => Tag, (tag) => tag.game, {
