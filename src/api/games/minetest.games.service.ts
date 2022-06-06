@@ -146,10 +146,26 @@ export class MinetestGamesService
     const file = await fsPromises.open(configFilePath, 'w+');
     await file.close();
     const templateConfigFilePath = this.getMinetestConfigTempatePath();
-    const templateFile = await fsPromises.open(templateConfigFilePath, 'w+');
-    await file.close();
-    const templateProperties = PropertiesReader(templateConfigFilePath);
-    const properties = templateProperties.clone();
+
+    let properties;
+    try {
+      const templateProperties = PropertiesReader(
+        templateConfigFilePath,
+        'UTF-8',
+        { writer: { saveSections: true } },
+      );
+      properties = templateProperties.clone();
+    } catch (err) {
+      this.logger.warn(
+        `minetest.conf.template is not found,use an empty properties object instead`,
+        this.constructor.name,
+      );
+      properties = PropertiesReader(configFilePath);
+    }
+    this.logger.verbose(
+      `template propreties: ${properties?.getAllProperties()}`,
+      this.constructor.name,
+    );
     properties.set('port', port);
     properties.set('remote_port', port);
     properties.set('name', worldAmdinUsername ?? 'w3itch');

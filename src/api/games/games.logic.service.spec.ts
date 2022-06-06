@@ -13,8 +13,8 @@ import { DefaultGamesService } from './default.games.service';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { GamesLogicService } from './games.logic.service';
-import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { MinetestGamesService } from './minetest.games.service';
+import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 
 describe('GamesLogicService', () => {
   let service: GamesLogicService;
