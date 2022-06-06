@@ -91,8 +91,8 @@ describe('GamesLogicService', () => {
         minetestGamesService,
       );
     });
-    it('should return defaulttGamesService when kind of game project is `default`', async () => {
-      expect(service.getSpecificGamesService(GameEngine.DEFAULT)).toEqual(
+    it('should return defaulttGamesService when kind of game project is `downloabable`', async () => {
+      expect(service.getSpecificGamesService(GameEngine.DOWNLOADABLE)).toEqual(
         defaultGamesService,
       );
     });

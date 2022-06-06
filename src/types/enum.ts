@@ -10,7 +10,7 @@ export enum ProjectClassification {
 export enum GameEngine {
   RM2K3E = 'rm2k3e',
   MINETEST = 'mt',
-  DEFAULT = 'default',
+  DOWNLOADABLE = 'downloadable',
 }
 
 export enum PaymentMode {
