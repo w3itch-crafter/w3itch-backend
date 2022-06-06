@@ -87,7 +87,7 @@ describe('GamesLogicService', () => {
   });
 
   describe('getSpecificGamesService', () => {
-    it('should return easyPrgGamesService when kind of game project is `rm2k3e`', async () => {
+    it('should return easyRpgGamesService when kind of game project is `rm2k3e`', async () => {
       expect(service.getSpecificGamesService(GameEngine.RM2K3E)).toEqual(
         easyRpgGamesService,
       );
@@ -97,8 +97,8 @@ describe('GamesLogicService', () => {
         minetestGamesService,
       );
     });
-    it('should return defaulttGamesService when kind of game project is `default`', async () => {
-      expect(service.getSpecificGamesService(GameEngine.DEFAULT)).toEqual(
+    it('should return defaultGamesService when kind of game project is `downloadable`', async () => {
+      expect(service.getSpecificGamesService(GameEngine.DOWNLOADABLE)).toEqual(
         defaultGamesService,
       );
     });

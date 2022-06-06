@@ -10,9 +10,10 @@ export enum ProjectClassification {
 }
 
 export enum GameEngine {
+  // 'auto' should be rejected. It is only used on the front-end
   RM2K3E = 'rm2k3e',
   MINETEST = 'mt',
-  DEFAULT = 'default',
+  DOWNLOADABLE = 'downloadable',
 }
 
 export enum PaymentMode {
