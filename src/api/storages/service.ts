@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import escapeRegExp from 'lodash.escaperegexp';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Readable } from 'stream';
 
 import { UploadToAWSResultDto, UploadToIPFSResultDto } from './dto';
 
@@ -28,7 +29,7 @@ export class StoragesService {
   public async uploadToAWS(
     userId: number,
     fileName: string,
-    data: string | Buffer,
+    data: string | Buffer | Readable,
   ): Promise<UploadToAWSResultDto> {
     try {
       const folder = this.configService.get<string>('storage.aws.folder');

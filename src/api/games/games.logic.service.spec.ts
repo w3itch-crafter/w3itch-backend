@@ -7,6 +7,7 @@ import { join } from 'path';
 import { GameEngine } from '../../types/enum';
 import { TokensService } from '../blockchains/tokens/tokens.service';
 import { PricesService } from '../prices/prices.service';
+import { StoragesService } from '../storages/service';
 import { TagsService } from '../tags/tags.service';
 import { DefaultGamesService } from './default.games.service';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
@@ -50,6 +51,7 @@ describe('GamesLogicService', () => {
         MinetestWorldsService,
         DefaultGamesService,
         TokensService,
+        StoragesService,
         {
           provide: 'GameRepository',
           useValue: {},

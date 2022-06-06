@@ -12,13 +12,16 @@ import { ConfigService } from '@nestjs/config';
 import AdmZip from 'adm-zip-iconv';
 import { spawn } from 'child_process';
 import { isEmpty, isNotEmpty } from 'class-validator';
-import { promises as fsPromises } from 'fs';
+import { createReadStream, promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import PropertiesReader from 'properties-reader';
+import { v1 as uuidv1 } from 'uuid';
 
 import { Game } from '../../entities/Game.entity';
 import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
+import { GameEngine, GamesListSortBy, ReleaseStatus } from '../../types/enum';
+import { StoragesService } from '../storages/service';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { GamesBaseService } from './games.base.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
@@ -40,6 +43,7 @@ export class MinetestGamesService
     private readonly configService: ConfigService,
     private readonly gamesBaseService: GamesBaseService,
     private readonly minetestWorldService: MinetestWorldsService,
+    private readonly storageService: StoragesService,
   ) {}
 
   private childProcesses = new Map<number, any>();
@@ -60,7 +64,9 @@ export class MinetestGamesService
     );
     const zip = new AdmZip(file.buffer, charset);
     const entryPath = this.checkGameWorldFilesExist(zip);
-    await this.extractGameWorld(user, zip, game.gameName, entryPath);
+
+    await this.extractGameWorld(user, zip, game, entryPath);
+
     const port = await this.saveMinetestConfigForGameWorld(
       user.username,
       game.gameName,
@@ -73,9 +79,10 @@ export class MinetestGamesService
   public async extractGameWorld(
     user: UserJWTPayload,
     zip: AdmZip,
-    gameWorld: string,
+    game: Game | CreateGameProjectDto,
     entryPath: string,
   ): Promise<void> {
+    const gameWorld = game.gameName;
     const tempPath = join(this.getMinetestResourcePath('temp'), gameWorld);
     const targetPath = join(this.getMinetestResourcePath('worlds'), gameWorld);
 
@@ -100,6 +107,15 @@ export class MinetestGamesService
       readonly_backend: 'sqlite3',
       auth_backend: 'sqlite3',
     });
+    const coverUrl = await this.generateAndUploadOverviewImage(
+      user,
+      gameWorld,
+      tempGameWorldPath,
+    );
+    if (coverUrl) {
+      game.cover = coverUrl;
+    }
+
     await fsPromises.cp(tempGameWorldPath, targetPath, { recursive: true });
 
     this.logger.log(`Delete ${tempPath}`, this.constructor.name);
@@ -195,6 +211,72 @@ export class MinetestGamesService
       'game.minetest.basePath',
     );
     return join(minetestBasePath, subPath);
+  }
+
+  public async generateAndUploadOverviewImage(
+    user: UserJWTPayload,
+    worldName: string,
+    worldPath: string,
+  ) {
+    if (!this.configService.get<boolean>('game.minetest.mapper.enabled'))
+      return null;
+
+    const binPath = this.configService.get<string>(
+      'game.minetest.mapper.binPath',
+    );
+    const colorsFile = this.configService.get<string>(
+      'game.minetest.mapper.colorsFilePath',
+    );
+
+    const outputImagePath = join(worldPath, 'overview.png');
+
+    const childProcess = spawn(binPath, [
+      '-i',
+      worldPath,
+      '-o',
+      outputImagePath,
+      '--colors',
+      colorsFile,
+    ]);
+    this.logger.log(
+      `${binPath} -i ${worldPath} -o ${outputImagePath} --colors ${colorsFile} process: ${childProcess.pid}`,
+      this.constructor.name,
+    );
+
+    await new Promise<void>((resolve) => {
+      childProcess.on('close', (code, signal) => {
+        this.logger.log(
+          `child process terminated due to receipt of signal ${signal}: code ${code}`,
+          this.constructor.name,
+        );
+
+        resolve();
+      });
+    });
+
+    try {
+      const outputImageStream = createReadStream(outputImagePath);
+      const s3Result = await this.storageService.uploadToAWS(
+        user.id,
+        `world-overview.${worldName}.${uuidv1()}.png`,
+        outputImageStream,
+      );
+
+      this.logger.log(`Overview image uploaded`, this.constructor.name);
+
+      return s3Result.publicUrl;
+    } catch (error) {
+      this.logger.error(
+        'Failed to upload overview image:',
+        error,
+        this.constructor.name,
+      );
+      return null;
+    } finally {
+      try {
+        await fsPromises.unlink(outputImagePath);
+      } catch {}
+    }
   }
 
   public async deleteGameResourceDirectory(gameWorld: string) {

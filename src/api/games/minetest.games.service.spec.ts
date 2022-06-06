@@ -5,6 +5,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import PropertiesReader from 'properties-reader';
 
+import { StoragesService } from '../storages/service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { MinetestGamesService } from './minetest.games.service';
@@ -33,6 +34,7 @@ describe('MinetestGamesService', () => {
           provide: WINSTON_MODULE_NEST_PROVIDER,
           useValue: new Logger(),
         },
+        StoragesService,
         GamesBaseService,
         MinetestWorldsService,
         {
