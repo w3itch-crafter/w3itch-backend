@@ -1,6 +1,8 @@
 export enum GamesListSortBy {
   RATING = 'rating',
   TIME = 'updatedAt',
+  ID = 'id',
+  CREATION_TIME = 'createdAt',
 }
 
 export enum ProjectClassification {

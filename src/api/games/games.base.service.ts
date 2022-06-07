@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { ILike, Repository } from 'typeorm';
+import { FindManyOptions, ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { User } from '../../entities/User.entity';
@@ -149,6 +149,10 @@ export class GamesBaseService {
       });
     }
     return result;
+  }
+
+  public async find(options?: FindManyOptions<Game>): Promise<Game[]> {
+    return this.gameRepository.find(options);
   }
 
   public async findOne(id: number): Promise<Game> {
