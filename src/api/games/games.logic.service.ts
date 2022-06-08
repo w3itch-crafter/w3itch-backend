@@ -13,7 +13,7 @@ import path, { join } from 'path';
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
 import { UserJWTPayload } from '../../types';
-import { GameEngine } from '../../types/enum';
+import { GameEngine, Genre, ProjectClassification } from '../../types/enum';
 import { PricesService } from '../prices/prices.service';
 import { TagsService } from '../tags/tags.service';
 import { DefaultGamesService } from './default.games.service';
@@ -115,6 +115,8 @@ export class GamesLogicService {
     );
     this.checkFileMimeTypeAcceptable(file);
 
+    this.fixGameKindAndGenreByClassification(game);
+
     await this.getSpecificGamesService(game.kind).uploadGame(user, file, game);
 
     const gameEntityPartial = await this.convertTagsAndPricesFromDtoToEntities(
@@ -128,6 +130,16 @@ export class GamesLogicService {
     await this.saveUploadedFile(file, game.gameName);
     return gameProject;
   }
+
+  fixGameKindAndGenreByClassification(
+    game: CreateGameProjectDto | UpdateGameProjectDto,
+  ) {
+    if (ProjectClassification.GAMES !== game.classification) {
+      game.kind = GameEngine.DOWNLOADABLE;
+      game.genre = Genre.NO_GENRE;
+    }
+  }
+
   getSpecificGamesService(kind: GameEngine) {
     if (GameEngine.RM2K3E === kind) {
       return this.easyRpgGamesService;
@@ -149,6 +161,8 @@ export class GamesLogicService {
     const { game } = body;
     const target = await this.gamesBaseService.findOne(id);
 
+    this.fixGameKindAndGenreByClassification(game);
+
     if (file || game?.charset) {
       this.logger.verbose(
         `Update File: ${
@@ -167,6 +181,7 @@ export class GamesLogicService {
           buffer: fileBuffer,
         } as Express.Multer.File;
       }
+
       // minetest world database files should not be overwritten when updating game world info
       // easyprg theoretically does not need to do so either, currently this is for scenarios where the game encoding is not chosen correctly so that it does not need to be re-uploaded, but rather re-decompressed
       if (fileUploaded || target.kind === GameEngine.RM2K3E) {

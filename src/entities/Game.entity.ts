@@ -180,7 +180,7 @@ export class Game extends BaseEntity {
   appStoreLinks: string[];
 
   @ApiProperty()
-  @Column('text')
+  @Column('longtext')
   @IsString()
   @IsNotEmpty()
   description: string;
