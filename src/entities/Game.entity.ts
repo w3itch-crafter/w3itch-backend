@@ -182,7 +182,7 @@ export class Game extends BaseEntity {
   @ApiProperty()
   @Column('longtext')
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   description: string;
 
   @ApiProperty({
