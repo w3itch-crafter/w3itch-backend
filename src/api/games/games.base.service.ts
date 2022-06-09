@@ -30,7 +30,6 @@ export class GamesBaseService {
 
   private static appendParams(target, options) {
     if (!target) return target;
-    console.log(target);
     const url = new URL(target);
     delete options.page;
     Object.entries(options).forEach(([key, value]: [string, string]) => {
@@ -60,7 +59,6 @@ export class GamesBaseService {
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
-    console.log(query);
     query.sortBy = [[options.sortBy, options.order]];
     query.tags = options.tags;
 

@@ -428,7 +428,6 @@ export class MinetestGamesService
       );
 
       if (this.childProcessCloseResolves[port]) {
-        console.log(this.childProcessCloseResolves[port]);
         this.logger.verbose(
           'resolve child process promise',
           this.constructor.name,
