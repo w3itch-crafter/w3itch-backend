@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CookieOptions, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import ms from 'ms';
 
 import { JwtTokens } from './types';
@@ -24,6 +24,9 @@ export class JwtCookieHelper {
   private refreshTokenName = this.configService.get<string>(
     'auth.jwt.refreshTokenName',
   );
+  private authorizeCalllbackSignupTokenName = this.configService.get<string>(
+    'auth.jwt.authorizeCalllbackSignupTokenName',
+  );
 
   async writeJwtCookies(res: Response, tokens: JwtTokens) {
     res.cookie(this.accessTokenName, tokens.accessToken, {
@@ -43,8 +46,33 @@ export class JwtCookieHelper {
     });
   }
 
+  async writeAuthorizeCallbackSignupCookie(res: Response, token: string) {
+    res.cookie(this.authorizeCalllbackSignupTokenName, token, {
+      expires: new Date(
+        new Date().getTime() +
+          ms(
+            this.configService.get<string>(
+              'auth.jwt.authorizeCalllbackSignupTokenExpires',
+            ),
+          ),
+      ),
+      ...this.getCookiesOptions('authorizeCallbackSignup'),
+    });
+  }
+
   async deleteJwtCookies(res: Response) {
     res.clearCookie(this.accessTokenName, this.getCookiesOptions('access'));
     res.clearCookie(this.refreshTokenName, this.getCookiesOptions('refresh'));
+  }
+
+  async getAuthorizeCallbackSignupTokenFromCookie(req: Request) {
+    return req.cookies[this.authorizeCalllbackSignupTokenName];
+  }
+
+  deleteAuthorizeCallbackSignupTokenFromCookie(res: Response) {
+    res.clearCookie(
+      this.authorizeCalllbackSignupTokenName,
+      this.getCookiesOptions('authorizeCallbackSignup'),
+    );
   }
 }
