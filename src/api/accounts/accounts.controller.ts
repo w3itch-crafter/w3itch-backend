@@ -38,7 +38,7 @@ export class AccountsController {
   @ApiOperation({ summary: 'Signup with authorize callback token' })
   async authorizeCallbackSignup(
     @Req() request: Request,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
     @Body() accountsSignupDto: AccountsSignupDto,
   ): Promise<LoginResult> {
     const token =
@@ -49,10 +49,10 @@ export class AccountsController {
       token,
       accountsSignupDto.username,
     );
-    // await this.jwtCookieHelper.deleteAuthorizeCallbackSignupTokenFromCookie(
-    //   response,
-    // );
-    // await this.jwtCookieHelper.writeJwtCookies(response, loginResult.tokens);
+    await this.jwtCookieHelper.deleteAuthorizeCallbackSignupTokenFromCookie(
+      response,
+    );
+    await this.jwtCookieHelper.writeJwtCookies(response, loginResult.tokens);
 
     return loginResult;
   }
