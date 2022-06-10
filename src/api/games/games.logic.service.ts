@@ -131,10 +131,11 @@ export class GamesLogicService {
     return gameProject;
   }
 
-  fixGameKindAndGenreByClassification(
-    game: CreateGameProjectDto | UpdateGameProjectDto,
-  ) {
-    if (ProjectClassification.GAMES !== game.classification) {
+  fixGameKindAndGenreByClassification(game: CreateGameProjectDto) {
+    if (
+      game.classification &&
+      ProjectClassification.GAMES !== game.classification
+    ) {
       game.kind = GameEngine.DOWNLOADABLE;
       game.genre = Genre.NO_GENRE;
     }
@@ -160,8 +161,6 @@ export class GamesLogicService {
 
     const { game } = body;
     const target = await this.gamesBaseService.findOne(id);
-
-    this.fixGameKindAndGenreByClassification(game);
 
     if (file || game?.charset) {
       this.logger.verbose(
