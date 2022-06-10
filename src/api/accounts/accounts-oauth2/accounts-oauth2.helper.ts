@@ -13,11 +13,8 @@ export class AccountsOAuth2Helper {
   ) {
     const { loginTokens, authorizeCallbackSignupToken } =
       accountsOAuth2RedirectDto;
-    await this.jwtCookieHelper.deleteJwtCookies(response);
-    await this.jwtCookieHelper.deleteAuthorizeCallbackSignupTokenFromCookie(
-      response,
-    );
 
+    // login / signup /authorize callback signup
     if (loginTokens) {
       await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
     } else if (authorizeCallbackSignupToken) {
@@ -26,6 +23,7 @@ export class AccountsOAuth2Helper {
         authorizeCallbackSignupToken,
       );
     }
+    // bind
     return this.redirectWithParams(response, accountsOAuth2RedirectDto);
   }
 

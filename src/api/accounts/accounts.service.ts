@@ -141,16 +141,22 @@ export class AccountsService {
     token: string,
     username: string,
   ): Promise<LoginResult & { tokens: JwtTokens }> {
+    let account, platform;
     try {
-      const { sub: account, platform } =
+      const authorizeCallbackSignupJWT =
         await this.authService.decodeAndVerifyAuthorizeCallbackSignupJWT(token);
-      if (account && platform) {
-        return await this.signup({ account, username }, platform);
-      }
+      account = authorizeCallbackSignupJWT.sub;
+      platform = authorizeCallbackSignupJWT.platform;
     } catch (err) {
       this.logger.error(' authorize callback signup failed', err);
     }
-    throw new UnauthorizedException('Invalid authorize callback signup token');
+    if (account && platform) {
+      return await this.signup({ account, username }, platform);
+    } else {
+      throw new UnauthorizedException(
+        'Invalid authorize callback signup token',
+      );
+    }
   }
 
   async bind(

@@ -12,11 +12,17 @@ export class PlayerController {
   @Get('')
   @Get('/')
   async getPlayerIndex(@Req() req: Request, @Res() res: Response) {
+    res.set({
+      'Cross-Origin-Opener-Policy': 'cross-origin',
+    });
     return this.service.getPlayerIndex(req, res);
   }
 
   @Get('*')
   async getPlayer(@Req() req: Request, @Res() res: Response) {
+    res.set({
+      'Cross-Origin-Opener-Policy': 'cross-origin',
+    });
     return this.service.getPlayer(req, res);
   }
 }
