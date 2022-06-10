@@ -21,7 +21,7 @@ export class PlayerController {
   @Get('*')
   async getPlayer(@Req() req: Request, @Res() res: Response) {
     res.set({
-      'Cross-Origin-Opener-Policy': 'cross-origin',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     });
     return this.service.getPlayer(req, res);
   }

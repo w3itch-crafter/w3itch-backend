@@ -13,7 +13,7 @@ export class GamesController {
   @ApiOperation({ summary: 'get EasyRPG game resources' })
   async getGames(@Req() req: Request, @Res() res: Response) {
     res.set({
-      'Cross-Origin-Opener-Policy': 'cross-origin',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     });
     return this.easyRpgGamesService.getGames(req, res);
   }
