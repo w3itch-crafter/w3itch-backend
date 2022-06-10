@@ -53,7 +53,7 @@ export class AccountsController {
       response,
     );
     await this.jwtCookieHelper.writeJwtCookies(response, loginResult.tokens);
-
-    return loginResult;
+    const { user, account } = loginResult;
+    return { user, account };
   }
 }
