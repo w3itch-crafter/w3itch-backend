@@ -23,8 +23,10 @@ auth:
   jwt:
     accessTokenName: 'w3itch_access_token'
     refreshTokenName: 'w3itch_refresh_token'
+    authorizeCalllbackSignupTokenName: 'w3itch_authorize_callback_signup_token'
     accessTokenExpires: '20m'
     refreshTokenExpires: '30d'
+    authorizeCalllbackSignupTokenExpires: '5m'
     issuer:
     algorithm: 'RS512'
     audience: []

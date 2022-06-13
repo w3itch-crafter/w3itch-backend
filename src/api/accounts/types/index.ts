@@ -2,6 +2,7 @@ import { Account } from '../../../entities/Account.entity';
 import { User } from '../../../entities/User.entity';
 
 export type LoginPlatforms = 'metamask' | 'github' | 'discord';
+export type AuthorizeRequestType = 'signup' | 'login' | 'bind';
 
 export interface LoginResult {
   user: User;
@@ -13,19 +14,21 @@ export interface JwtTokens {
   refreshToken: string;
 }
 
-type AuthorizeSignupRequest = {
+type BaseAtuorizeRequest = {
+  type: AuthorizeRequestType;
+  redirectUri: string;
+};
+
+type AuthorizeSignupRequest = BaseAtuorizeRequest & {
   type: 'signup';
   username: string;
-  redirectUri: string;
 };
-type AuthorizeLoginRequest = {
+type AuthorizeLoginRequest = BaseAtuorizeRequest & {
   type: 'login';
-  redirectUri: string;
 };
-type AuthorizeBindRequest = {
+type AuthorizeBindRequest = BaseAtuorizeRequest & {
   type: 'bind';
   userId: number;
-  redirectUri: string;
 };
 export type AuthorizeRequestParam =
   | AuthorizeSignupRequest

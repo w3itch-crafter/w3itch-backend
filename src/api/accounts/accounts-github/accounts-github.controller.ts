@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Post,
   Query,
   Req,
@@ -19,6 +20,7 @@ import { Request, Response } from 'express';
 import { JWTAuthGuard } from '../../../auth/guard';
 import { CurrentUser } from '../../../decorators/user.decorator';
 import { UserJWTPayload } from '../../../types';
+import { AccountsOAuth2Helper } from '../accounts-oauth2/accounts-oauth2.helper';
 import { AccountsGithubService } from './accounts-github.service';
 import { AccountsBindGithubDto } from './dto/accounts-bind-github.dto';
 import { AccountsLoginGithubDto } from './dto/accounts-login-github.dto';
@@ -27,15 +29,20 @@ import { AccountsSignupGithubDto } from './dto/accounts-signup-github.dto';
 @ApiTags('Accounts Github')
 @Controller('accounts/github')
 export class AccountsGithubController {
-  constructor(private readonly accountsGithubService: AccountsGithubService) {}
+  constructor(
+    private readonly accountsGithubService: AccountsGithubService,
+    private readonly accountsOAuth2Helper: AccountsOAuth2Helper,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Login using GitHub' })
   async login(
-    @Req() req: Request,
+    @Headers() headers: Record<string, string>,
     @Body() dto: AccountsLoginGithubDto,
   ): Promise<string> {
-    return await this.accountsGithubService.authorizeRequest(req, {
+    const redirectUrl = new URL(headers.origin);
+
+    return await this.accountsGithubService.authorizeRequest(redirectUrl, {
       type: 'login',
       redirectUri: dto.redirectUri,
     });
@@ -44,10 +51,11 @@ export class AccountsGithubController {
   @Post('signup')
   @ApiOperation({ summary: 'Signup using GitHub' })
   async signup(
-    @Req() req: Request,
+    @Headers() headers: Record<string, string>,
     @Body() dto: AccountsSignupGithubDto,
   ): Promise<string> {
-    return await this.accountsGithubService.authorizeRequest(req, {
+    const redirectUrl = new URL(headers.origin);
+    return await this.accountsGithubService.authorizeRequest(redirectUrl, {
       type: 'signup',
       username: dto.username,
       redirectUri: dto.redirectUri,
@@ -59,11 +67,12 @@ export class AccountsGithubController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Bind GitHub' })
   async bind(
-    @Req() req: Request,
+    @Headers() headers: Record<string, string>,
     @Body() dto: AccountsBindGithubDto,
     @CurrentUser() user: UserJWTPayload,
   ): Promise<string> {
-    return await this.accountsGithubService.authorizeRequest(req, {
+    const redirectUrl = new URL(headers.origin);
+    return await this.accountsGithubService.authorizeRequest(redirectUrl, {
       type: 'bind',
       userId: user.id,
       redirectUri: dto.redirectUri,
@@ -84,9 +93,11 @@ export class AccountsGithubController {
     @Res() response: Response,
     @Query() authorizeCallbackDto: any,
   ): Promise<void> {
-    return await this.accountsGithubService.authorizeCallback(
+    const accountsOAuth2RedirectDto =
+      await this.accountsGithubService.authorizeCallback(authorizeCallbackDto);
+    return await this.accountsOAuth2Helper.handleAuthorizeCallbackResponse(
       response,
-      authorizeCallbackDto,
+      accountsOAuth2RedirectDto,
     );
   }
 }

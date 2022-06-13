@@ -1,10 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
+  LoggerService,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { validate } from 'class-validator';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { FindConditions, Repository } from 'typeorm';
 
 import { AuthenticationService } from '../../auth/service';
@@ -16,6 +20,8 @@ import { JwtTokens, LoginPlatforms, LoginResult } from './types';
 @Injectable()
 export class AccountsService {
   constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     @InjectRepository(Account)
     private readonly accountsRepository: Repository<Account>,
     private readonly authService: AuthenticationService,
@@ -129,6 +135,28 @@ export class AccountsService {
       tokens,
       account: userAccount,
     };
+  }
+
+  async authorizeCallbackSignup(
+    token: string,
+    username: string,
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
+    let account, platform;
+    try {
+      const authorizeCallbackSignupJWT =
+        await this.authService.decodeAndVerifyAuthorizeCallbackSignupJWT(token);
+      account = authorizeCallbackSignupJWT.sub;
+      platform = authorizeCallbackSignupJWT.platform;
+    } catch (err) {
+      this.logger.error(' authorize callback signup failed', err);
+    }
+    if (account && platform) {
+      return await this.signup({ account, username }, platform);
+    } else {
+      throw new UnauthorizedException(
+        'Invalid authorize callback signup token',
+      );
+    }
   }
 
   async bind(

@@ -29,7 +29,10 @@ export class AccountsMetamaskService {
   }
 
   async verify(
-    dto: AccountsLoginMetaMaskDto | AccountsSignupMetaMaskDto | AccountsBindMetaMaskDto,
+    dto:
+      | AccountsLoginMetaMaskDto
+      | AccountsSignupMetaMaskDto
+      | AccountsBindMetaMaskDto,
   ): Promise<void> {
     const nonce = await this.cacheService.getVerificationCode(
       'metamask-login',
