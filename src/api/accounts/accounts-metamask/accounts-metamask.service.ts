@@ -1,13 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
-import type { Response } from 'express';
 
 import { AppCacheService } from '../../../cache/service';
-import { UsersService } from '../../users/users.service';
 import { AccountsService } from '../accounts.service';
-import { JwtCookieHelper } from '../jwt-cookie-helper.service';
-import { LoginResult } from '../types';
+import { AccountsAuthRedirectDto } from '../dto/accounts-auth-redirect.dto';
+import { JwtTokens, LoginResult } from '../types';
 import { AccountsBindMetaMaskDto } from './dto/accounts-bind-metamask.dto';
 import { AccountsLoginMetaMaskDto } from './dto/accounts-login-metamask.dto';
 import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
@@ -15,10 +13,8 @@ import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 @Injectable()
 export class AccountsMetamaskService {
   constructor(
-    private readonly usersService: UsersService,
     private readonly cacheService: AppCacheService,
     private readonly accountsService: AccountsService,
-    private readonly jwtCookieHelper: JwtCookieHelper,
   ) {}
 
   async generateMetamaskNonce(address: string): Promise<string> {
@@ -63,32 +59,33 @@ export class AccountsMetamaskService {
     }
   }
 
-  async loginOrSignup(
-    action: 'login' | 'signup',
-    res: Response,
-    dto: AccountsLoginMetaMaskDto | AccountsSignupMetaMaskDto,
-  ): Promise<LoginResult> {
-    await this.verify(dto);
-    const { user, account, tokens } = await this.accountsService[action](
-      dto as any,
-      'metamask',
-    );
-    await this.jwtCookieHelper.writeJwtCookies(res, tokens);
-    return { user, account };
-  }
-
   async login(
-    res: Response,
+    redirectUrl: URL,
     loginDto: AccountsLoginMetaMaskDto,
-  ): Promise<LoginResult> {
-    return await this.loginOrSignup('login', res, loginDto);
+  ): Promise<AccountsAuthRedirectDto> {
+    await this.verify(loginDto);
+    const accounts2AuthorizeCallbacResultDto =
+      await this.accountsService.handleAuthorizeCallback(
+        { type: 'login' },
+        'metamask',
+        loginDto.account,
+      );
+    accounts2AuthorizeCallbacResultDto.method &&
+      redirectUrl.searchParams.append(
+        'method',
+        accounts2AuthorizeCallbacResultDto.method,
+      );
+    return {
+      redirectUrl,
+      ...accounts2AuthorizeCallbacResultDto,
+    };
   }
 
   async signup(
-    res: Response,
     signupDto: AccountsSignupMetaMaskDto,
-  ): Promise<LoginResult> {
-    return await this.loginOrSignup('signup', res, signupDto);
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
+    await this.verify(signupDto);
+    return await this.accountsService.signup(signupDto, 'metamask');
   }
 
   async bind(userId: number, dto: AccountsBindMetaMaskDto) {

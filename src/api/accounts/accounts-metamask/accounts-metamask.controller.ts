@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
@@ -6,6 +13,7 @@ import { JWTAuthGuard } from '../../../auth/guard';
 import { VerificationCodeDto } from '../../../cache/dto/verification-code.dto';
 import { CurrentUser } from '../../../decorators/user.decorator';
 import { UserJWTPayload } from '../../../types';
+import { JwtCookieHelper } from '../jwt-cookie-helper.service';
 import { LoginResult } from '../types';
 import { AccountsMetamaskService } from './accounts-metamask.service';
 import { AccountsBindMetaMaskDto } from './dto/accounts-bind-metamask.dto';
@@ -17,6 +25,7 @@ import { AccountsSignupMetaMaskDto } from './dto/accounts-signup-metamask.dto';
 export class AccountsMetamaskController {
   constructor(
     private readonly accountsMetamaskService: AccountsMetamaskService,
+    private readonly jwtCookieHelper: JwtCookieHelper,
   ) {}
 
   @Post('/verification-code')
@@ -35,13 +44,33 @@ export class AccountsMetamaskController {
   @Post('login')
   @ApiOperation({ summary: 'Login with metamask' })
   async login(
-    @Res({ passthrough: true }) res: Response,
+    @Headers() headers: Record<string, string>,
+
+    @Res({ passthrough: true }) response: Response,
     @Body() accountsLoginMetaMaskDto: AccountsLoginMetaMaskDto,
-  ): Promise<LoginResult> {
-    return await this.accountsMetamaskService.login(
-      res,
+  ): Promise<string> {
+    const redirectUrl = new URL(headers.origin);
+    // like OAuth2 authorize callback redirect
+    const accountsAuthRedirectDto = await this.accountsMetamaskService.login(
+      redirectUrl,
       accountsLoginMetaMaskDto,
     );
+    const { loginTokens, authorizeCallbackSignupToken, params } =
+      accountsAuthRedirectDto;
+
+    // login / signup /authorize callback signup
+    if (loginTokens) {
+      await this.jwtCookieHelper.writeJwtCookies(response, loginTokens);
+    } else if (authorizeCallbackSignupToken) {
+      await this.jwtCookieHelper.writeAuthorizeCallbackSignupCookie(
+        response,
+        authorizeCallbackSignupToken,
+      );
+    }
+    Object.keys(params).forEach((key) => {
+      accountsAuthRedirectDto.redirectUrl.searchParams.append(key, params[key]);
+    });
+    return accountsAuthRedirectDto.redirectUrl.toString();
   }
 
   @Post('signup')
@@ -50,10 +79,7 @@ export class AccountsMetamaskController {
     @Res({ passthrough: true }) res: Response,
     @Body() accountsSignupMetaMaskDto: AccountsSignupMetaMaskDto,
   ): Promise<LoginResult> {
-    return await this.accountsMetamaskService.signup(
-      res,
-      accountsSignupMetaMaskDto,
-    );
+    return await this.accountsMetamaskService.signup(accountsSignupMetaMaskDto);
   }
 
   @Post('bind')

@@ -20,7 +20,7 @@ import { Request, Response } from 'express';
 import { JWTAuthGuard } from '../../../auth/guard';
 import { CurrentUser } from '../../../decorators/user.decorator';
 import { UserJWTPayload } from '../../../types';
-import { AccountsOAuth2Helper } from '../accounts-oauth2/accounts-oauth2.helper';
+import { AccountsAuthHelper } from '../accounts-auth.helper';
 import { AccountsGithubService } from './accounts-github.service';
 import { AccountsBindGithubDto } from './dto/accounts-bind-github.dto';
 import { AccountsLoginGithubDto } from './dto/accounts-login-github.dto';
@@ -31,7 +31,7 @@ import { AccountsSignupGithubDto } from './dto/accounts-signup-github.dto';
 export class AccountsGithubController {
   constructor(
     private readonly accountsGithubService: AccountsGithubService,
-    private readonly accountsOAuth2Helper: AccountsOAuth2Helper,
+    private readonly accountsOAuth2Helper: AccountsAuthHelper,
   ) {}
 
   @Post('login')
