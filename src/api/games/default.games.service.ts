@@ -8,7 +8,7 @@ import { ISpecificGamesService } from './specific.games.service';
 @Injectable()
 export class DefaultGamesService implements ISpecificGamesService {
   uploadGame(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     game: Game | CreateGameProjectDto,
   ): Promise<void> {
