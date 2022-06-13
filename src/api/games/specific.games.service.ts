@@ -4,7 +4,7 @@ import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 
 export interface ISpecificGamesService {
   uploadGame(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     game: Game | CreateGameProjectDto,
   ): Promise<void>;

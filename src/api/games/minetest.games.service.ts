@@ -20,7 +20,6 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { Game } from '../../entities/Game.entity';
 import { MinetestWorldPortItem, UserJWTPayload } from '../../types';
-import { GameEngine, GamesListSortBy, ReleaseStatus } from '../../types/enum';
 import { StoragesService } from '../storages/service';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { GamesBaseService } from './games.base.service';
@@ -53,7 +52,7 @@ export class MinetestGamesService
   private childProcessCloseRejects = {};
 
   public async uploadGame(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     game: Game | CreateGameProjectDto,
   ): Promise<void> {
@@ -77,7 +76,7 @@ export class MinetestGamesService
   }
 
   public async extractGameWorld(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     zip: AdmZip,
     game: Game | CreateGameProjectDto,
     entryPath: string,
@@ -230,7 +229,7 @@ export class MinetestGamesService
   }
 
   public async generateAndUploadOverviewImage(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     worldName: string,
     worldPath: string,
   ) {

@@ -14,7 +14,7 @@ import { FindManyOptions, ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { User } from '../../entities/User.entity';
-import { UpdateGameEntity } from '../../types';
+import { UpdateGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { entityShouldExists } from '../../utils';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
@@ -44,7 +44,10 @@ export class GamesBaseService {
     return url.toString();
   }
 
-  public async verifyOwner(gameId: number, user: User) {
+  public async verifyOwner(
+    gameId: number,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
+  ) {
     const gameProject = await this.gameRepository.findOne(gameId);
 
     if (!gameProject) {
