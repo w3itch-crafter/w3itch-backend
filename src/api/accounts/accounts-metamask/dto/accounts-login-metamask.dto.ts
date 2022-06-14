@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEthereumAddress, Length } from 'class-validator';
+import { IsEthereumAddress, Length, Matches } from 'class-validator';
 
 export class AccountsLoginMetaMaskDto {
   @ApiProperty({
@@ -14,4 +14,12 @@ export class AccountsLoginMetaMaskDto {
   })
   @Length(132, 132)
   signature: string;
+
+  @ApiProperty({
+    default: '/oauth',
+  })
+  @Matches(/^\//, {
+    message: 'redirectUri should start with /',
+  })
+  redirectUri: string;
 }

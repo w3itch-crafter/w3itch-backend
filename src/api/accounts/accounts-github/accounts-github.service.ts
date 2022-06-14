@@ -10,7 +10,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { AccountsService } from '../accounts.service';
 import { AccountsOAuth2Service } from '../accounts-oauth2/accounts-oauth2.service';
-import { AccountsOAuth2RedirectDto } from '../accounts-oauth2/dto/accounts-oauth2-redirect.dto';
+import { AccountsAuthRedirectDto } from '../dto/accounts-auth-redirect.dto';
 import { AuthorizeRequestParam, LoginPlatforms } from '../types';
 
 @Injectable()
@@ -46,7 +46,7 @@ export class AccountsGithubService {
 
   async authorizeCallback(
     authorizeCallbackDto: any,
-  ): Promise<AccountsOAuth2RedirectDto> {
+  ): Promise<AccountsAuthRedirectDto> {
     /**
      * Redirect url is the url that the user is redirected to after they authorize the app
      * It has below query params:
@@ -109,7 +109,7 @@ export class AccountsGithubService {
     );
 
     const accountsOAuth2AuthorizeCallbacResultDto =
-      await this.accountsOAuth2Service.handleAuthorizeCallback(
+      await this.accountsService.handleAuthorizeCallback(
         authorizeRequestSubject.param,
         this.getPlatform(),
         githubUsername,
@@ -119,6 +119,8 @@ export class AccountsGithubService {
         'method',
         accountsOAuth2AuthorizeCallbacResultDto.method,
       );
+    redirectUrl.searchParams.append('state', state);
+
     return {
       redirectUrl,
       ...accountsOAuth2AuthorizeCallbacResultDto,

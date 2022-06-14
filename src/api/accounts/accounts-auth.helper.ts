@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 
-import { JwtCookieHelper } from '../jwt-cookie-helper.service';
-import { AccountsOAuth2RedirectDto } from './dto/accounts-oauth2-redirect.dto';
+import { AccountsAuthRedirectDto } from './dto/accounts-auth-redirect.dto';
+import { JwtCookieHelper } from './jwt-cookie-helper.service';
 
 @Injectable()
-export class AccountsOAuth2Helper {
+export class AccountsAuthHelper {
   constructor(private readonly jwtCookieHelper: JwtCookieHelper) {}
   async handleAuthorizeCallbackResponse(
     response: Response,
-    accountsOAuth2RedirectDto: AccountsOAuth2RedirectDto,
+    accountsAuthRedirectDto: AccountsAuthRedirectDto,
   ) {
     const { loginTokens, authorizeCallbackSignupToken } =
-      accountsOAuth2RedirectDto;
+      accountsAuthRedirectDto;
 
     // login / signup /authorize callback signup
     if (loginTokens) {
@@ -24,12 +24,12 @@ export class AccountsOAuth2Helper {
       );
     }
     // bind
-    return this.redirectWithParams(response, accountsOAuth2RedirectDto);
+    return this.redirectWithParams(response, accountsAuthRedirectDto);
   }
 
   redirectWithParams(
     response: Response,
-    accountsOAuth2RedirectDto: AccountsOAuth2RedirectDto,
+    accountsOAuth2RedirectDto: AccountsAuthRedirectDto,
   ): void {
     const { redirectUrl, params } = accountsOAuth2RedirectDto;
     Object.keys(params).forEach((key) => {

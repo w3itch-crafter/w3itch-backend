@@ -16,7 +16,7 @@ export interface JwtTokens {
 
 type BaseAtuorizeRequest = {
   type: AuthorizeRequestType;
-  redirectUri: string;
+  redirectUri?: string;
 };
 
 type AuthorizeSignupRequest = BaseAtuorizeRequest & {
@@ -34,3 +34,7 @@ export type AuthorizeRequestParam =
   | AuthorizeSignupRequest
   | AuthorizeLoginRequest
   | AuthorizeBindRequest;
+
+export type AccountsAuthMethod =
+  | AuthorizeRequestType
+  | 'authorize_callback_signup';

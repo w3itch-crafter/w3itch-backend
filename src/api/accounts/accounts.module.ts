@@ -7,6 +7,7 @@ import { Account } from '../../entities/Account.entity';
 import { UsersModule } from '../users/users.module';
 import { AccountsController } from './accounts.controller';
 import { AccountsService } from './accounts.service';
+import { AccountsAuthHelper } from './accounts-auth.helper';
 import { JwtCookieHelper } from './jwt-cookie-helper.service';
 
 @Module({
@@ -17,7 +18,7 @@ import { JwtCookieHelper } from './jwt-cookie-helper.service';
     EventEmitterModule.forRoot(),
   ],
   controllers: [AccountsController],
-  providers: [AccountsService, JwtCookieHelper],
-  exports: [AccountsService, JwtCookieHelper],
+  providers: [AccountsService, JwtCookieHelper, AccountsAuthHelper],
+  exports: [AccountsService, JwtCookieHelper, AccountsAuthHelper],
 })
 export class AccountsModule {}
