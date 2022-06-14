@@ -119,6 +119,8 @@ export class AccountsGithubService {
         'method',
         accountsOAuth2AuthorizeCallbacResultDto.method,
       );
+    redirectUrl.searchParams.append('state', state);
+
     return {
       redirectUrl,
       ...accountsOAuth2AuthorizeCallbacResultDto,

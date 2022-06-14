@@ -90,7 +90,7 @@ export class AccountsGithubController {
   @ApiOperation({ summary: 'Authorization callback from GitHub' })
   @ApiOkResponse({ description: 'User is authenticated and login successful' })
   async authorizeCallback(
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
     @Query() authorizeCallbackDto: any,
   ): Promise<void> {
     const accountsOAuth2RedirectDto =

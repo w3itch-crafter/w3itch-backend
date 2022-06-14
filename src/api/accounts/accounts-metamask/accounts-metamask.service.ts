@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
+import * as randomstring from 'randomstring';
 
 import { AppCacheService } from '../../../cache/service';
 import { AccountsService } from '../accounts.service';
@@ -75,6 +76,8 @@ export class AccountsMetamaskService {
         'method',
         accounts2AuthorizeCallbacResultDto.method,
       );
+    redirectUrl.searchParams.append('state', this.generateState());
+
     return {
       redirectUrl,
       ...accounts2AuthorizeCallbacResultDto,
@@ -94,5 +97,9 @@ export class AccountsMetamaskService {
   }
   async unbind(userId: number) {
     await this.accountsService.unbind(userId, 'metamask');
+  }
+
+  generateState(): string {
+    return randomstring.generate();
   }
 }
