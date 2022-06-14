@@ -50,6 +50,9 @@ export class AccountsMetamaskController {
     @Body() accountsLoginMetaMaskDto: AccountsLoginMetaMaskDto,
   ): Promise<string> {
     const redirectUrl = new URL(headers.origin);
+    if (accountsLoginMetaMaskDto.redirectUri) {
+      redirectUrl.pathname = accountsLoginMetaMaskDto.redirectUri;
+    }
     // like OAuth2 authorize callback redirect
     const accountsAuthRedirectDto = await this.accountsMetamaskService.login(
       redirectUrl,
