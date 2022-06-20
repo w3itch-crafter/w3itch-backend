@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import crypto from 'crypto';
+import { JwtPayload } from 'jsonwebtoken';
 
+import { LoginPlatforms } from '../api/accounts/types';
 import { Account } from '../entities/Account.entity';
 import { User } from '../entities/User.entity';
 import { UserJWTPayload } from '../types';
@@ -54,5 +56,29 @@ export class AuthenticationService {
         ),
       }),
     };
+  }
+
+  async signAuthorizeCallbackSignupJWT(
+    platform: LoginPlatforms,
+    platformUsername: string,
+  ): Promise<string> {
+    const basePayload = {
+      sub: platformUsername,
+      platform,
+      purpose: 'authorize_callback_signup_token',
+      jti: crypto.randomBytes(20).toString('hex'),
+    };
+
+    return this.jwtService.sign(basePayload, {
+      expiresIn: this.configService.get<string>(
+        'auth.jwt.authorizeCalllbackSignupTokenExpires',
+      ),
+    });
+  }
+
+  async decodeAndVerifyAuthorizeCallbackSignupJWT(
+    token: string,
+  ): Promise<JwtPayload> {
+    return (await this.jwtService.verifyAsync(token)) as JwtPayload;
   }
 }

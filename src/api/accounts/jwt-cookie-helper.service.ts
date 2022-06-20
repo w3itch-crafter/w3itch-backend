@@ -1,13 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CookieOptions, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import ms from 'ms';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { JwtTokens } from './types';
 
 @Injectable()
 export class JwtCookieHelper {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
+    private configService: ConfigService,
+  ) {}
 
   private getCookiesOptions(name: string): Partial<CookieOptions> {
     return {
@@ -23,6 +28,9 @@ export class JwtCookieHelper {
   );
   private refreshTokenName = this.configService.get<string>(
     'auth.jwt.refreshTokenName',
+  );
+  private authorizeCalllbackSignupTokenName = this.configService.get<string>(
+    'auth.jwt.authorizeCalllbackSignupTokenName',
   );
 
   async writeJwtCookies(res: Response, tokens: JwtTokens) {
@@ -43,8 +51,37 @@ export class JwtCookieHelper {
     });
   }
 
+  async writeAuthorizeCallbackSignupCookie(res: Response, token: string) {
+    res.cookie(this.authorizeCalllbackSignupTokenName, token, {
+      expires: new Date(
+        new Date().getTime() +
+          ms(
+            this.configService.get<string>(
+              'auth.jwt.authorizeCalllbackSignupTokenExpires',
+            ),
+          ),
+      ),
+      ...this.getCookiesOptions('authorizeCallbackSignup'),
+    });
+  }
+
   async deleteJwtCookies(res: Response) {
     res.clearCookie(this.accessTokenName, this.getCookiesOptions('access'));
     res.clearCookie(this.refreshTokenName, this.getCookiesOptions('refresh'));
+  }
+
+  async getAuthorizeCallbackSignupTokenFromCookie(req: Request) {
+    return req.cookies[this.authorizeCalllbackSignupTokenName];
+  }
+
+  deleteAuthorizeCallbackSignupTokenFromCookie(res: Response) {
+    this.logger.verbose(
+      'deleteAuthorizeCallbackSignupTokenFromCookie',
+      this.constructor.name,
+    );
+    res.clearCookie(
+      this.authorizeCalllbackSignupTokenName,
+      this.getCookiesOptions('authorizeCallbackSignup'),
+    );
   }
 }

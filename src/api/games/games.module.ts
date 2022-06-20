@@ -13,11 +13,13 @@ import { GamesController } from './games.controller';
 import { GamesLogicService } from './games.logic.service';
 import { MinetestGamesController } from './minetest.games.controller';
 import { MinetestGamesService } from './minetest.games.service';
+import { MinetestWorldsModule } from './minetest-worlds/minetest-worlds.module';
 
 @Module({
   imports: [
     TagsModule,
     PricesModule,
+    MinetestWorldsModule,
     StoragesModule,
     TypeOrmModule.forFeature([Game]),
   ],

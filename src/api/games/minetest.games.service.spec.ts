@@ -1,22 +1,29 @@
 import { Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 import PropertiesReader from 'properties-reader';
 
+import { MinetestWorld } from '../../entities/MinetestWorld.entity';
 import { StoragesService } from '../storages/service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
+import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 
 describe('MinetestGamesService', () => {
   let service: MinetestGamesService;
+  let minetestWorldService: MinetestWorldsService;
 
   const configuration = () => ({
     game: {
       minetest: {
         binPath: '/usr/bin/mintest',
         basePath: join(process.cwd(), 'test', 'minetest-server'),
+      },
+      ports: {
+        begin: 30000,
       },
     },
   });
@@ -35,14 +42,22 @@ describe('MinetestGamesService', () => {
         },
         StoragesService,
         GamesBaseService,
+        MinetestWorldsService,
         {
           provide: 'GameRepository',
+          useValue: {},
+        },
+        {
+          provide: 'MinetestWorldRepository',
           useValue: {},
         },
       ],
     }).compile();
 
     service = module.get<MinetestGamesService>(MinetestGamesService);
+    minetestWorldService = module.get<MinetestWorldsService>(
+      MinetestWorldsService,
+    );
   });
 
   it('should be defined', () => {
@@ -72,6 +87,110 @@ describe('MinetestGamesService', () => {
       expect(path).toEqual(
         join(configuration().game.minetest.basePath, `minetest.${port}.conf`),
       );
+    });
+  });
+
+  describe('saveMinetestConfigForGameWorld', () => {
+    async function testMinetestConfig(
+      minetestConfigName: string,
+      callback: TestMinetestConfigCallback,
+    ) {
+      const minetestConfigPath =
+        service.getMinetestResourcePath(minetestConfigName);
+      const originalProps = PropertiesReader(minetestConfigPath).clone();
+      await callback(minetestConfigPath, minetestConfigName);
+      await originalProps.save(minetestConfigPath);
+    }
+
+    type TestMinetestConfigCallback = (
+      minetestConfigPath: string,
+      minetestConfigName: string,
+    ) => Promise<void>;
+
+    it('should set port & world admin username', async () => {
+      const portByGameWorldName = 30001;
+      jest
+        .spyOn(service, 'getPortByGameWorldName')
+        .mockImplementationOnce(async (gameWorldName) => portByGameWorldName);
+      jest
+        .spyOn(minetestWorldService, 'save')
+        .mockImplementation(async (minetestWorldPart: MinetestWorld) => ({
+          ...minetestWorldPart,
+          id: 1,
+        }));
+      const worldAdminUsername = 'w3itchio';
+      const port = await service.saveMinetestConfigForGameWorld(
+        worldAdminUsername,
+        'world1',
+      );
+      expect(port).toEqual(portByGameWorldName);
+      const minetestConfigPath = await service.getMinetestConfigPathByPort(
+        port,
+      );
+      const minetestConfigProps = PropertiesReader(minetestConfigPath);
+      expect(minetestConfigProps.get('port')).toEqual(portByGameWorldName);
+      expect(minetestConfigProps.get('remote_port')).toEqual(
+        portByGameWorldName,
+      );
+      expect(minetestConfigProps.get('name')).toEqual(worldAdminUsername);
+      await fsPromises.rm(minetestConfigPath);
+    });
+
+    it('should merge template properties if template exists', async () => {
+      const portByGameWorldName = 30003;
+      jest
+        .spyOn(service, 'getPortByGameWorldName')
+        .mockImplementationOnce(async (gameWorldName) => portByGameWorldName);
+      jest
+        .spyOn(minetestWorldService, 'save')
+        .mockImplementation(async (minetestWorldPart: MinetestWorld) => ({
+          ...minetestWorldPart,
+          id: 1,
+        }));
+      const minetestConfigTemplatePath =
+        await service.getMinetestConfigTempatePath();
+      const minetetConfigTemplateConfigFile = await fsPromises.open(
+        minetestConfigTemplatePath,
+        'w+',
+      );
+      await minetetConfigTemplateConfigFile.close();
+
+      const minetestConfigTemplateProps = PropertiesReader(
+        minetestConfigTemplatePath,
+        'UTF-8',
+        {
+          writer: {
+            saveSections: true,
+          },
+        },
+      );
+      const timeSpeed = 36;
+      const soundVolume = 0.5;
+      minetestConfigTemplateProps.set('time_speed', timeSpeed);
+      minetestConfigTemplateProps.set('sound_volume', soundVolume);
+
+      await minetestConfigTemplateProps.save(minetestConfigTemplatePath);
+
+      const worldAdminUsername = 'w3itchio';
+
+      const port = await service.saveMinetestConfigForGameWorld(
+        worldAdminUsername,
+        'world1',
+      );
+      expect(port).toEqual(portByGameWorldName);
+      const minetestConfigPath = await service.getMinetestConfigPathByPort(
+        port,
+      );
+      const minetestConfigProps = PropertiesReader(minetestConfigPath);
+      expect(minetestConfigProps.get('port')).toEqual(portByGameWorldName);
+      expect(minetestConfigProps.get('remote_port')).toEqual(
+        portByGameWorldName,
+      );
+      expect(minetestConfigProps.get('name')).toEqual(worldAdminUsername);
+      expect(minetestConfigProps.get('time_speed')).toEqual(timeSpeed);
+      expect(minetestConfigProps.get('sound_volume')).toEqual(soundVolume);
+      await fsPromises.rm(minetestConfigPath);
+      await fsPromises.rm(minetestConfigTemplatePath);
     });
   });
 

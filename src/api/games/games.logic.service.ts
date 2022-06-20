@@ -4,6 +4,7 @@ import {
   Injectable,
   LoggerService,
 } from '@nestjs/common';
+import { isEmpty, isEthereumAddress } from 'class-validator';
 import fs from 'fs';
 import { readFile } from 'fs/promises';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -13,7 +14,12 @@ import path, { join } from 'path';
 import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
 import { UserJWTPayload } from '../../types';
-import { GameEngine } from '../../types/enum';
+import {
+  GameEngine,
+  Genre,
+  PaymentMode,
+  ProjectClassification,
+} from '../../types/enum';
 import { PricesService } from '../prices/prices.service';
 import { TagsService } from '../tags/tags.service';
 import { DefaultGamesService } from './default.games.service';
@@ -25,6 +31,7 @@ import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
+import { ISpecificGamesService } from './specific.games.service';
 
 const fsPromises = fs.promises;
 
@@ -102,18 +109,20 @@ export class GamesLogicService {
   }
 
   public async createGameProject(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     body: CreateGameProjectWithFileDto,
   ): Promise<Game> {
     const { game } = body;
     await this.gamesBaseService.validateGameName(game);
-
+    await this.validateAndFixDonationAddress(game);
     this.logger.verbose(
       `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
       this.constructor.name,
     );
     this.checkFileMimeTypeAcceptable(file);
+
+    this.fixGameKindAndGenreByClassification(game);
 
     await this.getSpecificGamesService(game.kind).uploadGame(user, file, game);
 
@@ -128,7 +137,18 @@ export class GamesLogicService {
     await this.saveUploadedFile(file, game.gameName);
     return gameProject;
   }
-  getSpecificGamesService(kind: GameEngine) {
+
+  fixGameKindAndGenreByClassification(game: CreateGameProjectDto) {
+    if (
+      game.classification &&
+      ProjectClassification.GAMES !== game.classification
+    ) {
+      game.kind = GameEngine.DOWNLOADABLE;
+      game.genre = Genre.NO_GENRE;
+    }
+  }
+
+  getSpecificGamesService(kind: GameEngine): ISpecificGamesService {
     if (GameEngine.RM2K3E === kind) {
       return this.easyRpgGamesService;
     } else if (GameEngine.MINETEST === kind) {
@@ -140,7 +160,7 @@ export class GamesLogicService {
 
   public async updateGameProject(
     id: number,
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     body: UpdateGameProjectWithFileDto,
   ): Promise<Game> {
@@ -148,6 +168,10 @@ export class GamesLogicService {
 
     const { game } = body;
     const target = await this.gamesBaseService.findOne(id);
+    if (!game.paymentMode) {
+      game.paymentMode = target.paymentMode;
+    }
+    await this.validateAndFixDonationAddress(game);
 
     if (file || game?.charset) {
       this.logger.verbose(
@@ -167,6 +191,7 @@ export class GamesLogicService {
           buffer: fileBuffer,
         } as Express.Multer.File;
       }
+
       // minetest world database files should not be overwritten when updating game world info
       // easyprg theoretically does not need to do so either, currently this is for scenarios where the game encoding is not chosen correctly so that it does not need to be re-uploaded, but rather re-decompressed
       if (fileUploaded || target.kind === GameEngine.RM2K3E) {
@@ -218,5 +243,36 @@ export class GamesLogicService {
 
   public async validateGameName(game: ValidateGameProjectDto): Promise<void> {
     await this.gamesBaseService.validateGameName(game);
+  }
+
+  public validateAndFixDonationAddress(createOrUpdateGameDto: {
+    paymentMode?: PaymentMode;
+    donationAddress?: string;
+  }): string {
+    if (PaymentMode.FREE === createOrUpdateGameDto?.paymentMode) {
+      if (
+        isEmpty(createOrUpdateGameDto?.donationAddress) ||
+        isEthereumAddress(createOrUpdateGameDto?.donationAddress)
+      ) {
+        return createOrUpdateGameDto.donationAddress;
+      }
+      throw new BadRequestException(
+        'donation address must be an Ethereum address',
+      );
+    } else if (
+      PaymentMode.PAID === createOrUpdateGameDto?.paymentMode &&
+      (isEmpty(createOrUpdateGameDto?.donationAddress) ||
+        isEthereumAddress(createOrUpdateGameDto?.donationAddress))
+    ) {
+      return createOrUpdateGameDto.donationAddress;
+    } else if (
+      PaymentMode.DISABLE_PAYMENTS === createOrUpdateGameDto?.paymentMode
+    ) {
+      createOrUpdateGameDto.donationAddress = null;
+      return null;
+    } else {
+      delete createOrUpdateGameDto.donationAddress;
+      return undefined;
+    }
   }
 }

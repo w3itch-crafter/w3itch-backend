@@ -1,16 +1,27 @@
 export enum GamesListSortBy {
   RATING = 'rating',
   TIME = 'updatedAt',
+  ID = 'id',
+  CREATION_TIME = 'createdAt',
 }
 
 export enum ProjectClassification {
   GAMES = 'GAMES',
+  GAME_ASSETS = 'GAME_ASSETS',
+  GAME_MODS = 'GAME_MODS',
+  PHYSICAL_GAMES = 'PHYSICAL_GAMES',
+  ALBUMS_AND_SOUNDTRACKS = 'ALBUMS_AND_SOUNDTRACKS',
+  TOOLS = 'TOOLS',
+  COMICS = 'COMICS',
+  BOOKS = 'BOOKS',
+  OTHER = 'OTHER',
 }
 
 export enum GameEngine {
+  // 'auto' should be rejected. It is only used on the front-end
   RM2K3E = 'rm2k3e',
   MINETEST = 'mt',
-  DEFAULT = 'default',
+  DOWNLOADABLE = 'downloadable',
 }
 
 export enum PaymentMode {

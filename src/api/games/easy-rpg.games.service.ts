@@ -206,7 +206,7 @@ export class EasyRpgGamesService implements ISpecificGamesService {
   }
 
   public async uploadGame(
-    user: UserJWTPayload,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
     file: Express.Multer.File,
     game: Game | CreateGameProjectDto,
   ): Promise<void> {

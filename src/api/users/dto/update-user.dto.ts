@@ -10,7 +10,8 @@ export class UpdateUserDto {
   nickname?: string;
 
   @ApiPropertyOptional({
-    default: 'https://i.loli.net/2021/05/13/CiEFPgWJzuk5prZ.png',
+    default:
+      'https://image.w3itch.io/w3itch-test/attachment/5/c388baa8-c244-4782-9807-978a8dcb7700.png',
   })
   @IsUrl()
   @IsOptional()

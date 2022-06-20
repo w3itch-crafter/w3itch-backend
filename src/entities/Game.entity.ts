@@ -168,7 +168,6 @@ export class Game extends BaseEntity {
   @ApiProperty({ description: 'Donate wallet address of the creator' })
   @Column({ nullable: true })
   @IsOptional()
-  @IsEthereumAddress()
   donationAddress?: string;
 
   @ApiProperty({
@@ -180,7 +179,7 @@ export class Game extends BaseEntity {
   appStoreLinks: string[];
 
   @ApiProperty()
-  @Column('text')
+  @Column('longtext')
   @IsString()
   @IsNotEmpty()
   description: string;

@@ -12,6 +12,14 @@ export class GamesController {
   @Get('/*')
   @ApiOperation({ summary: 'get EasyRPG game resources' })
   async getGames(@Req() req: Request, @Res() res: Response) {
+    this.corp(res);
     return this.easyRpgGamesService.getGames(req, res);
+  }
+
+  private corp(res: Response<any, Record<string, any>>) {
+    res.set({
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    });
   }
 }

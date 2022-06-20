@@ -1,21 +1,33 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
+  LoggerService,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { FindConditions, Repository } from 'typeorm';
 
 import { AuthenticationService } from '../../auth/service';
 import { Account } from '../../entities/Account.entity';
 import { User } from '../../entities/User.entity';
 import { UsersService } from '../users/users.service';
-import { JwtTokens, LoginPlatforms, LoginResult } from './types';
+import { AccountsAuthCallbackResultDto } from './dto/accounts-auth-redirect.dto';
+import {
+  AccountsAuthMethod,
+  AuthorizeRequestParam,
+  JwtTokens,
+  LoginPlatforms,
+  LoginResult,
+} from './types';
 
 @Injectable()
 export class AccountsService {
   constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     @InjectRepository(Account)
     private readonly accountsRepository: Repository<Account>,
     private readonly authService: AuthenticationService,
@@ -129,6 +141,153 @@ export class AccountsService {
       tokens,
       account: userAccount,
     };
+  }
+
+  async authorizeCallbackSignup(
+    token: string,
+    username: string,
+  ): Promise<LoginResult & { tokens: JwtTokens }> {
+    let account, platform;
+    try {
+      const authorizeCallbackSignupJWT =
+        await this.authService.decodeAndVerifyAuthorizeCallbackSignupJWT(token);
+      account = authorizeCallbackSignupJWT.sub;
+      platform = authorizeCallbackSignupJWT.platform;
+    } catch (err) {
+      this.logger.error(' authorize callback signup failed', err);
+    }
+    if (account && platform) {
+      return await this.signup({ account, username }, platform);
+    } else {
+      throw new UnauthorizedException(
+        'Invalid authorize callback signup token',
+      );
+    }
+  }
+
+  async handleAuthorizeCallback(
+    param: AuthorizeRequestParam,
+    platform: LoginPlatforms,
+    platformUsername: string,
+  ): Promise<{
+    params: Record<string, string>;
+    method?: AccountsAuthMethod;
+    loginTokens?: JwtTokens;
+    authorizeCallbackSignupToken?: string;
+  }> {
+    //remove cached authorize request subject
+
+    if ('bind' === param.type) {
+      return await this.authorizeCallbackBind(
+        param.userId,
+        platform,
+        platformUsername,
+      );
+    } else if ('login' === param.type) {
+      try {
+        const { user, userAccount } = await this.getUserAndAccount({
+          platform,
+
+          accountId: platformUsername,
+        });
+        if (user && userAccount) {
+          const loginTokens = await this.authService.signLoginJWT(
+            user,
+            userAccount,
+          );
+          return {
+            method: 'login',
+            params: {
+              success: 'true',
+              code: '200',
+            },
+            loginTokens,
+          };
+        } else {
+          // sign up first.Ask user to submit username
+
+          const authorizeCallbackSignupToken =
+            await this.authService.signAuthorizeCallbackSignupJWT(
+              platform,
+              platformUsername,
+            );
+          return {
+            method: 'authorize_callback_signup',
+            params: {
+              success: 'true',
+              code: '200',
+            },
+            authorizeCallbackSignupToken,
+          };
+        }
+      } catch (error) {
+        this.logger.verbose(
+          `Failed to login with ${platform}: ${error.message}`,
+        );
+        return {
+          params: {
+            success: 'false',
+            code: '401',
+          },
+        };
+      }
+    } else {
+      try {
+        const loginTokens = (
+          await this.signup(
+            {
+              account: platformUsername,
+              username: param.username,
+            },
+            platform,
+          )
+        ).tokens;
+        return {
+          method: 'signup',
+          params: {
+            success: 'true',
+            code: '200',
+          },
+          loginTokens,
+        };
+      } catch (error) {
+        this.logger.verbose(
+          `Failed to signup with ${platform} ${platformUsername}: ${error.message}`,
+        );
+        return {
+          params: {
+            success: 'false',
+            code: '400',
+          },
+        };
+      }
+    }
+  }
+
+  async authorizeCallbackBind(
+    userId: number,
+    platform: LoginPlatforms,
+    platformUsername: string,
+  ): Promise<AccountsAuthCallbackResultDto> {
+    try {
+      await this.bind(userId, platform, platformUsername);
+
+      return {
+        method: 'bind',
+        params: {
+          success: 'true',
+          code: '200',
+        },
+      };
+    } catch (error) {
+      this.logger.verbose(`Failed to bind ${platform}: ${error.message}`);
+      return {
+        params: {
+          success: 'false',
+          code: '401',
+        },
+      };
+    }
   }
 
   async bind(

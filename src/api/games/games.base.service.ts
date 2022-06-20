@@ -10,11 +10,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { ILike, Repository } from 'typeorm';
+import { FindManyOptions, ILike, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { User } from '../../entities/User.entity';
-import { UpdateGameEntity } from '../../types';
+import { UpdateGameEntity, UserJWTPayload } from '../../types';
 import { GamesListSortBy } from '../../types/enum';
 import { entityShouldExists } from '../../utils';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
@@ -30,7 +30,6 @@ export class GamesBaseService {
 
   private static appendParams(target, options) {
     if (!target) return target;
-    console.log(target);
     const url = new URL(target);
     delete options.page;
     Object.entries(options).forEach(([key, value]: [string, string]) => {
@@ -45,7 +44,10 @@ export class GamesBaseService {
     return url.toString();
   }
 
-  public async verifyOwner(gameId: number, user: User) {
+  public async verifyOwner(
+    gameId: number,
+    user: Pick<UserJWTPayload, 'id' | 'username'>,
+  ) {
     const gameProject = await this.gameRepository.findOne(gameId);
 
     if (!gameProject) {
@@ -60,7 +62,6 @@ export class GamesBaseService {
   }
 
   public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
-    console.log(query);
     query.sortBy = [[options.sortBy, options.order]];
     query.tags = options.tags;
 
@@ -149,6 +150,10 @@ export class GamesBaseService {
       });
     }
     return result;
+  }
+
+  public async find(options?: FindManyOptions<Game>): Promise<Game[]> {
+    return this.gameRepository.find(options);
   }
 
   public async findOne(id: number): Promise<Game> {
