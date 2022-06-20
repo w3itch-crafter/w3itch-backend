@@ -24,7 +24,7 @@ export class User extends BaseEntity {
 
   @Column({
     default:
-      'https://image.w3itch.io/w3itch-test/attachment/5/c388baa8-c244-4782-9807-978a8dcb7700.pngg',
+      'https://image.w3itch.io/w3itch-test/attachment/5/c388baa8-c244-4782-9807-978a8dcb7700.png',
   })
   @IsUrl()
   avatar: string;
