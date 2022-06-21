@@ -168,6 +168,7 @@ export class MinetestGamesService
     properties.set('port', port);
     properties.set('remote_port', port);
     properties.set('name', worldAmdinUsername ?? 'w3itch');
+    properties.set('secure.http_mods', 'discordmt');
     await properties.save(configFilePath);
     return port;
   }
