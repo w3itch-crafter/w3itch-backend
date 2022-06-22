@@ -206,11 +206,12 @@ export class Game extends BaseEntity {
   genre: Genre;
 
   @ApiProperty({
-    description: 'Customized url of this game'
+    description: 'Customized url of this game',
   })
+  @Column('varchar', { nullable: true, length: 255 })
   @Matches(/^[a-zA-Z0-9_\-]+$/)
-  @Length(1,50)
+  @Length(1, 50)
   @IsString()
-  @IsEmpty()
+  @IsOptional()
   projectURL: string;
 }

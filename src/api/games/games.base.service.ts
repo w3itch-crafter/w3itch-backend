@@ -26,7 +26,7 @@ export class GamesBaseService {
     private readonly logger: LoggerService,
     @InjectRepository(Game)
     private readonly gameRepository: Repository<Game>,
-  ) { }
+  ) {}
 
   private static appendParams(target, options) {
     if (!target) return target;
@@ -168,7 +168,10 @@ export class GamesBaseService {
     return await this.gameRepository.findOne({ gameName });
   }
 
-  public async findOneByProjectURL(username: string, projectURL: string): Promise<Game> {
+  public async findOneByProjectURL(
+    username: string,
+    projectURL: string,
+  ): Promise<Game> {
     return await this.gameRepository.findOne({ username, projectURL });
   }
 

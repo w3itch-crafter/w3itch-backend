@@ -58,8 +58,8 @@ export class GameProjectsController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly gamesLogicService: GamesLogicService,
-    private readonly gamesBaseService: GamesBaseService
-  ) { }
+    private readonly gamesBaseService: GamesBaseService,
+  ) {}
 
   @Get('/')
   @ApiOperation({ summary: 'paignate game projects' })
@@ -225,16 +225,20 @@ export class GameProjectsController {
   @ApiOperation({ summary: 'Get the game id by projectURL and username' })
   @ApiQuery({
     name: 'username',
-    required: true
+    required: true,
   })
   @ApiQuery({
     name: 'projectURL',
-    required: true
+    required: true,
   })
   async getIdByProjectURL(
-    @Param('username') username: string,
-    @Param('projectURL') projectURL: string) {
-    const game = await this.gamesBaseService.findOneByProjectURL(username, projectURL);
-    return { ok: true, id: game.id };
+    @Query('username') username: string,
+    @Query('projectURL') projectURL: string,
+  ) {
+    const game = await this.gamesBaseService.findOneByProjectURL(
+      username,
+      projectURL,
+    );
+    return { id: game?.id };
   }
 }
