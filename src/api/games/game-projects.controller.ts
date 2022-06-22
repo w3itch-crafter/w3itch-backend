@@ -43,9 +43,11 @@ import {
   ReleaseStatus,
 } from '../../types/enum';
 import { PaginationResponse } from '../../utils/responseClass';
+import { ValidateUsernameDto } from '../users/dto/validate-username.dto';
 import { CreateGameProjectWithFileDto } from './dto/create-game-proejct-with-file.dto';
 import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-file.dto';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
+import { GamesBaseService } from './games.base.service';
 import { GamesLogicService } from './games.logic.service';
 
 @ApiExtraModels(PaginationResponse)
@@ -56,7 +58,8 @@ export class GameProjectsController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly gamesLogicService: GamesLogicService,
-  ) {}
+    private readonly gamesBaseService: GamesBaseService
+  ) { }
 
   @Get('/')
   @ApiOperation({ summary: 'paignate game projects' })
@@ -216,5 +219,22 @@ export class GameProjectsController {
     @CurrentUser() user: UserJWTPayload,
   ) {
     await this.gamesLogicService.deleteGameProjectFiles(id, user);
+  }
+
+  @Get('/get-id-by-projecturl')
+  @ApiOperation({ summary: 'Get the game id by projectURL and username' })
+  @ApiQuery({
+    name: 'username',
+    required: true
+  })
+  @ApiQuery({
+    name: 'projectURL',
+    required: true
+  })
+  async getIdByProjectURL(
+    @Param('username') username: string,
+    @Param('projectURL') projectURL: string) {
+    const game = await this.gamesBaseService.findOneByProjectURL(username, projectURL);
+    return { ok: true, id: game.id };
   }
 }
