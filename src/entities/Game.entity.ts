@@ -1,5 +1,6 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
+  IsEmpty,
   IsEnum,
   IsEthereumAddress,
   IsInt,
@@ -203,4 +204,14 @@ export class Game extends BaseEntity {
   @IsEnum(Genre)
   @IsNotEmpty()
   genre: Genre;
+
+  @ApiProperty({
+    description: 'Customized url of this game',
+  })
+  @Column('varchar', { nullable: true, length: 255 })
+  @Matches(/^[a-zA-Z0-9_\-]+$/)
+  @Length(1, 50)
+  @IsString()
+  @IsOptional()
+  projectURL: string;
 }
