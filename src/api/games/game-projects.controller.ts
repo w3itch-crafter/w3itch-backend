@@ -235,7 +235,7 @@ export class GameProjectsController {
     @Query('username') username: string,
     @Query('projectURL') projectURL: string,
   ) {
-    const game = await this.gamesBaseService.findOneByProjectURL(
+    const game = await this.gamesBaseService.findIdByProjectURL(
       username,
       projectURL,
     );
