@@ -168,11 +168,16 @@ export class GamesBaseService {
     return await this.gameRepository.findOne({ gameName });
   }
 
-  public async findOneByProjectURL(
+  public async findIdByProjectURL(
     username: string,
     projectURL: string,
   ): Promise<Game> {
-    return await this.gameRepository.findOne({ username, projectURL });
+    const queryBuilder = this.gameRepository.createQueryBuilder('game');
+    return queryBuilder
+      .select('game.id')
+      .where(' game.username = :username ', { username })
+      .andWhere(' game.projectURL = :projectURL ', { projectURL })
+      .getOne();
   }
 
   public async save(game: Partial<Game>): Promise<Game> {
