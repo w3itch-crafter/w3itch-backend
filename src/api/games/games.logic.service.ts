@@ -223,7 +223,7 @@ export class GamesLogicService {
 
     if (file) {
       gameEntityPartial.file = file.originalname;
-      await this.saveUploadedFile(file, target.gameName);
+      // await this.saveUploadedFile(file, target.gameName);
     }
     return await this.gamesBaseService.update(id, gameEntityPartial);
   }
