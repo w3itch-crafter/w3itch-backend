@@ -24,6 +24,7 @@ import { GamesBaseService } from './games.base.service';
 import { GamesLogicService } from './games.logic.service';
 import { MinetestGamesService } from './minetest.games.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
+import { HtmlGamesService } from './html.games/html.games.service';
 
 describe('GamesLogicService', () => {
   let service: GamesLogicService;
@@ -61,6 +62,7 @@ describe('GamesLogicService', () => {
         EasyRpgGamesService,
         MinetestGamesService,
         MinetestWorldsService,
+        HtmlGamesService,
         DefaultGamesService,
         TokensService,
         StoragesService,
