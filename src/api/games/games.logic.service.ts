@@ -156,10 +156,9 @@ export class GamesLogicService {
       return this.easyRpgGamesService;
     } else if (GameEngine.MINETEST === kind) {
       return this.minetestGamesService;
-    } else if (GameEngine.HTML === kind){
+    } else if (GameEngine.HTML === kind) {
       return this.htmlGamesService;
-    }
-     else {
+    } else {
       return this.defaultGamesService;
     }
   }

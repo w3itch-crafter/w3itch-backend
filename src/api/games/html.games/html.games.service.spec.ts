@@ -8,10 +8,13 @@ describe('HtmlGamesService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HtmlGamesService, {
-        provide: WINSTON_MODULE_NEST_PROVIDER,
-        useValue: new Logger(),
-      },],
+      providers: [
+        HtmlGamesService,
+        {
+          provide: WINSTON_MODULE_NEST_PROVIDER,
+          useValue: new Logger(),
+        },
+      ],
     }).compile();
 
     service = module.get<HtmlGamesService>(HtmlGamesService);
