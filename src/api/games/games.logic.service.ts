@@ -116,7 +116,6 @@ export class GamesLogicService {
     const { game } = body;
     await this.gamesBaseService.validateGameName(game);
     await this.validateAndFixDonationAddress(game);
-    await this.validateProjectURL(null, user.username, game);
     this.logger.verbose(
       `File: ${file.originalname}, Game: ${JSON.stringify(game)}`,
       this.constructor.name,
@@ -173,7 +172,6 @@ export class GamesLogicService {
       game.paymentMode = target.paymentMode;
     }
     await this.validateAndFixDonationAddress(game);
-    await this.validateProjectURL(id, user.username, game);
 
     if (file || game?.charset) {
       this.logger.verbose(
@@ -276,26 +274,6 @@ export class GamesLogicService {
     } else {
       delete createOrUpdateGameDto.donationAddress;
       return undefined;
-    }
-  }
-  /***
-   * game: null when a game is being created
-   */
-  async validateProjectURL(
-    id: number,
-    username: string,
-    game: { projectURL?: string },
-  ) {
-    if (game.projectURL) {
-      const urlAssociatedGame = await this.gamesBaseService.findIdByProjectURL(
-        username,
-        game.projectURL,
-      );
-      if (urlAssociatedGame?.id && (!id || urlAssociatedGame.id != id)) {
-        throw new BadRequestException(
-          'This project url has been used by another project.',
-        );
-      }
     }
   }
 }
