@@ -32,6 +32,7 @@ import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
 import { ISpecificGamesService } from './specific.games.service';
+import { HtmlGamesService } from './html.games/html.games.service';
 
 const fsPromises = fs.promises;
 
@@ -45,6 +46,7 @@ export class GamesLogicService {
     private readonly pricesService: PricesService,
     private readonly easyRpgGamesService: EasyRpgGamesService,
     private readonly minetestGamesService: MinetestGamesService,
+    private readonly htmlGamesService: HtmlGamesService,
     private readonly defaultGamesService: DefaultGamesService,
   ) {}
 
@@ -154,7 +156,10 @@ export class GamesLogicService {
       return this.easyRpgGamesService;
     } else if (GameEngine.MINETEST === kind) {
       return this.minetestGamesService;
-    } else {
+    } else if (GameEngine.HTML === kind){
+      return this.htmlGamesService;
+    }
+     else {
       return this.defaultGamesService;
     }
   }

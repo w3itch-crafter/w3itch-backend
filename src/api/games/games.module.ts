@@ -14,6 +14,7 @@ import { GamesLogicService } from './games.logic.service';
 import { MinetestGamesController } from './minetest.games.controller';
 import { MinetestGamesService } from './minetest.games.service';
 import { MinetestWorldsModule } from './minetest-worlds/minetest-worlds.module';
+import { HtmlGamesService } from './html.games/html.games.service';
 
 @Module({
   imports: [
@@ -34,12 +35,14 @@ import { MinetestWorldsModule } from './minetest-worlds/minetest-worlds.module';
     EasyRpgGamesService,
     MinetestGamesService,
     DefaultGamesService,
+    HtmlGamesService,
   ],
   exports: [
     GamesLogicService,
     GamesBaseService,
     EasyRpgGamesService,
     MinetestGamesService,
+    HtmlGamesService,
     DefaultGamesService,
   ],
 })
