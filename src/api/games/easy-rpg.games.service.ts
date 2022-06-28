@@ -16,7 +16,7 @@ import { Game } from '../../entities/Game.entity';
 import { UserJWTPayload } from '../../types';
 import { serveFileWithETag } from '../../utils/serveFileWithETag';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
-import { ISpecificGamesService } from './specific.games.service';
+import { GameFile, ISpecificGamesService } from './specific.games.service';
 
 const rpgRtExtNames = ['lmt', 'ldb', 'ini'];
 
@@ -207,7 +207,7 @@ export class EasyRpgGamesService implements ISpecificGamesService {
 
   public async uploadGame(
     user: Pick<UserJWTPayload, 'id' | 'username'>,
-    file: Express.Multer.File,
+    file: GameFile,
     game: Game | CreateGameProjectDto,
   ): Promise<void> {
     const { charset } = game;

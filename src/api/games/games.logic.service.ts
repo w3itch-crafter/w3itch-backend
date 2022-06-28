@@ -31,7 +31,7 @@ import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { MinetestGamesService } from './minetest.games.service';
-import { ISpecificGamesService } from './specific.games.service';
+import { GameFile, ISpecificGamesService } from './specific.games.service';
 import { HtmlGamesService } from './html.games/html.games.service';
 
 const fsPromises = fs.promises;
@@ -179,6 +179,9 @@ export class GamesLogicService {
     await this.validateAndFixDonationAddress(game);
     await this.validateProjectURL(id, user.username, game);
 
+    // `file` means the uploaded file
+    // `gameFile` means game's corresponding file
+    let gameFile: GameFile = file;
     if (file || game?.charset) {
       this.logger.verbose(
         `Update File: ${
@@ -186,27 +189,28 @@ export class GamesLogicService {
         }, Game: ${JSON.stringify(game)}`,
         this.constructor.name,
       );
-      const fileUploaded = file;
+
       if (file) {
         this.checkFileMimeTypeAcceptable(file);
       } else {
         const fileBuffer = await readFile(
           join('thirdparty', 'downloads', target.gameName, target.file),
         );
-        file = {
+        gameFile = {
           buffer: fileBuffer,
-        } as Express.Multer.File;
+          originalname: target.file,
+        };
       }
 
       // minetest world database files should not be overwritten when updating game world info
       // easyprg theoretically does not need to do so either, currently this is for scenarios where the game encoding is not chosen correctly so that it does not need to be re-uploaded, but rather re-decompressed
-      if (fileUploaded || target.kind === GameEngine.RM2K3E) {
+      if (gameFile || target.kind === GameEngine.RM2K3E) {
         if (game.charset) {
           target.charset = game.charset;
         }
         await this.getSpecificGamesService(target.kind).uploadGame(
           user,
-          file,
+          gameFile,
           target,
         );
       }
