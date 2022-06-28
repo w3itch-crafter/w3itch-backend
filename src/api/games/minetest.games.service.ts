@@ -24,7 +24,7 @@ import { StoragesService } from '../storages/service';
 import { CreateGameProjectDto } from './dto/create-game-proejct.dto';
 import { GamesBaseService } from './games.base.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
-import { ISpecificGamesService } from './specific.games.service';
+import { GameFile, ISpecificGamesService } from './specific.games.service';
 
 const worldFilesRequired = ['world.mt'];
 
@@ -53,7 +53,7 @@ export class MinetestGamesService
 
   public async uploadGame(
     user: Pick<UserJWTPayload, 'id' | 'username'>,
-    file: Express.Multer.File,
+    file: GameFile,
     game: Game | CreateGameProjectDto,
   ): Promise<void> {
     const { charset } = game;
