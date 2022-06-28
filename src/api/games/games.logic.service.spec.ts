@@ -182,9 +182,6 @@ describe('GamesLogicService', () => {
             return gameInDatabaseUpdated;
           },
         );
-      jest
-        .spyOn(gamesBaseService, 'findIdByProjectURL')
-        .mockImplementationOnce(async (username, projectURL) => null);
     }
     it('should not update kind', async () => {
       const gameInDatabase = { ...gameSample };
