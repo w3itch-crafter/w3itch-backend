@@ -25,6 +25,8 @@ import { GamesLogicService } from './games.logic.service';
 import { MinetestGamesService } from './minetest.games.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
 import { HtmlGamesService } from './html.games/html.games.service';
+import { FilesystemService } from '../../io/filesystem/filesystem.service';
+import { ZipService } from '../../io/zip/zip.service';
 
 describe('GamesLogicService', () => {
   let service: GamesLogicService;
@@ -66,6 +68,8 @@ describe('GamesLogicService', () => {
         DefaultGamesService,
         TokensService,
         StoragesService,
+        FilesystemService,
+        ZipService,
         {
           provide: 'GameRepository',
           useValue: {},
