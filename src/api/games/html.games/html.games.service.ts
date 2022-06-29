@@ -12,12 +12,16 @@ import { CreateGameProjectDto } from '../dto/create-game-proejct.dto';
 import { ISpecificGamesService } from '../specific.games.service';
 import { promises as fsPromises } from 'fs';
 import AdmZip from 'adm-zip-iconv';
+import { FilesystemService } from '../../../io/filesystem/filesystem.service';
+import { ZipService } from '../../../io/zip/zip.service';
 
 @Injectable()
 export class HtmlGamesService implements ISpecificGamesService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    private readonly filesystemService: FilesystemService,
+    private readonly zipService: ZipService,
   ) {}
   public getHtmlResourcePath(subdir: string): string {
     return join(process.cwd(), 'thirdparty', 'html', subdir);
@@ -40,13 +44,13 @@ export class HtmlGamesService implements ISpecificGamesService {
   ) {
     const { gameName } = game;
     const tempPath = join(this.getHtmlResourcePath('temp'), gameName);
-    const targetPath = join(this.getHtmlResourcePath('temp'), gameName);
+    const targetPath = join(this.getHtmlResourcePath('games'), gameName);
 
     this.logger.debug(
       `Extract Game world to ${tempPath}`,
       this.constructor.name,
     );
-    zip.extractAllTo(tempPath, true);
+    this.zipService.extractAllTo(zip, tempPath, true);
     //cleanup the target directory
     await this.deleteGameResourceDirectory(gameName);
 
@@ -56,10 +60,10 @@ export class HtmlGamesService implements ISpecificGamesService {
       `Move Game from ${tempEntryPath} to ${targetPath}`,
       this.constructor.name,
     );
-    await fsPromises.cp(tempEntryPath, targetPath, { recursive: true });
+    await this.filesystemService.copyDirectory(tempEntryPath, targetPath);
 
     this.logger.log(`Delete ${tempPath}`, this.constructor.name);
-    await fsPromises.rm(tempPath, { recursive: true });
+    await this.filesystemService.deleteDirectory(tempPath);
   }
 
   checkIndexExist(zip: AdmZip) {

@@ -15,6 +15,7 @@ import { MinetestGamesController } from './minetest.games.controller';
 import { MinetestGamesService } from './minetest.games.service';
 import { MinetestWorldsModule } from './minetest-worlds/minetest-worlds.module';
 import { HtmlGamesService } from './html.games/html.games.service';
+import { IoModule } from '../../io/io.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { HtmlGamesService } from './html.games/html.games.service';
     MinetestWorldsModule,
     StoragesModule,
     TypeOrmModule.forFeature([Game]),
+    IoModule,
   ],
   controllers: [
     GamesController,
