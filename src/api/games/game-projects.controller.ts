@@ -188,7 +188,7 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
-    return this.gamesLogicService.findOneWithAcessibilityCheck(user, id);
+    return this.gamesLogicService.findOneWithAccessibilityCheck(user, id);
   }
 
   @Patch('/:id')
