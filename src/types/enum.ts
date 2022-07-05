@@ -71,3 +71,8 @@ export enum Community {
   DISQUS = 'DISQUS',
   DISABLED = 'DISABLED',
 }
+
+export enum AccessType {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}

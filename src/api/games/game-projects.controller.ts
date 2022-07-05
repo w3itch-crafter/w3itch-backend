@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Query,
+  SetMetadata,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -62,6 +63,8 @@ export class GameProjectsController {
   ) {}
 
   @Get('/')
+  @UseGuards(JWTAuthGuard)
+  @SetMetadata('allow-any', true)
   @ApiOperation({ summary: 'paignate game projects' })
   @ApiQuery({
     name: 'username',
@@ -135,6 +138,7 @@ export class GameProjectsController {
     @Query('order')
     order: 'ASC' | 'DESC' = 'ASC',
     @Paginate() query: PaginateQuery,
+    @CurrentUser() user: UserJWTPayload,
   ): Promise<Paginated<Game>> {
     const options = {
       username,
@@ -148,7 +152,7 @@ export class GameProjectsController {
       sortBy,
       order,
     };
-    return this.gamesLogicService.paginateGameProjects(query, options);
+    return this.gamesLogicService.paginateGameProjects(user, query, options);
   }
 
   @Post('/')
@@ -175,11 +179,19 @@ export class GameProjectsController {
   }
 
   @Get('/:id(\\d+)')
+  @UseGuards(JWTAuthGuard)
+  @SetMetadata('allow-any', true)
   @ApiOperation({ summary: 'get game project by id' })
   @ApiOkResponse({ type: Game })
   @ApiNotFoundResponse({ description: 'Game not found' })
-  async getGameProjectById(@Param('id') id: number) {
-    return this.gamesLogicService.findOne(id);
+  async getGameProjectById(
+    @Param('id') id: number,
+    @CurrentUser() user: UserJWTPayload,
+  ) {
+    return this.gamesLogicService.checkAccessType(
+      user.account?.user.username,
+      await this.gamesLogicService.findOne(id),
+    );
   }
 
   @Patch('/:id')

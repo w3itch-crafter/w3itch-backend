@@ -14,6 +14,7 @@ import {
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
 import {
+  AccessType,
   Community,
   GameEngine,
   GameFileCharset,
@@ -214,4 +215,12 @@ export class Game extends BaseEntity {
   @IsString()
   @IsOptional()
   projectURL: string;
+
+  @ApiProperty({
+    description: 'Determine who can see your project',
+  })
+  @Column({ default: AccessType.PUBLIC })
+  @IsEnum(AccessType)
+  @IsNotEmpty()
+  accessType: AccessType;
 }
