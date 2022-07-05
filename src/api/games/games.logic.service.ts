@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   LoggerService,
+  NotFoundException,
 } from '@nestjs/common';
 import { isEmpty, isEthereumAddress } from 'class-validator';
 import fs from 'fs';
@@ -15,6 +16,7 @@ import { Game } from '../../entities/Game.entity';
 import { Tag } from '../../entities/Tag.entity';
 import { UserJWTPayload } from '../../types';
 import {
+  AccessType,
   GameEngine,
   Genre,
   PaymentMode,
@@ -300,15 +302,11 @@ export class GamesLogicService {
    */
   public checkAccessType(
     username: string | null,
-    game: Game | null,
-  ): Game | null {
-    switch (game?.accessType) {
-      case 'PUBLIC':
-        return game;
-      case 'PRIVATE':
-        return username === game?.username ? game : null;
-      default:
-        return null;
+    game: Game,
+  ): Game {
+    if (game.accessType === AccessType.PUBLIC||username === game.username) {
+      return game;
     }
+    throw new NotFoundException(`Game Not Found`);
   }
 }
