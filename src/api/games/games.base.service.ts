@@ -6,16 +6,16 @@ import {
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { isNotEmpty } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { paginate, PaginateConfig, Paginated } from 'nestjs-paginate';
-import { FindManyOptions, ILike, Repository } from 'typeorm';
+import { Brackets, FindManyOptions, ILike, IsNull, Repository } from 'typeorm';
 
 import { Game } from '../../entities/Game.entity';
 import { User } from '../../entities/User.entity';
 import { UpdateGameEntity, UserJWTPayload } from '../../types';
-import { GamesListSortBy } from '../../types/enum';
+import { AccessType, GamesListSortBy } from '../../types/enum';
 import { entityShouldExists } from '../../utils';
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 
@@ -61,7 +61,11 @@ export class GamesBaseService {
     }
   }
 
-  public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
+  public async paginateGameProjects(
+    currentUsername: string | null,
+    query,
+    options,
+  ): Promise<Paginated<Game>> {
     query.sortBy = [[options.sortBy, options.order]];
     query.tags = options.tags;
 
@@ -88,6 +92,22 @@ export class GamesBaseService {
       releaseStatus,
       donationAddress,
     } = options;
+    if (username) {
+      queryBuilder.andWhere('game.accessType = :accessType', {
+        accessType: AccessType.PUBLIC,
+      });
+    } else {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('game.accessType = :accessType', {
+            accessType: AccessType.PUBLIC,
+          });
+          qb.orWhere('game.username = :username', {
+            username: currentUsername,
+          });
+        }),
+      );
+    }
     if (isNotEmpty(username)) {
       queryBuilder.andWhere('game.username = :username', {
         username,

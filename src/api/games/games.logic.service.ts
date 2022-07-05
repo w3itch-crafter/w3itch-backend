@@ -102,8 +102,16 @@ export class GamesLogicService {
     );
   }
 
-  public async paginateGameProjects(query, options): Promise<Paginated<Game>> {
-    return await this.gamesBaseService.paginateGameProjects(query, options);
+  public async paginateGameProjects(
+    user: UserJWTPayload,
+    query,
+    options,
+  ): Promise<Paginated<Game>> {
+    return await this.gamesBaseService.paginateGameProjects(
+      user.account?.user.username,
+      query,
+      options,
+    );
   }
 
   public async findOne(id: number): Promise<Game> {
@@ -282,6 +290,25 @@ export class GamesLogicService {
     } else {
       delete createOrUpdateGameDto.donationAddress;
       return undefined;
+    }
+  }
+  /**
+   *
+   * @param username login account's username
+   * @param game corresponding game
+   * @returns game if it is accessible to current user, otherwise null
+   */
+  public checkAccessType(
+    username: string | null,
+    game: Game | null,
+  ): Game | null {
+    switch (game?.accessType) {
+      case 'PUBLIC':
+        return game;
+      case 'PRIVATE':
+        return username === game?.username ? game : null;
+      default:
+        return null;
     }
   }
 }
