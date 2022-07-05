@@ -119,6 +119,21 @@ export class GamesLogicService {
   public async findOne(id: number): Promise<Game> {
     return await this.gamesBaseService.findOne(id);
   }
+  /**
+   *
+   * @param user current user
+   * @param id the game you find
+   * @returns
+   */
+  public async findOneWithAccessibilityCheck(
+    user: UserJWTPayload,
+    id: number,
+  ): Promise<Game> {
+    return this.checkAccessType(
+      user.account?.user.username,
+      await this.findOne(id),
+    );
+  }
 
   public async createGameProject(
     user: Pick<UserJWTPayload, 'id' | 'username'>,
@@ -300,11 +315,8 @@ export class GamesLogicService {
    * @param game corresponding game
    * @returns game if it is accessible to current user, otherwise null
    */
-  public checkAccessType(
-    username: string | null,
-    game: Game,
-  ): Game {
-    if (game.accessType === AccessType.PUBLIC||username === game.username) {
+  public checkAccessType(username: string | null, game: Game): Game {
+    if (game.accessType === AccessType.PUBLIC || username === game.username) {
       return game;
     }
     throw new NotFoundException(`Game Not Found`);

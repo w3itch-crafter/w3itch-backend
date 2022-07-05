@@ -188,10 +188,7 @@ export class GameProjectsController {
     @Param('id') id: number,
     @CurrentUser() user: UserJWTPayload,
   ) {
-    return this.gamesLogicService.checkAccessType(
-      user.account?.user.username,
-      await this.gamesLogicService.findOne(id),
-    );
+    return this.gamesLogicService.findOneWithAcessibilityCheck(user, id);
   }
 
   @Patch('/:id')
