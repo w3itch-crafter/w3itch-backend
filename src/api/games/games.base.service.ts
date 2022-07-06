@@ -92,7 +92,7 @@ export class GamesBaseService {
       releaseStatus,
       donationAddress,
     } = options;
-    if (username) {
+    if (!currentUsername) {
       queryBuilder.andWhere('game.accessType = :accessType', {
         accessType: AccessType.PUBLIC,
       });
