@@ -221,6 +221,6 @@ export class Game extends BaseEntity {
   })
   @Column({ default: AccessType.PUBLIC })
   @IsEnum(AccessType)
-  @IsNotEmpty()
+  @IsOptional()
   accessType: AccessType;
 }
