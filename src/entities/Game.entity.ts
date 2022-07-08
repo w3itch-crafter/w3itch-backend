@@ -1,8 +1,6 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
-  IsEmpty,
   IsEnum,
-  IsEthereumAddress,
   IsInt,
   IsNotEmpty,
   IsOptional,
