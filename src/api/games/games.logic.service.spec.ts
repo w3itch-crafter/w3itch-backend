@@ -4,6 +4,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
 
+import { FilesystemService } from '../../io/filesystem/filesystem.service';
+import { ZipService } from '../../io/zip/zip.service';
 import { UpdateGameEntity } from '../../types';
 import {
   Community,
@@ -22,11 +24,9 @@ import { DefaultGamesService } from './default.games.service';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
 import { GamesLogicService } from './games.logic.service';
+import { HtmlGamesService } from './html.games/html.games.service';
 import { MinetestGamesService } from './minetest.games.service';
 import { MinetestWorldsService } from './minetest-worlds/minetest-worlds.service';
-import { HtmlGamesService } from './html.games/html.games.service';
-import { FilesystemService } from '../../io/filesystem/filesystem.service';
-import { ZipService } from '../../io/zip/zip.service';
 
 describe('GamesLogicService', () => {
   let service: GamesLogicService;

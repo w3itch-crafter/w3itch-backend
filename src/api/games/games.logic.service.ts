@@ -32,9 +32,9 @@ import { UpdateGameProjectWithFileDto } from './dto/update-game-proejct-with-fil
 import { ValidateGameProjectDto } from './dto/validate-game-proejct.dto';
 import { EasyRpgGamesService } from './easy-rpg.games.service';
 import { GamesBaseService } from './games.base.service';
+import { HtmlGamesService } from './html.games/html.games.service';
 import { MinetestGamesService } from './minetest.games.service';
 import { GameFile, ISpecificGamesService } from './specific.games.service';
-import { HtmlGamesService } from './html.games/html.games.service';
 
 const fsPromises = fs.promises;
 
