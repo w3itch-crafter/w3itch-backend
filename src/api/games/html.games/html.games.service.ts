@@ -4,16 +4,17 @@ import {
   Injectable,
   LoggerService,
 } from '@nestjs/common';
+import AdmZip from 'adm-zip-iconv';
+import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { join } from 'path';
+
 import { Game } from '../../../entities/Game.entity';
+import { FilesystemService } from '../../../io/filesystem/filesystem.service';
+import { ZipService } from '../../../io/zip/zip.service';
 import { UserJWTPayload } from '../../../types';
 import { CreateGameProjectDto } from '../dto/create-game-proejct.dto';
 import { ISpecificGamesService } from '../specific.games.service';
-import { promises as fsPromises } from 'fs';
-import AdmZip from 'adm-zip-iconv';
-import { FilesystemService } from '../../../io/filesystem/filesystem.service';
-import { ZipService } from '../../../io/zip/zip.service';
 
 @Injectable()
 export class HtmlGamesService implements ISpecificGamesService {

@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Account } from 'aws-sdk';
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 
+import { Account } from '../../entities/Account.entity';
 import { User } from '../../entities/User.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -14,6 +14,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Account)
+    private accountRepository: Repository<Account>,
     private readonly configService: ConfigService,
   ) {
     this.usernameReserved = this.configService.get<string[]>(
@@ -68,5 +70,21 @@ export class UsersService {
 
   async save(saveParams = {}): Promise<User> {
     return await this.usersRepository.save(saveParams);
+  }
+
+  async getBlockchainAddressByUsername(
+    username: string,
+  ): Promise<Account | undefined> {
+    const queryBuilder = this.accountRepository.createQueryBuilder('account');
+    return queryBuilder
+      .select(['account.accountId'])
+      .innerJoin(
+        User,
+        'user',
+        ' user.username = :username AND account.userId = user.id ',
+        { username },
+      )
+      .where(" account.platform = 'metamask'")
+      .getOne();
   }
 }

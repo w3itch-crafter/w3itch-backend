@@ -1,6 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
@@ -26,6 +27,14 @@ describe('UsersService', () => {
           provide: 'UserRepository',
           useValue: {},
         },
+        {
+          provide: 'AccountRepository',
+          useValue: {}
+        },
+        {
+          provide: WINSTON_MODULE_NEST_PROVIDER,
+          useValue: new Logger()
+        }
       ],
     }).compile();
 

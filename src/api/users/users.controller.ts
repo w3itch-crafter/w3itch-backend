@@ -1,5 +1,18 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Inject,
+  LoggerService,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { JWTAuthGuard } from '../../auth/guard';
 import { CurrentUser } from '../../decorators/user.decorator';
@@ -11,7 +24,11 @@ import { UsersService } from './users.service';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private logger: LoggerService,
+  ) {}
 
   @Get('me')
   @ApiCookieAuth()
@@ -33,5 +50,16 @@ export class UsersController {
     @CurrentUser() user: UserJWTPayload,
   ): Promise<User> {
     return this.usersService.update(user.id, updateUserDto);
+  }
+  @Post('get-blockchain-address-by-username')
+  async getBlockchainAddressByUsername(@Body() body: { username?: string }) {
+    if (body.username) {
+      const { username } = body;
+      const account = await this.usersService.getBlockchainAddressByUsername(
+        username,
+      );
+      return { address: account?.accountId };
+    }
+    throw new BadRequestException('need username');
   }
 }

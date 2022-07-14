@@ -1,4 +1,6 @@
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -13,6 +15,10 @@ describe('UsersController', () => {
           provide: UsersService,
           useValue: {},
         },
+        {
+          provide: WINSTON_MODULE_NEST_PROVIDER,
+          useValue: new Logger()
+        }
       ],
       controllers: [UsersController],
     }).compile();
